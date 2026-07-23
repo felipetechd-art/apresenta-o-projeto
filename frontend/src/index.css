@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  
+  --color-brand-gold-start: #d4af37;
+  --color-brand-gold-end: #ffd700;
+  
+  --color-dark-bg: #060b13;
+  --color-dark-card: rgba(16, 29, 48, 0.45);
+  --color-dark-card-hover: rgba(22, 39, 64, 0.6);
+  --color-dark-border: rgba(27, 42, 63, 0.5);
+  --color-dark-border-hover: rgba(43, 67, 99, 0.7);
+  
+  --color-status-green: #10b981;
+  --color-status-red: #ef4444;
+  --color-status-blue: #3b82f6;
+  --color-status-cyan: #06b6d4;
+  --color-status-purple: #8b5cf6;
+  --color-status-yellow: #f59e0b;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-dark-bg);
+    color: #f3f4f6;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+  
+  /* Custom thin premium scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #060b13;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #1b2a3f;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d4af37;
+  }
+}
+
+/* Custom Glassmorphism Card Style */
+.glass-card {
+  background: rgba(16, 29, 48, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(27, 42, 63, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(22, 39, 64, 0.55);
+  border-color: rgba(43, 67, 99, 0.7);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Gold Gradient Text */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gold Button Style */
+.btn-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+  color: #060b13;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* Subtle Pulsing for status dots */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
+}
+
+.pulse-dot {
+  animation: status-pulse 2s infinite ease-in-out;
+}
