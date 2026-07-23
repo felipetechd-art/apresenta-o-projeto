@@ -26,6 +26,7 @@ import {
   RotateCcw,
   Layout
 } from 'lucide-react';
+import felipeImg from '../assets/felipe.jpg';
 
 export default function Presentation() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -329,17 +330,10 @@ export default function Presentation() {
           {currentSlide === 1 && (
             <div className="grid grid-cols-12 gap-10 items-center h-full">
               <div className="col-span-5 flex justify-center">
-                <div className="relative w-full max-w-[340px] aspect-[4/5] rounded-xl overflow-hidden border border-gray-800 bg-gradient-to-b from-gray-900 to-black flex flex-col justify-end p-6 group">
-                  <div className="absolute inset-0 bg-cover bg-center bg-no-repeat filter grayscale opacity-40 mix-blend-luminosity" />
-                  {/* Subtle placeholder look */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                    <div className="w-16 h-16 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/5 flex items-center justify-center mb-3">
-                      <Users className="w-6 h-6 text-[#d4af37]" />
-                    </div>
-                    <span className="text-[10px] uppercase font-mono tracking-widest text-[#d4af37]">Foto de Felipe Damasceno</span>
-                    <span className="text-xs text-gray-500 mt-1 max-w-[200px]">A ser substituída por foto oficial do conselheiro</span>
-                  </div>
-                  <div className="relative z-10 border-t border-gray-800/80 pt-3">
+                <div className="relative w-full max-w-[340px] aspect-[4/5] rounded-xl overflow-hidden border border-gray-800 bg-gradient-to-b from-gray-900 to-black flex flex-col justify-end p-6 group shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+                  <img src={felipeImg} className="absolute inset-0 w-full h-full object-cover object-top filter grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500" alt="Felipe Damasceno" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#060b13] via-[#060b13]/10 to-transparent z-10 pointer-events-none" />
+                  <div className="relative z-20 border-t border-gray-800/80 pt-3">
                     <span className="text-xs text-[#d4af37] font-semibold uppercase tracking-wider block">Felipe Damasceno</span>
                     <span className="text-[10px] text-gray-400 uppercase block tracking-widest mt-0.5">Conselheiro Estratégico de Escala</span>
                   </div>
