@@ -34,6 +34,7 @@ export default function Presentation() {
   const [isPortrait, setIsPortrait] = useState(false);
   const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev'
   const [radius, setRadius] = useState(130);
+  const [activeLayer, setActiveLayer] = useState(0);
   
   const totalSlides = 15;
   const touchStartX = useRef(0);
@@ -55,6 +56,16 @@ export default function Presentation() {
     window.addEventListener('resize', checkOrientation);
     return () => window.removeEventListener('resize', checkOrientation);
   }, []);
+
+  // Loop highlight for Slide 1 government structure
+  useEffect(() => {
+    if (currentSlide === 0) {
+      const interval = setInterval(() => {
+        setActiveLayer((prev) => (prev + 1) % 4);
+      }, 1800);
+      return () => clearInterval(interval);
+    }
+  }, [currentSlide]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -433,21 +444,28 @@ export default function Presentation() {
                     <p className="text-[10px] text-gray-500 uppercase font-mono tracking-widest mt-1">Hierarquia de Escala</p>
                   </div>
                   <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between p-3 bg-[#d4af37]/10 rounded-lg border border-[#d4af37]/30">
-                      <span className="text-xs font-bold text-[#d4af37] uppercase tracking-wider">Governo</span>
-                      <span className="text-[9px] bg-[#d4af37]/20 px-2 py-0.5 rounded text-[#d4af37] font-mono">Conselho / Estratégia</span>
+                    {/* Level 4: Governo */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 0 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 0 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Governo</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 0 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Conselho / Estratégia</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-gray-800">
-                      <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Liderança</span>
-                      <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono">Diretores / Gestores</span>
+                    
+                    {/* Level 3: Liderança */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 1 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 1 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Liderança</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 1 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Diretores / Gestores</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-gray-800">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Processos</span>
-                      <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono">Rotinas / Padrões</span>
+                    
+                    {/* Level 2: Processos */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 2 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 2 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Processos</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 2 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Rotinas / Padrões</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-gray-800">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Indicadores</span>
-                      <span className="text-[9px] bg-[#3b82f6]/10 px-2 py-0.5 rounded text-[#3b82f6] font-mono">Dados / Dashboards</span>
+                    
+                    {/* Level 1: Indicadores */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 3 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 3 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Indicadores</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 3 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Dados / Dashboards</span>
                     </div>
                   </div>
                 </div>
