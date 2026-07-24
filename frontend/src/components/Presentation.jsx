@@ -47,6 +47,16 @@ export default function Presentation() {
   const [calculatedActualReturn, setCalculatedActualReturn] = useState(0);
   const [calculatedLostGrowth, setCalculatedLostGrowth] = useState(0);
   
+  // Slide 6 Calculator states
+  const [delegatedTasks, setDelegatedTasks] = useState('10');
+  const [returningTasks, setReturningTasks] = useState('7');
+  const [reworkHours, setReworkHours] = useState('2');
+  const [slide6CalcState, setSlide6CalcState] = useState('idle'); // 'idle' | 'calculating' | 'done'
+  const [slide6HoursLost, setSlide6HoursLost] = useState(0);
+  const [slide6TimeDrainPercent, setSlide6TimeDrainPercent] = useState(0);
+  const [slide6MonthlyLoss, setSlide6MonthlyLoss] = useState(0);
+  const [slide6AutonomyPercent, setSlide6AutonomyPercent] = useState(0);
+  
   const totalSlides = 15;
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -171,6 +181,35 @@ export default function Presentation() {
       setCalculatedActualReturn(actualReturn);
       setCalculatedLostGrowth(lostGrowth);
       setCalcState('done');
+    }, 1500);
+  };
+
+  const handleCalculateSlide6 = (e) => {
+    e.preventDefault();
+    if (!delegatedTasks || !returningTasks || !reworkHours) return;
+    
+    setSlide6CalcState('calculating');
+    
+    setTimeout(() => {
+      const delegated = parseFloat(delegatedTasks);
+      const returning = parseFloat(returningTasks);
+      const hours = parseFloat(reworkHours);
+      
+      const rate = parseFloat(hourlyRate) || 150;
+      const totalHours = parseFloat(hoursPerWeek) || 40;
+      const stratPercent = parseFloat(strategicPercent) || 20;
+      
+      const hoursLost = returning * hours;
+      const operationalHours = totalHours * (1 - (stratPercent / 100));
+      const drainPercent = operationalHours > 0 ? (hoursLost / operationalHours) * 100 : 0;
+      const monthlyLoss = hoursLost * rate * 4.33;
+      const autonomyPercent = delegated > 0 ? (1 - (returning / delegated)) * 100 : 0;
+      
+      setSlide6HoursLost(hoursLost);
+      setSlide6TimeDrainPercent(drainPercent);
+      setSlide6MonthlyLoss(monthlyLoss);
+      setSlide6AutonomyPercent(autonomyPercent);
+      setSlide6CalcState('done');
     }, 1500);
   };
 
@@ -1033,51 +1072,182 @@ export default function Presentation() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-7 flex flex-col gap-6">
+              <div className="col-span-7 flex flex-col gap-4">
                 
                 {/* O Fluxo Ruim */}
-                <div className="premium-card p-4 rounded-xl border-l-4 border-l-red-500/50">
-                  <span className="text-[9px] uppercase font-mono tracking-wider text-red-500 font-bold block mb-2">FLUXO INADEQUADO</span>
-                  <div className="flex items-center justify-between text-xs font-bold text-white">
-                    <span className="bg-white/5 px-2.5 py-1 rounded">Dono centraliza</span>
-                    <ArrowRight className="w-4 h-4 text-red-500" />
-                    <span className="bg-white/5 px-2.5 py-1 rounded">Delega tarefa operacional</span>
-                    <ArrowRight className="w-4 h-4 text-red-500" />
-                    <span className="bg-red-500/10 border border-red-500/30 px-2.5 py-1 rounded text-red-500">Problema surge</span>
-                    <ArrowRight className="w-4 h-4 text-red-500" />
-                    <span className="bg-white/5 px-2.5 py-1 rounded">Volta ao dono</span>
+                <div className="premium-card p-3 rounded-xl border-l-4 border-l-red-500/50">
+                  <span className="text-[9px] uppercase font-mono tracking-wider text-red-500 font-bold block mb-1">FLUXO INADEQUADO</span>
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-white">
+                    <span className="bg-white/5 px-2 py-1 rounded text-center">Dono centraliza</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-red-500" />
+                    <span className="bg-white/5 px-2 py-1 rounded text-center">Delega tarefa</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-red-500" />
+                    <span className="bg-red-500/10 border border-red-500/30 px-2 py-1 rounded text-red-500 text-center">Problema surge</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-red-500" />
+                    <span className="bg-white/5 px-2 py-1 rounded text-center">Volta ao dono</span>
                   </div>
                 </div>
 
                 {/* O Fluxo Correto */}
-                <div className="premium-card p-4 rounded-xl border-l-4 border-l-[#d4af37]">
-                  <span className="text-[9px] uppercase font-mono tracking-wider text-[#d4af37] font-bold block mb-2">ESTRUTURA DE AUTONOMIA REAL</span>
-                  <div className="flex flex-col gap-3">
-                    <div className="grid grid-cols-5 gap-2 text-[10px] text-center text-gray-400">
-                      <div className="p-2 bg-white/5 border border-gray-800 rounded flex flex-col justify-between">
-                        <span className="font-bold text-white mb-1">PAPEL</span>
+                <div className="premium-card p-3 rounded-xl border-l-4 border-l-[#d4af37]">
+                  <span className="text-[9px] uppercase font-mono tracking-wider text-[#d4af37] font-bold block mb-1">ESTRUTURA DE AUTONOMIA REAL</span>
+                  <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-5 gap-1.5 text-[9px] text-center text-gray-400">
+                      <div className="p-1.5 bg-white/5 border border-gray-800 rounded flex flex-col justify-between">
+                        <span className="font-bold text-white mb-0.5">PAPEL</span>
                         <span>Quem executa</span>
                       </div>
-                      <div className="p-2 bg-white/5 border border-gray-800 rounded flex flex-col justify-between">
-                        <span className="font-bold text-white mb-1">ALÇADA</span>
-                        <span>Poder de decisão</span>
+                      <div className="p-1.5 bg-white/5 border border-gray-800 rounded flex flex-col justify-between">
+                        <span className="font-bold text-white mb-0.5">ALÇADA</span>
+                        <span>Decisão</span>
                       </div>
-                      <div className="p-2 bg-white/5 border border-gray-800 rounded flex flex-col justify-between">
-                        <span className="font-bold text-white mb-1">PROCESSO</span>
+                      <div className="p-1.5 bg-white/5 border border-gray-800 rounded flex flex-col justify-between">
+                        <span className="font-bold text-white mb-0.5">PROCESSO</span>
                         <span>Como fazer</span>
                       </div>
-                      <div className="p-2 bg-[#3b82f6]/10 border border-[#3b82f6]/30 rounded flex flex-col justify-between">
-                        <span className="font-bold text-[#3b82f6] mb-1">MÉTRICA</span>
-                        <span>Como avaliar</span>
+                      <div className="p-1.5 bg-[#3b82f6]/10 border border-[#3b82f6]/30 rounded flex flex-col justify-between">
+                        <span className="font-bold text-[#3b82f6] mb-0.5">MÉTRICA</span>
+                        <span>Avaliar</span>
                       </div>
-                      <div className="p-2 bg-[#d4af37]/10 border border-[#d4af37]/30 rounded flex flex-col justify-between">
-                        <span className="font-bold text-[#d4af37] mb-1">CADÊNCIA</span>
+                      <div className="p-1.5 bg-[#d4af37]/10 border border-[#d4af37]/30 rounded flex flex-col justify-between">
+                        <span className="font-bold text-[#d4af37] mb-0.5">CADÊNCIA</span>
                         <span>Acompanhar</span>
                       </div>
                     </div>
-                    <div className="text-center text-[10px] text-slate-300 font-bold uppercase tracking-wider mt-1 bg-white/5 p-1.5 rounded">
+                    <div className="text-center text-[9px] text-slate-300 font-bold uppercase tracking-wider bg-white/5 py-1 rounded">
                       = Autonomia Executiva Real
                     </div>
+                  </div>
+                </div>
+
+                {/* Centralization & Autonomy Calculator */}
+                <div className="premium-card p-3 rounded-xl border border-[#d4af37]/20 bg-gradient-to-r from-[#0a1120] to-[#0e172a] shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+                  <div className="flex flex-col gap-3">
+                    
+                    {/* Header */}
+                    <div className="flex items-center justify-between border-b border-gray-800/80 pb-1.5 text-left">
+                      <div>
+                        <span className="text-[9px] font-accent text-[#d4af37] font-bold uppercase tracking-wider">Simulador de Retrabalho e Autonomia</span>
+                        <h4 className="text-[10px] font-heading font-extrabold text-white uppercase">O Custo da Re-centralização Operacional</h4>
+                      </div>
+                    </div>
+
+                    {/* Inputs or Results */}
+                    {slide6CalcState === 'idle' && (
+                      <form onSubmit={handleCalculateSlide6} className="w-full flex flex-col gap-3">
+                        <div className="grid grid-cols-3 gap-3 items-end w-full">
+                          
+                          <div className="flex flex-col text-left">
+                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Delegadas / semana</label>
+                            <input 
+                              type="number" 
+                              placeholder="Ex: 10" 
+                              value={delegatedTasks}
+                              onChange={(e) => setDelegatedTasks(e.target.value)}
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              required
+                            />
+                          </div>
+
+                          <div className="flex flex-col text-left">
+                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Voltam (refugo) / semana</label>
+                            <input 
+                              type="number" 
+                              placeholder="Ex: 7" 
+                              value={returningTasks}
+                              onChange={(e) => setReturningTasks(e.target.value)}
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              required
+                            />
+                          </div>
+
+                          <div className="flex flex-col text-left">
+                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tempo refazer / tarefa (h)</label>
+                            <input 
+                              type="number" 
+                              placeholder="Ex: 2" 
+                              value={reworkHours}
+                              onChange={(e) => setReworkHours(e.target.value)}
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              required
+                            />
+                          </div>
+
+                        </div>
+                        <div className="flex justify-end mt-1">
+                          <button 
+                            type="submit"
+                            className="px-5 py-1.5 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+                          >
+                            Calcular Dreno
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {slide6CalcState === 'calculating' && (
+                      <div className="flex items-center justify-center gap-3 text-[#d4af37] animate-pulse py-4">
+                        <svg className="animate-spin h-4 w-4 text-[#d4af37]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Calculando dreno de centralização...</span>
+                      </div>
+                    )}
+
+                    {slide6CalcState === 'done' && (
+                      <div className="flex flex-col gap-3 animate-fade-in text-left">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          
+                          {/* Card 1: Autonomia */}
+                          <div className="bg-white/5 border border-gray-800 hover:border-[#34d399]/20 rounded-xl p-3 transition-all duration-300">
+                            <span className="text-[8px] text-[#34d399] font-bold uppercase tracking-wider block mb-0.5">📊 AUTONOMIA REAL DA EQUIPE</span>
+                            <span className={`text-base font-heading font-extrabold tracking-wide block ${slide6AutonomyPercent < 45 ? 'text-red-500 animate-pulse' : 'text-[#34d399]'}`}>
+                              {slide6AutonomyPercent.toFixed(0)}% Autonomia
+                            </span>
+                            <p className="text-[11px] text-gray-300 font-light mt-1 leading-normal">
+                              Sua equipe é {100 - slide6AutonomyPercent}% dependente. De cada {delegatedTasks} tarefas, {returningTasks} exigem sua validação.
+                            </p>
+                          </div>
+
+                          {/* Card 2: Tempo devorado */}
+                          <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-3 transition-all duration-300">
+                            <span className="text-[8px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">⏳ TEMPO DEVORADO POR RETRABALHO</span>
+                            <span className="text-base font-heading font-extrabold text-red-500 tracking-wide block">
+                              {slide6HoursLost}h / semana
+                            </span>
+                            <p className="text-[11px] text-gray-300 font-light mt-1 leading-normal">
+                              Equivale a {slide6TimeDrainPercent.toFixed(1)}% do seu tempo operacional desperdiçado resolvendo atritos cotidianos.
+                            </p>
+                          </div>
+
+                          {/* Card 3: Prejuízo financeiro */}
+                          <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-3 transition-all duration-300">
+                            <span className="text-[8px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">❌ PREJUÍZO MENSAL DO RETRABALHO</span>
+                            <span className="text-base font-heading font-extrabold text-red-500 tracking-wide block animate-pulse drop-shadow-[0_0_10px_rgba(239,68,68,0.25)]">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(slide6MonthlyLoss)}
+                            </span>
+                            <p className="text-[11px] text-gray-300 font-light mt-1 leading-normal">
+                              O custo financeiro invisível de pagar o valor da sua hora nobre para resolver retrabalhos operacionais.
+                            </p>
+                          </div>
+
+                        </div>
+
+                        <div className="flex justify-between items-center mt-1 border-t border-gray-800/80 pt-2">
+                          <span className="text-[8px] text-gray-500 italic">
+                            *Baseado no valor de hora (R$ {hourlyRate || 150}) e horas/sem ({hoursPerWeek || 40}) informados.
+                          </span>
+                          <button 
+                            onClick={() => { setSlide6CalcState('idle'); setDelegatedTasks('10'); setReturningTasks('7'); setReworkHours('2'); }}
+                            className="px-2.5 py-1 border border-gray-800 hover:border-[#d4af37]/50 text-[8px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded transition-all cursor-pointer"
+                          >
+                            Refazer Simulação
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
 
