@@ -38,8 +38,8 @@ export default function Presentation() {
   const [activeNode, setActiveNode] = useState(0);
   const [hourlyRate, setHourlyRate] = useState('');
   const [hoursPerWeek, setHoursPerWeek] = useState('');
-  const [strategicPercent, setStrategicPercent] = useState('10');
-  const [annualGrowth, setAnnualGrowth] = useState('');
+  const [strategicPercent, setStrategicPercent] = useState('20');
+  const [annualGrowth, setAnnualGrowth] = useState('80');
   const [growthFromStrategy, setGrowthFromStrategy] = useState('50');
   const [calcState, setCalcState] = useState('idle'); // 'idle' | 'calculating' | 'done'
   const [calculatedOpportunityCost, setCalculatedOpportunityCost] = useState(0);
@@ -161,10 +161,10 @@ export default function Presentation() {
       const strategic = total * (percent / 100);
       const opportunity = total - strategic;
       
-      // Growth calculations
+      // Growth calculations (percentage-based)
       const strategicGrowthPortion = growth * (strategyFactor / 100);
-      const actualReturn = strategicGrowthPortion * (percent / 100);
-      const lostGrowth = strategicGrowthPortion - actualReturn;
+      const actualReturn = strategicGrowthPortion;
+      const lostGrowth = percent > 0 ? strategicGrowthPortion * ((100 - percent) / percent) : 0;
       
       setCalculatedOpportunityCost(opportunity);
       setCalculatedStrategicInvestment(strategic);
@@ -863,7 +863,7 @@ export default function Presentation() {
                               type="number" 
                               min="0"
                               max="100"
-                              placeholder="Ex: 10" 
+                              placeholder="Ex: 20" 
                               value={strategicPercent}
                               onChange={(e) => setStrategicPercent(e.target.value)}
                               className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
@@ -873,10 +873,10 @@ export default function Presentation() {
 
                           {/* Row 2/Col 1: Crescimento Faturamento */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Crescimento anual (R$)</label>
+                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Crescimento anual (%)</label>
                             <input 
                               type="number" 
-                              placeholder="Ex: 500000" 
+                              placeholder="Ex: 80" 
                               value={annualGrowth}
                               onChange={(e) => setAnnualGrowth(e.target.value)}
                               className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
@@ -886,7 +886,7 @@ export default function Presentation() {
 
                           {/* Row 2/Col 2: Decisões Estratégicas % */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Fator estratégico (%)</label>
+                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Resp. no resultado (%)</label>
                             <input 
                               type="number" 
                               min="0"
@@ -949,7 +949,7 @@ export default function Presentation() {
                           </div>
                           
                           <button 
-                            onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('10'); setAnnualGrowth(''); setGrowthFromStrategy('50'); }}
+                            onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('20'); setAnnualGrowth('80'); setGrowthFromStrategy('50'); }}
                             className="mt-4 px-3 py-1.5 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
                           >
                             Refazer Simulação
@@ -960,22 +960,32 @@ export default function Presentation() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div className="space-y-4">
                             <div>
-                              <span className="text-[8px] sm:text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">📈 CRESCIMENTO GERADO PELO TEMPO ESTRATÉGICO ({strategicPercent}%)</span>
+                              <span className="text-[8px] sm:text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">📈 CRESCIMENTO DEVIDO ÀS SUAS DECISÕES ESTRATÉGICAS</span>
                               <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedActualReturn)}
+                                {calculatedActualReturn.toFixed(1)}% de crescimento
                               </span>
                               <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
-                                Retorno financeiro real das suas poucas horas focadas em estratégia no último ano.
+                                Com apenas {strategicPercent}% das suas horas dedicadas a decisões, você gerou {calculatedActualReturn.toFixed(1)}% do crescimento total.
+                              </p>
+                            </div>
+
+                            <div>
+                              <span className="text-[8px] sm:text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">⚡ DOBRANDO A DEDICAÇÃO (Projeção {parseFloat(strategicPercent) * 2}%)</span>
+                              <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
+                                +{calculatedActualReturn.toFixed(1)}% de faturamento adicional
+                              </span>
+                              <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
+                                Se você passar para {parseFloat(strategicPercent) * 2}% do seu tempo em estratégia, o crescimento projetado ganharia mais +{calculatedActualReturn.toFixed(1)}%.
                               </p>
                             </div>
                             
                             <div>
-                              <span className="text-[8px] sm:text-[9px] text-orange-500 font-bold uppercase tracking-wider block">❌ CRESCIMENTO DEIXADO NA MESA (Operação Centralizada)</span>
+                              <span className="text-[8px] sm:text-[9px] text-orange-500 font-bold uppercase tracking-wider block">❌ POTENCIAL DEIXADO NA MESA (Operação Centralizada)</span>
                               <span className="text-base md:text-lg font-heading font-extrabold text-orange-500 tracking-wide block animate-pulse">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedLostGrowth)}
+                                +{calculatedLostGrowth.toFixed(1)}% de crescimento perdido
                               </span>
                               <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
-                                Crescimento estratégico não-alavancado que você deixou de realizar por falta de tempo.
+                                O crescimento adicional que você abriu mão por passar {100 - parseFloat(strategicPercent)}% do tempo resolvendo burocracias.
                               </p>
                             </div>
                           </div>
