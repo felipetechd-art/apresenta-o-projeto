@@ -56,6 +56,9 @@ export default function Presentation() {
   const [slide6TimeDrainPercent, setSlide6TimeDrainPercent] = useState(0);
   const [slide6MonthlyLoss, setSlide6MonthlyLoss] = useState(0);
   const [slide6AutonomyPercent, setSlide6AutonomyPercent] = useState(0);
+
+  // Slide 10 sequential path state
+  const [potenciaStep, setPotenciaStep] = useState(0);
   
   const totalSlides = 15;
   const touchStartX = useRef(0);
@@ -109,6 +112,20 @@ export default function Presentation() {
       return () => clearInterval(interval);
     }
   }, [currentSlide]);
+
+  // Loop sequential path animation for Slide 10
+  useEffect(() => {
+    if (currentSlide === 9) {
+      const runStep = () => {
+        setPotenciaStep((prev) => (prev === 8 ? 0 : prev + 1));
+      };
+      const delay = potenciaStep === 8 ? 2000 : 600;
+      const timer = setTimeout(runStep, delay);
+      return () => clearTimeout(timer);
+    } else {
+      setPotenciaStep(0);
+    }
+  }, [currentSlide, potenciaStep]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -1468,15 +1485,34 @@ export default function Presentation() {
                       { step: '04', title: 'AUTOMATIZAR', desc: 'Implantação de IAs e CRM' },
                       { step: '05', title: 'GOVERNAR', desc: 'Acompanhar indicadores' }
                     ].map((item, idx) => (
-                      <div key={idx} className="flex-grow flex flex-col items-center text-center px-1.5 relative group">
-                        <div className="w-10 h-10 rounded-full border border-gray-850 bg-[#0c1625] flex items-center justify-center group-hover:border-[#d4af37]/60 transition-colors mb-2 relative z-10 shadow-md">
-                          <span className="text-xs font-bold font-mono text-[#d4af37]">{item.step}</span>
-                        </div>
-                        <span className="block text-[9px] font-bold text-white uppercase tracking-wider">{item.title}</span>
-                        <span className="block text-[8px] text-gray-500 mt-0.5 max-w-[100px] leading-tight">{item.desc}</span>
+                      <div key={idx} className="flex-grow flex flex-col items-center text-center px-1.5 relative">
+                        {/* Grey base line */}
                         {idx < 4 && (
-                          <div className="absolute top-5 -right-1/2 w-full h-[1px] bg-gray-800 z-0" />
+                          <div className="absolute top-[19px] left-1/2 w-full h-[1.5px] bg-gray-800/80 z-0" />
                         )}
+                        
+                        {/* Animated energy line */}
+                        {idx < 4 && (
+                          <div 
+                            className="absolute top-[19px] left-1/2 w-full h-[2.5px] bg-gradient-to-r from-[#d4af37] to-[#ffd700] z-0 origin-left transition-all duration-500 shadow-[0_0_8px_rgba(212,175,55,0.4)]"
+                            style={{
+                              transform: `scaleX(${potenciaStep >= (idx * 2 + 1) ? 1 : 0})`
+                            }}
+                          />
+                        )}
+
+                        {/* Circle */}
+                        <div className={`w-10 h-10 rounded-full border flex items-center justify-center mb-2 relative z-10 shadow-md transition-all duration-500 ${
+                          potenciaStep >= idx * 2 
+                            ? 'border-[#d4af37] bg-[#121c2e] shadow-[0_0_15px_rgba(212,175,55,0.35)] scale-[1.08]' 
+                            : 'border-gray-800 bg-[#0c1625]'
+                        }`}>
+                          <span className={`text-xs font-bold font-mono transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-[#d4af37]' : 'text-white'}`}>{item.step}</span>
+                        </div>
+
+                        {/* Titles */}
+                        <span className={`block text-[9px] font-bold uppercase tracking-wider transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-white font-extrabold' : 'text-gray-500 font-normal'}`}>{item.title}</span>
+                        <span className={`block text-[8px] mt-0.5 max-w-[100px] leading-tight transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-gray-300 font-medium' : 'text-gray-600 font-light'}`}>{item.desc}</span>
                       </div>
                     ))}
                   </div>
