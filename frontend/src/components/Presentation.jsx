@@ -51,16 +51,28 @@ export default function Presentation() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  // Monitor orientation on mobile
+  // Monitor orientation and screen width on mobile/desktop
   useEffect(() => {
     const checkOrientation = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 768);
-      if (window.innerHeight < 600) {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setIsPortrait(height > width && width < 768);
+      
+      if (width < 380) {
+        setRadius(80);
+      } else if (width < 480) {
         setRadius(95);
-      } else if (window.innerHeight < 750) {
-        setRadius(135);
+      } else if (width < 768) {
+        setRadius(120);
+      } else if (width < 1024) {
+        setRadius(145);
       } else {
-        setRadius(165);
+        // Desktop
+        if (height < 700) {
+          setRadius(150);
+        } else {
+          setRadius(175);
+        }
       }
     };
     checkOrientation();
@@ -195,6 +207,9 @@ export default function Presentation() {
   };
 
   const animationClass = slideDirection === 'next' ? 'animate-slide-in-right' : 'animate-slide-in-left';
+
+  const radiusX = radius * (typeof window !== 'undefined' && window.innerWidth < 768 ? 1.35 : 1.45);
+  const radiusY = radius * (typeof window !== 'undefined' && window.innerWidth < 768 ? 1.05 : 1.15);
 
   return (
     <div 
@@ -706,8 +721,15 @@ export default function Presentation() {
                     { angle: 300 }
                   ].map((line, idx) => {
                     const isActive = activeNode === idx;
-                    const rotationAngle = line.angle + 90;
-                    const lineLength = radius - 15;
+                    const radian = (line.angle * Math.PI) / 180;
+                    const x = Math.cos(radian) * radiusX;
+                    const y = Math.sin(radian) * radiusY;
+                    
+                    const dist = Math.sqrt(x*x + y*y);
+                    const lineLength = dist - (isActive ? 18 : 15);
+                    const angleInRadians = Math.atan2(y, x);
+                    const angleInDegrees = (angleInRadians * 180) / Math.PI;
+                    const rotationAngle = angleInDegrees + 90;
                     
                     return (
                       <div
@@ -733,8 +755,8 @@ export default function Presentation() {
                     { label: 'Decisões', angle: 300, text: 'Validações diárias' }
                   ].map((node, idx) => {
                     const radian = (node.angle * Math.PI) / 180;
-                    const x = Math.cos(radian) * radius;
-                    const y = Math.sin(radian) * radius;
+                    const x = Math.cos(radian) * radiusX;
+                    const y = Math.sin(radian) * radiusY;
                     const isActive = activeNode === idx;
 
                     return (
@@ -746,9 +768,9 @@ export default function Presentation() {
                           transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
                         }}
                       >
-                        <div className={`gargalo-satellite-card px-4 py-2.5 rounded-xl border w-32 sm:w-36 text-center transition-all duration-500 shadow-lg ${isActive ? 'bg-[#121c2e] border-[#d4af37]/60 shadow-[0_0_20px_rgba(212,175,55,0.25)]' : 'bg-[#0e1625]/90 border-gray-800 hover:border-[#d4af37]/50'}`}>
-                          <span className={`text-[10px] sm:text-[11px] font-bold uppercase block transition-colors duration-500 ${isActive ? 'text-[#d4af37]' : 'text-white'}`}>{node.label}</span>
-                          <span className="text-[8px] sm:text-[9px] text-gray-500 mt-1 leading-tight block">{node.text}</span>
+                        <div className={`gargalo-satellite-card px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border w-24 sm:w-28 md:w-36 text-center transition-all duration-500 shadow-lg ${isActive ? 'bg-[#121c2e] border-[#d4af37]/60 shadow-[0_0_20px_rgba(212,175,55,0.25)]' : 'bg-[#0e1625]/90 border-gray-800 hover:border-[#d4af37]/50'}`}>
+                          <span className={`text-[8px] sm:text-[9px] md:text-[11px] font-bold uppercase block transition-colors duration-500 ${isActive ? 'text-[#d4af37]' : 'text-white'}`}>{node.label}</span>
+                          <span className="text-[7px] sm:text-[8px] md:text-[9px] text-gray-500 mt-0.5 sm:mt-1 leading-tight block">{node.text}</span>
                         </div>
                       </div>
                     );
