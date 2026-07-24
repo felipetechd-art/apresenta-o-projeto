@@ -35,6 +35,7 @@ export default function Presentation() {
   const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev'
   const [radius, setRadius] = useState(130);
   const [activeLayer, setActiveLayer] = useState(0);
+  const [activeNode, setActiveNode] = useState(0);
   
   const totalSlides = 15;
   const touchStartX = useRef(0);
@@ -63,6 +64,16 @@ export default function Presentation() {
       const interval = setInterval(() => {
         setActiveLayer((prev) => (prev + 1) % 4);
       }, 1800);
+      return () => clearInterval(interval);
+    }
+  }, [currentSlide]);
+
+  // Loop highlight for Slide 4 radial diagram
+  useEffect(() => {
+    if (currentSlide === 3) {
+      const interval = setInterval(() => {
+        setActiveNode((prev) => (prev + 1) % 6);
+      }, 2000);
       return () => clearInterval(interval);
     }
   }, [currentSlide]);
@@ -285,19 +296,25 @@ export default function Presentation() {
             max-width: 250px !important;
             max-height: 250px !important;
           }
-          .w-24.h-24 {
-            width: 3.5rem !important;
-            height: 3.5rem !important;
+          .gargalo-center-circle {
+            width: 4.5rem !important;
+            height: 4.5rem !important;
           }
-          .w-24.h-24 span.text-sm {
-            font-size: 10px !important;
+          .gargalo-center-circle span.text-base {
+            font-size: 11px !important;
           }
-          .w-28 {
-            width: 5.5rem !important;
+          .gargalo-center-circle span.text-\[9px\] {
+            font-size: 7px !important;
+          }
+          .gargalo-satellite-card {
+            width: 6.5rem !important;
             padding: 0.2rem 0.4rem !important;
           }
-          .w-28 span {
+          .gargalo-satellite-card span {
             font-size: 8px !important;
+          }
+          .gargalo-satellite-card span.text-\[8px\] {
+            font-size: 6.5px !important;
           }
           
           /* Slide 9 pyramid list heights */
@@ -632,13 +649,40 @@ export default function Presentation() {
                 {/* Visual Radial Diagram */}
                 <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center">
                   
-                  {/* Central Node: Dono */}
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ffd700] to-[#b8860b] flex flex-col items-center justify-center border border-white/20 shadow-[0_0_30px_rgba(212,175,55,0.4)] z-10">
-                    <span className="text-black font-heading font-extrabold text-sm uppercase tracking-wider">DONO</span>
-                    <span className="text-black/80 font-mono text-[8px] uppercase tracking-widest">Gargalo</span>
+                  {/* Central Node: Dono (Enlarged) */}
+                  <div className="gargalo-center-circle w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-[#ffd700] to-[#b8860b] flex flex-col items-center justify-center border border-white/20 shadow-[0_0_35px_rgba(212,175,55,0.45)] z-10 transition-transform duration-500">
+                    <span className="text-black font-heading font-extrabold text-base uppercase tracking-wider">DONO</span>
+                    <span className="text-black/80 font-mono text-[9px] uppercase tracking-widest mt-0.5">Gargalo</span>
                   </div>
 
-                  {/* Satellite Nodes */}
+                  {/* Connecting Lines (Ray-based layout from center) */}
+                  {[
+                    { angle: 0 },
+                    { angle: 60 },
+                    { angle: 120 },
+                    { angle: 180 },
+                    { angle: 240 },
+                    { angle: 300 }
+                  ].map((line, idx) => {
+                    const isActive = activeNode === idx;
+                    const rotationAngle = line.angle + 90;
+                    const lineLength = radius - 15;
+                    
+                    return (
+                      <div
+                        key={`line-${idx}`}
+                        className={`absolute origin-bottom transition-all duration-500 z-0 ${isActive ? 'bg-gradient-to-t from-[#d4af37] via-[#d4af37]/60 to-[#d4af37]/10 w-[3px] opacity-100 shadow-[0_0_8px_rgba(212,175,55,0.4)]' : 'bg-gradient-to-t from-[#1b2a3f]/50 to-transparent w-[1.5px] opacity-40'}`}
+                        style={{
+                          height: `${lineLength}px`,
+                          bottom: '50%',
+                          transform: `rotate(${rotationAngle}deg)`,
+                          transformOrigin: 'bottom center'
+                        }}
+                      />
+                    );
+                  })}
+
+                  {/* Satellite Nodes (Enlarged and animated) */}
                   {[
                     { label: 'Comercial', angle: 0, text: 'Aprovação de propostas' },
                     { label: 'Operação', angle: 60, text: 'Resolvendo problemas' },
@@ -650,28 +694,21 @@ export default function Presentation() {
                     const radian = (node.angle * Math.PI) / 180;
                     const x = Math.cos(radian) * radius;
                     const y = Math.sin(radian) * radius;
-                    const lineHeight = radius * 0.45;
+                    const isActive = activeNode === idx;
 
                     return (
                       <div 
                         key={idx} 
-                        className="absolute flex flex-col items-center"
-                        style={{ transform: `translate(${x}px, ${y}px)` }}
+                        className="absolute flex flex-col items-center z-20"
+                        style={{ 
+                          transform: `translate(${x}px, ${y}px) scale(${isActive ? 1.12 : 1})`,
+                          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
                       >
-                        <div className="px-3 py-1.5 rounded-lg bg-[#0e1625]/90 border border-gray-800 flex flex-col items-center shadow-lg w-28 text-center hover:border-[#d4af37]/50 transition-colors">
-                          <span className="text-[10px] font-bold text-white uppercase">{node.label}</span>
-                          <span className="text-[8px] text-gray-500 mt-0.5 leading-tight">{node.text}</span>
+                        <div className={`gargalo-satellite-card px-4 py-2.5 rounded-xl border w-32 sm:w-36 text-center transition-all duration-500 shadow-lg ${isActive ? 'bg-[#121c2e] border-[#d4af37]/60 shadow-[0_0_20px_rgba(212,175,55,0.25)]' : 'bg-[#0e1625]/90 border-gray-800 hover:border-[#d4af37]/50'}`}>
+                          <span className={`text-[10px] sm:text-[11px] font-bold uppercase block transition-colors duration-500 ${isActive ? 'text-[#d4af37]' : 'text-white'}`}>{node.label}</span>
+                          <span className="text-[8px] sm:text-[9px] text-gray-500 mt-1 leading-tight block">{node.text}</span>
                         </div>
-                        {/* Connecting Line (Styled abstractly) */}
-                        <div 
-                          className="absolute w-[2px] bg-gradient-to-t from-[#d4af37]/45 to-transparent z-0" 
-                          style={{
-                            height: `${lineHeight}px`,
-                            top: node.angle < 180 ? `-${lineHeight}px` : '30px',
-                            transform: `rotate(${node.angle + 90}deg)`,
-                            transformOrigin: 'bottom center'
-                          }}
-                        />
                       </div>
                     );
                   })}
