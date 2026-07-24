@@ -1392,11 +1392,11 @@ export default function Presentation() {
                   <span className="text-gold-premium">GOVERNO EMPRESARIAL</span>
                 </h2>
                 <p className="text-xs text-gray-400 leading-relaxed font-light mb-4">
-                  Uma jornada estratégica presencial e online de 12 meses desenvolvida para remodelar a estrutura executiva da sua empresa, garantindo autonomia, processos sólidos e controle métrico.
+                  Uma jornada estratégica presencial e online de 12 meses desenvolvida para remodelar a estrutura executiva em relação à forma como você age dentro da sua empresa, garantindo autonomia, processos sólidos e controle métrico.
                 </p>
                 <div className="p-4 bg-white/2 border border-gray-800 rounded-lg">
                   <p className="text-xs text-gray-300 font-medium">
-                    Não aplicamos uma receita pronta. Cada empresa terá um roadmap diferente porque cada empresário está preso à operação por motivos diferentes.
+                    Não aplicamos uma receita pronta. Cada empresário terá um roadmap diferente, porque cada um está preso à operação por motivos diferentes.
                   </p>
                 </div>
               </div>
