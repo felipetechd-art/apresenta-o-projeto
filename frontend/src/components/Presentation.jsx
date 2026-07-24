@@ -460,28 +460,28 @@ export default function Presentation() {
                     <p className="text-[10px] text-gray-500 uppercase font-mono tracking-widest mt-1">Hierarquia de Escala</p>
                   </div>
                   <div className="flex flex-col gap-3">
-                    {/* Level 4: Governo */}
-                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 0 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
-                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 0 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Governo</span>
-                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 0 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Conselho / Estratégia</span>
+                    {/* Level 4: Governo (Gold Theme) */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 0 ? 'bg-[#d4af37]/15 border border-[#d4af37]/60 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-[#d4af37]/2 border border-[#d4af37]/15'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 0 ? 'text-[#d4af37]' : 'text-[#d4af37]/65'}`}>Governo</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 0 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-[#d4af37]/10 text-[#d4af37]/50'}`}>Conselho / Estratégia</span>
                     </div>
                     
-                    {/* Level 3: Liderança */}
-                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 1 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
-                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 1 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Liderança</span>
-                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 1 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Diretores / Gestores</span>
+                    {/* Level 3: Liderança (Silver/Slate Theme) */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 1 ? 'bg-slate-300/10 border border-slate-400/50 scale-[1.02] shadow-[0_0_15px_rgba(203,213,225,0.2)]' : 'bg-slate-800/5 border border-slate-800/40'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 1 ? 'text-slate-200' : 'text-slate-400/60'}`}>Liderança</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 1 ? 'bg-slate-300/20 text-slate-200' : 'bg-slate-800/20 text-slate-500'}`}>Diretores / Gestores</span>
                     </div>
                     
-                    {/* Level 2: Processos */}
-                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 2 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
-                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 2 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Processos</span>
-                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 2 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Rotinas / Padrões</span>
+                    {/* Level 2: Processos (Bronze/Amber Theme) */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 2 ? 'bg-amber-700/10 border border-amber-500/50 scale-[1.02] shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'bg-amber-800/2 border border-amber-900/30'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 2 ? 'text-amber-300' : 'text-amber-500/60'}`}>Processos</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 2 ? 'bg-amber-700/20 text-amber-300' : 'bg-amber-800/10 text-amber-500/40'}`}>Rotinas / Padrões</span>
                     </div>
                     
-                    {/* Level 1: Indicadores */}
-                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 3 ? 'bg-[#d4af37]/15 border border-[#d4af37]/45 scale-[1.02] shadow-[0_0_15px_rgba(212,175,55,0.25)]' : 'bg-white/5 border border-gray-850'}`}>
-                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 3 ? 'text-[#d4af37]' : 'text-gray-400'}`}>Indicadores</span>
-                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 3 ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-white/5 text-gray-500'}`}>Dados / Dashboards</span>
+                    {/* Level 1: Indicadores (Electric Blue Theme) */}
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-500 ${activeLayer === 3 ? 'bg-[#3b82f6]/15 border border-[#3b82f6]/60 scale-[1.02] shadow-[0_0_15px_rgba(59,130,246,0.25)]' : 'bg-[#3b82f6]/2 border border-[#3b82f6]/15'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${activeLayer === 3 ? 'text-[#60a5fa]' : 'text-[#3b82f6]/65'}`}>Indicadores</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-mono transition-all duration-500 ${activeLayer === 3 ? 'bg-[#3b82f6]/20 text-[#3b82f6]' : 'bg-[#3b82f6]/10 text-[#3b82f6]/50'}`}>Dados / Dashboards</span>
                     </div>
                   </div>
                 </div>
