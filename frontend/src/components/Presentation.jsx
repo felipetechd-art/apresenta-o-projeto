@@ -36,6 +36,10 @@ export default function Presentation() {
   const [radius, setRadius] = useState(130);
   const [activeLayer, setActiveLayer] = useState(0);
   const [activeNode, setActiveNode] = useState(0);
+  const [hourlyRate, setHourlyRate] = useState('');
+  const [hoursPerWeek, setHoursPerWeek] = useState('');
+  const [calcState, setCalcState] = useState('idle'); // 'idle' | 'calculating' | 'done'
+  const [calculatedResult, setCalculatedResult] = useState(0);
   
   const totalSlides = 15;
   const touchStartX = useRef(0);
@@ -119,6 +123,21 @@ export default function Presentation() {
       setSlideDirection(index > currentSlide ? 'next' : 'prev');
       setCurrentSlide(index);
     }
+  };
+
+  const handleCalculateCusto = (e) => {
+    e.preventDefault();
+    if (!hourlyRate || !hoursPerWeek) return;
+    
+    setCalcState('calculating');
+    
+    setTimeout(() => {
+      const rate = parseFloat(hourlyRate);
+      const hours = parseFloat(hoursPerWeek);
+      const result = rate * hours * 52;
+      setCalculatedResult(result);
+      setCalcState('done');
+    }, 1500);
   };
 
   // Fullscreen handler
@@ -720,35 +739,117 @@ export default function Presentation() {
           {/* SLIDE 5: O CUSTO DA DEPENDÊNCIA */}
           {currentSlide === 4 && (
             <div className="flex flex-col justify-center h-full">
-              <div className="mb-6">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Cálculo de Risco</span>
-                <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
+              <div className="mb-3">
+                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1 block">Cálculo de Risco</span>
+                <h2 className="text-2xl lg:text-3xl font-heading font-extrabold text-white">
                   O CUSTO INVISÍVEL DE UMA <br/>
                   <span className="text-gold-premium">EMPRESA DEPENDENTE DO DONO</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-5 mb-8">
+              <div className="grid grid-cols-4 gap-4 mb-4">
                 {[
                   { title: 'TEMPO', desc: 'Horas de valor intelectual desperdiçadas resolvendo atritos operacionais diários que poderiam ser automatizados ou delegados.' },
                   { title: 'DECISÕES', desc: 'A velocidade de inovação e entrega fica limitada pela capacidade física da agenda do fundador.' },
                   { title: 'CRESCIMENTO', desc: 'Gargalo comercial. Escalar as vendas gera caos de entrega, forçando o dono a travar novos negócios.' },
                   { title: 'VALOR E RISCO', desc: 'Frágil e não-vendável. Empresas excessivamente dependentes do fundador não constroem equity real.' }
                 ].map((cost, idx) => (
-                  <div key={idx} className="premium-card p-5 rounded-xl flex flex-col justify-between min-h-[220px]">
+                  <div key={idx} className="premium-card p-4 rounded-xl flex flex-col justify-between min-h-[170px] lg:min-h-[185px]">
                     <div>
-                      <div className="w-8 h-8 rounded bg-[#d4af37]/5 flex items-center justify-center border border-[#d4af37]/20 mb-3">
-                        <span className="text-xs font-bold text-[#d4af37]">{idx + 1}</span>
+                      <div className="w-6 h-6 rounded bg-[#d4af37]/5 flex items-center justify-center border border-[#d4af37]/20 mb-2">
+                        <span className="text-[10px] font-bold text-[#d4af37]">{idx + 1}</span>
                       </div>
-                      <h3 className="font-heading font-bold text-sm text-white mb-2 uppercase tracking-wide">{cost.title}</h3>
-                      <p className="text-[11px] text-gray-400 font-light leading-relaxed">{cost.desc}</p>
+                      <h3 className="font-heading font-bold text-xs text-white mb-1.5 uppercase tracking-wide">{cost.title}</h3>
+                      <p className="text-[10px] text-gray-400 font-light leading-relaxed">{cost.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="text-center">
-                <span className="text-sm font-heading font-bold uppercase tracking-wider text-white">
-                  QUANTO CUSTA SUA EMPRESA CONTINUAR DEPENDENDO DE VOCÊ POR MAIS 12 MESES?
-                </span>
+              
+              {/* Interactive Risk Calculator */}
+              <div className="premium-card p-4 rounded-xl border border-[#d4af37]/20 bg-gradient-to-r from-[#0a1120] to-[#0e172a] shadow-[0_12px_40px_rgba(0,0,0,0.5)] mt-1">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  
+                  {/* Left Column: Title & Formula */}
+                  <div className="flex flex-col text-left max-w-xs">
+                    <span className="text-[9px] font-accent text-[#d4af37] font-bold uppercase tracking-wider">Simulador de Risco Financeiro</span>
+                    <h4 className="text-xs font-heading font-extrabold text-white mt-0.5 uppercase">Custo de Dependência do Dono</h4>
+                    <p className="text-[9px] text-gray-500 mt-0.5 leading-normal font-light">
+                      Fórmula: (Valor Hora × Horas/Semana) × 52 semanas
+                    </p>
+                  </div>
+
+                  {/* Center Column: Inputs or Calculating Screen or Results */}
+                  <div className="flex-grow flex items-center justify-center min-h-[60px] w-full">
+                    {calcState === 'idle' && (
+                      <form onSubmit={handleCalculateCusto} className="flex flex-wrap items-center justify-center gap-4 w-full">
+                        <div className="flex flex-col text-left">
+                          <label className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Valor da sua hora (R$)</label>
+                          <input 
+                            type="number" 
+                            placeholder="Ex: 150" 
+                            value={hourlyRate}
+                            onChange={(e) => setHourlyRate(e.target.value)}
+                            className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-28 transition-all duration-300 font-mono"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="flex flex-col text-left">
+                          <label className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Horas trabalhadas / semana</label>
+                          <input 
+                            type="number" 
+                            placeholder="Ex: 44" 
+                            value={hoursPerWeek}
+                            onChange={(e) => setHoursPerWeek(e.target.value)}
+                            className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-28 transition-all duration-300 font-mono"
+                            required
+                          />
+                        </div>
+
+                        <button 
+                          type="submit"
+                          className="mt-4 px-5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-xs rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                        >
+                          Calcular Custo Anual
+                        </button>
+                      </form>
+                    )}
+
+                    {calcState === 'calculating' && (
+                      <div className="flex items-center gap-3 text-[#d4af37] animate-pulse">
+                        <svg className="animate-spin h-5 w-5 text-[#d4af37]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-xs font-mono font-bold uppercase tracking-widest">Processando cálculo de risco...</span>
+                      </div>
+                    )}
+
+                    {calcState === 'done' && (
+                      <div className="flex flex-wrap items-center justify-between gap-4 w-full animate-fade-in">
+                        <div className="text-left">
+                          <span className="text-[9px] text-[#d4af37] font-bold uppercase tracking-wider block">Custo Operacional de Oportunidade Anual</span>
+                          <span className="text-lg md:text-xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse block">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedResult)}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-3 ml-auto">
+                          <p className="text-[9px] text-gray-400 font-light max-w-[200px] leading-tight">
+                            Este é o valor anual desperdiçado pela centralização operacional do seu tempo.
+                          </p>
+                          <button 
+                            onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); }}
+                            className="px-3 py-1.5 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer"
+                          >
+                            Refazer
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
               </div>
             </div>
           )}
