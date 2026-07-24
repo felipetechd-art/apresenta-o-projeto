@@ -925,74 +925,83 @@ export default function Presentation() {
                       <div className="flex flex-col lg:flex-row items-stretch gap-6 w-full animate-fade-in text-left">
                         
                         {/* Column 1: Time Cost Metrics (Left) */}
-                        <div className="flex-1 flex flex-col justify-between border-r border-gray-800/80 pr-6">
-                          <div className="space-y-4">
-                            <div>
-                              <span className="text-[8px] sm:text-[9px] text-red-500 font-bold uppercase tracking-wider block">⚠️ CUSTO OPERACIONAL DE OPORTUNIDADE</span>
-                              <span className="text-lg md:text-xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse block">
+                        <div className="flex-1 flex flex-col justify-between border-r border-gray-800/80 pr-6 gap-3">
+                          <div className="space-y-3">
+                            
+                            {/* Card 1.1: Custo Operacional de Oportunidade */}
+                            <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-3 sm:p-4 transition-all duration-300">
+                              <span className="text-[9px] text-red-500 font-bold uppercase tracking-wider block mb-1">⚠️ CUSTO OPERACIONAL DE OPORTUNIDADE</span>
+                              <span className="text-xl md:text-2xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.25)] animate-pulse block">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedOpportunityCost)}
                               </span>
-                              <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
-                                Horas intelectuais engolidas por burocracias operacionais na empresa.
+                              <p className="text-[11px] text-gray-300 font-light mt-1.5 leading-relaxed">
+                                Horas intelectuais engolidas por burocracias operacionais que deveriam ser delegadas.
                               </p>
                             </div>
                             
-                            <div>
-                              <span className="text-[8px] sm:text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">💎 INVESTIMENTO DO SEU TEMPO EM ESTRATÉGIA</span>
-                              <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
+                            {/* Card 1.2: Investimento do Tempo */}
+                            <div className="bg-[#34d399]/5 border border-[#34d399]/10 hover:border-[#34d399]/25 rounded-xl p-3 sm:p-4 transition-all duration-300">
+                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block mb-1">💎 INVESTIMENTO DO SEU TEMPO EM ESTRATÉGIA</span>
+                              <span className="text-lg md:text-xl font-heading font-extrabold text-[#34d399] tracking-wide block">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedStrategicInvestment)}
                               </span>
-                              <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
-                                Custo do seu tempo intelectual que foi efetivamente dedicado a estruturar.
+                              <p className="text-[11px] text-gray-300 font-light mt-1.5 leading-relaxed">
+                                Custo do seu tempo intelectual que foi efetivamente dedicado a estruturar o crescimento.
                               </p>
                             </div>
+
                           </div>
                           
                           <button 
                             onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('20'); setAnnualGrowth('80'); setGrowthFromStrategy('50'); }}
-                            className="mt-4 px-3 py-1.5 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
+                            className="mt-4 px-4 py-2 border border-gray-800 hover:border-[#d4af37]/50 text-[10px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
                           >
                             Refazer Simulação
                           </button>
                         </div>
 
                         {/* Column 2: Growth Impact Metrics (Right) */}
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div className="space-y-4">
-                            <div>
-                              <span className="text-[8px] sm:text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">📈 CRESCIMENTO DEVIDO ÀS SUAS DECISÕES ESTRATÉGICAS</span>
+                        <div className="flex-1 flex flex-col justify-between gap-3">
+                          <div className="space-y-3">
+                            
+                            {/* Card 2.1: Crescimento devido a decisões */}
+                            <div className="bg-white/5 border border-gray-800/80 hover:border-[#34d399]/20 rounded-xl p-3 transition-all duration-300">
+                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block mb-1">📈 CRESCIMENTO DEVIDO ÀS SUAS DECISÕES ESTRATÉGICAS</span>
                               <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
-                                {calculatedActualReturn.toFixed(1)}% de crescimento
+                                {calculatedActualReturn.toFixed(1)}% de crescimento gerado
                               </span>
-                              <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
+                              <p className="text-[11px] text-gray-300 font-light mt-1 leading-relaxed">
                                 Com apenas {strategicPercent}% das suas horas dedicadas a decisões, você gerou {calculatedActualReturn.toFixed(1)}% do crescimento total.
                               </p>
                             </div>
 
-                            <div>
-                              <span className="text-[8px] sm:text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">⚡ DOBRANDO A DEDICAÇÃO (Projeção {parseFloat(strategicPercent) * 2}%)</span>
+                            {/* Card 2.2: Dobrando a Dedicação */}
+                            <div className="bg-white/5 border border-gray-800/80 hover:border-[#34d399]/20 rounded-xl p-3 transition-all duration-300">
+                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block mb-1">⚡ DOBRANDO A DEDICAÇÃO (Projeção {parseFloat(strategicPercent) * 2}%)</span>
                               <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
-                                +{calculatedActualReturn.toFixed(1)}% de faturamento adicional
+                                +{calculatedActualReturn.toFixed(1)}% de crescimento projetado
                               </span>
-                              <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
+                              <p className="text-[11px] text-gray-300 font-light mt-1 leading-relaxed">
                                 Se você passar para {parseFloat(strategicPercent) * 2}% do seu tempo em estratégia, o crescimento projetado ganharia mais +{calculatedActualReturn.toFixed(1)}%.
                               </p>
                             </div>
                             
-                            <div>
-                              <span className="text-[8px] sm:text-[9px] text-orange-500 font-bold uppercase tracking-wider block">❌ POTENCIAL DEIXADO NA MESA (Operação Centralizada)</span>
+                            {/* Card 2.3: Potencial Deixado na Mesa */}
+                            <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-3 transition-all duration-300">
+                              <span className="text-[9px] text-orange-500 font-bold uppercase tracking-wider block mb-1">❌ POTENCIAL DEIXADO NA MESA (Operação Centralizada)</span>
                               <span className="text-base md:text-lg font-heading font-extrabold text-orange-500 tracking-wide block animate-pulse">
                                 +{calculatedLostGrowth.toFixed(1)}% de crescimento perdido
                               </span>
-                              <p className="text-[8px] text-gray-500 font-light mt-0.5 leading-tight">
-                                O crescimento adicional que você abriu mão por passar {100 - parseFloat(strategicPercent)}% do tempo resolvendo burocracias.
+                              <p className="text-[11px] text-gray-300 font-light mt-1 leading-relaxed">
+                                O faturamento incremental que você abriu mão por passar {100 - parseFloat(strategicPercent)}% do tempo focado na operação.
                               </p>
                             </div>
+
                           </div>
 
-                          <div className="mt-4 border-t border-gray-800/80 pt-2 text-left">
-                            <span className="text-[8px] text-[#d4af37] font-bold uppercase tracking-wider block">🎯 Como recuperar esse faturamento não-alavancado:</span>
-                            <p className="text-[7.5px] text-gray-500 leading-normal font-light">
+                          <div className="mt-4 border-t border-gray-800/80 pt-2.5 text-left">
+                            <span className="text-[9px] text-[#d4af37] font-bold uppercase tracking-wider block">🎯 Como recuperar esse faturamento não-alavancado:</span>
+                            <p className="text-[9px] text-gray-400 leading-normal font-light">
                               Ao invés de gastar tempo na operação, direcione suas horas para ajustes de preços/margens, estratégias comerciais de vendas, automação de rotinas e a contratação de gestores.
                             </p>
                           </div>
