@@ -1351,7 +1351,7 @@ export default function Presentation() {
           {currentSlide === 7 && (
             <div className="flex flex-col justify-center h-full">
               <div className="mb-6">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">A Meta do Programa</span>
+                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">O Alvo do Programa</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
                   A TRANSFORMAÇÃO:<br/>
                   <span className="text-gold-premium">DE EMPRESÁRIO OPERACIONAL A EMPRESÁRIO QUE GOVERNA</span>
