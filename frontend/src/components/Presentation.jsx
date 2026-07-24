@@ -46,11 +46,11 @@ export default function Presentation() {
     const checkOrientation = () => {
       setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 768);
       if (window.innerHeight < 600) {
-        setRadius(75);
+        setRadius(95);
       } else if (window.innerHeight < 750) {
-        setRadius(100);
+        setRadius(135);
       } else {
-        setRadius(130);
+        setRadius(165);
       }
     };
     checkOrientation();
@@ -293,8 +293,8 @@ export default function Presentation() {
           
           /* Slide 4 Radial Diagram dimensions */
           .aspect-square {
-            max-width: 250px !important;
-            max-height: 250px !important;
+            max-width: 320px !important;
+            max-height: 320px !important;
           }
           .gargalo-center-circle {
             width: 4.5rem !important;
@@ -647,7 +647,7 @@ export default function Presentation() {
               </div>
               <div className="col-span-7 flex justify-center">
                 {/* Visual Radial Diagram */}
-                <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center">
+                <div className="relative w-full max-w-[500px] md:max-w-[540px] aspect-square flex items-center justify-center">
                   
                   {/* Central Node: Dono (Enlarged) */}
                   <div className="gargalo-center-circle w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-[#ffd700] to-[#b8860b] flex flex-col items-center justify-center border border-white/20 shadow-[0_0_35px_rgba(212,175,55,0.45)] z-10 transition-transform duration-500">
