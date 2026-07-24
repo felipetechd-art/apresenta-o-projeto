@@ -33,13 +33,15 @@ export default function Presentation() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
   const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev'
-  const [radius, setRadius] = useState(130);
+  const [radius, setRadius] = useState(165);
   const [activeLayer, setActiveLayer] = useState(0);
   const [activeNode, setActiveNode] = useState(0);
   const [hourlyRate, setHourlyRate] = useState('');
   const [hoursPerWeek, setHoursPerWeek] = useState('');
+  const [strategicPercent, setStrategicPercent] = useState('10');
   const [calcState, setCalcState] = useState('idle'); // 'idle' | 'calculating' | 'done'
-  const [calculatedResult, setCalculatedResult] = useState(0);
+  const [calculatedOpportunityCost, setCalculatedOpportunityCost] = useState(0);
+  const [calculatedStrategicInvestment, setCalculatedStrategicInvestment] = useState(0);
   
   const totalSlides = 15;
   const touchStartX = useRef(0);
@@ -134,8 +136,14 @@ export default function Presentation() {
     setTimeout(() => {
       const rate = parseFloat(hourlyRate);
       const hours = parseFloat(hoursPerWeek);
-      const result = rate * hours * 52;
-      setCalculatedResult(result);
+      const percent = parseFloat(strategicPercent) || 0;
+      
+      const total = rate * hours * 52;
+      const strategic = total * (percent / 100);
+      const opportunity = total - strategic;
+      
+      setCalculatedOpportunityCost(opportunity);
+      setCalculatedStrategicInvestment(strategic);
       setCalcState('done');
     }, 1500);
   };
@@ -781,7 +789,7 @@ export default function Presentation() {
                   {/* Center Column: Inputs or Calculating Screen or Results */}
                   <div className="flex-grow flex items-center justify-center min-h-[60px] w-full">
                     {calcState === 'idle' && (
-                      <form onSubmit={handleCalculateCusto} className="flex flex-wrap items-center justify-center gap-4 w-full">
+                      <form onSubmit={handleCalculateCusto} className="flex flex-wrap items-end justify-center gap-4 w-full">
                         <div className="flex flex-col text-left">
                           <label className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Valor da sua hora (R$)</label>
                           <input 
@@ -806,11 +814,25 @@ export default function Presentation() {
                           />
                         </div>
 
+                        <div className="flex flex-col text-left">
+                          <label className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tempo estratégico (%)</label>
+                          <input 
+                            type="number" 
+                            min="0"
+                            max="100"
+                            placeholder="Ex: 10" 
+                            value={strategicPercent}
+                            onChange={(e) => setStrategicPercent(e.target.value)}
+                            className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-24 transition-all duration-300 font-mono"
+                            required
+                          />
+                        </div>
+
                         <button 
                           type="submit"
-                          className="mt-4 px-5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-xs rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                          className="px-5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-xs rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
                         >
-                          Calcular Custo Anual
+                          Calcular
                         </button>
                       </form>
                     )}
@@ -826,29 +848,67 @@ export default function Presentation() {
                     )}
 
                     {calcState === 'done' && (
-                      <div className="flex flex-wrap items-center justify-between gap-4 w-full animate-fade-in">
-                        <div className="text-left">
-                          <span className="text-[9px] text-[#d4af37] font-bold uppercase tracking-wider block">Custo Operacional de Oportunidade Anual</span>
-                          <span className="text-lg md:text-xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse block">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedResult)}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-3 ml-auto">
-                          <p className="text-[9px] text-gray-400 font-light max-w-[200px] leading-tight">
-                            Este é o valor anual desperdiçado pela centralização operacional do seu tempo.
-                          </p>
+                      <div className="flex flex-col lg:flex-row items-stretch gap-6 w-full animate-fade-in text-left">
+                        {/* Results Column */}
+                        <div className="flex-1 flex flex-col justify-between border-r border-gray-800/80 pr-6">
+                          <div className="space-y-4">
+                            <div>
+                              <span className="text-[9px] text-red-500 font-bold uppercase tracking-wider block">⚠️ CUSTO OPERACIONAL DE OPORTUNIDADE (Desperdício Anual)</span>
+                              <span className="text-xl md:text-2xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse block">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedOpportunityCost)}
+                              </span>
+                              <p className="text-[9px] text-gray-500 font-light mt-0.5 leading-tight">
+                                Valor anual desperdiçado com rotinas operacionais que deveriam ser delegadas ou automatizadas.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block">💎 INVESTIMENTO EFETIVO EM CRESCIMENTO ({strategicPercent}%)</span>
+                              <span className="text-lg md:text-xl font-heading font-extrabold text-[#34d399] tracking-wide block">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedStrategicInvestment)}
+                              </span>
+                              <p className="text-[9px] text-gray-500 font-light mt-0.5 leading-tight">
+                                Valor real convertido em direcionamento estratégico e expansão do valuation.
+                              </p>
+                            </div>
+                          </div>
+                          
                           <button 
-                            onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); }}
-                            className="px-3 py-1.5 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer"
+                            onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('10'); }}
+                            className="mt-4 px-3 py-1.5 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
                           >
-                            Refazer
+                            Calcular Novamente
                           </button>
+                        </div>
+
+                        {/* Strategic Growth Info Column */}
+                        <div className="flex-1 flex flex-col justify-center">
+                          <span className="text-[9px] text-[#d4af37] font-bold uppercase tracking-wider block mb-2">🎯 Onde investir seu tempo estratégico para crescer:</span>
+                          <p className="text-[9px] text-gray-400 font-light mb-3 leading-relaxed">
+                            Ao liberar horas operacionais, o empresário maduro deve focar nas alavancas que realmente geram valor (equity) e escala:
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-[9px]">
+                            <div className="p-2 bg-white/2 border border-gray-800/50 rounded-lg hover:border-[#d4af37]/30 transition-all">
+                              <span className="font-bold text-[#d4af37] block">📈 Precificação & Margens</span>
+                              <span className="text-[8px] text-gray-500 leading-normal block">Ajustes estratégicos comerciais para ganho imediato de rentabilidade.</span>
+                            </div>
+                            <div className="p-2 bg-white/2 border border-gray-800/50 rounded-lg hover:border-[#d4af37]/30 transition-all">
+                              <span className="font-bold text-[#d4af37] block">🚀 Estratégias de Vendas</span>
+                              <span className="text-[8px] text-gray-500 leading-normal block">Criação de novos canais de tração comercial para escala acelerada.</span>
+                            </div>
+                            <div className="p-2 bg-white/2 border border-gray-800/50 rounded-lg hover:border-[#d4af37]/30 transition-all">
+                              <span className="font-bold text-[#d4af37] block">🤖 Automação e Processos</span>
+                              <span className="text-[8px] text-gray-500 leading-normal block">Estruturação de rotinas integradas por softwares sem depender do dono.</span>
+                            </div>
+                            <div className="p-2 bg-white/2 border border-gray-800/50 rounded-lg hover:border-[#d4af37]/30 transition-all">
+                              <span className="font-bold text-[#d4af37] block">👥 Contratações Chave</span>
+                              <span className="text-[8px] text-gray-500 leading-normal block">Recrutamento e mentoria de diretores/gestores de alto rendimento.</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
             </div>
