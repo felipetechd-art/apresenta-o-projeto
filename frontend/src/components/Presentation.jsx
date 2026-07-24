@@ -166,25 +166,41 @@ export default function Presentation() {
         }
 
         @keyframes slideInRight {
-          from { transform: translateX(40px); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from { 
+            transform: translateX(30px) scale(0.98); 
+            opacity: 0;
+            filter: blur(8px);
+          }
+          to { 
+            transform: translateX(0) scale(1); 
+            opacity: 1;
+            filter: blur(0);
+          }
         }
         @keyframes slideInLeft {
-          from { transform: translateX(-40px); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from { 
+            transform: translateX(-30px) scale(1.02); 
+            opacity: 0;
+            filter: blur(8px);
+          }
+          to { 
+            transform: translateX(0) scale(1); 
+            opacity: 1;
+            filter: blur(0);
+          }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
         .animate-slide-in-right {
-          animation: slideInRight 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .animate-slide-in-left {
-          animation: slideInLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .animate-fade-in {
-          animation: fadeIn 0.5s ease-out forwards;
+          animation: fadeIn 0.6s ease-out forwards;
         }
 
         /* Glass Cards */
