@@ -33,6 +33,7 @@ export default function Presentation() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
   const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev'
+  const [radius, setRadius] = useState(130);
   
   const totalSlides = 15;
   const touchStartX = useRef(0);
@@ -42,6 +43,13 @@ export default function Presentation() {
   useEffect(() => {
     const checkOrientation = () => {
       setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 768);
+      if (window.innerHeight < 600) {
+        setRadius(75);
+      } else if (window.innerHeight < 750) {
+        setRadius(100);
+      } else {
+        setRadius(130);
+      }
     };
     checkOrientation();
     window.addEventListener('resize', checkOrientation);
@@ -127,7 +135,7 @@ export default function Presentation() {
 
   return (
     <div 
-      className="w-screen h-screen overflow-hidden bg-[#060b13] flex flex-col justify-between select-none font-sans relative text-gray-300 animate-fade-in"
+      className="w-screen h-[100dvh] overflow-hidden bg-[#060b13] flex flex-col justify-between select-none font-sans relative text-gray-300 animate-fade-in"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -194,6 +202,127 @@ export default function Presentation() {
         /* Border Gold Gradient */
         .border-gold-grad {
           border-image: linear-gradient(135deg, #d4af37 0%, #b8860b 100%) 1;
+        }
+
+        /* Responsive adjustments for mobile landscape and low viewports */
+        @media (max-height: 640px) {
+          header {
+            padding: 0.5rem 2rem !important;
+          }
+          footer {
+            padding: 0.5rem 2rem !important;
+          }
+          main {
+            padding-left: 2.5rem !important;
+            padding-right: 2.5rem !important;
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+          }
+          
+          /* Typography scaling */
+          h1 {
+            font-size: 2rem !important;
+            line-height: 1.15 !important;
+            margin-bottom: 0.5rem !important;
+          }
+          h2 {
+            font-size: 1.35rem !important;
+            line-height: 1.2 !important;
+            margin-bottom: 0.35rem !important;
+          }
+          p {
+            font-size: 0.7rem !important;
+            line-height: 1.35 !important;
+            margin-bottom: 0.35rem !important;
+          }
+          
+          /* Slide layout cards and grids spacing */
+          .premium-card {
+            padding: 0.75rem !important;
+          }
+          .grid {
+            gap: 0.75rem !important;
+          }
+          
+          /* Cards scaling for Slide 2, 15 */
+          .max-w-\[340px\] {
+            max-w: 220px !important;
+          }
+          .aspect-\[4\/5\] {
+            aspect-ratio: auto !important;
+            height: 180px !important;
+          }
+          
+          /* Slide 4 Radial Diagram dimensions */
+          .aspect-square {
+            max-width: 250px !important;
+            max-height: 250px !important;
+          }
+          .w-24.h-24 {
+            width: 3.5rem !important;
+            height: 3.5rem !important;
+          }
+          .w-24.h-24 span.text-sm {
+            font-size: 10px !important;
+          }
+          .w-28 {
+            width: 5.5rem !important;
+            padding: 0.2rem 0.4rem !important;
+          }
+          .w-28 span {
+            font-size: 8px !important;
+          }
+          
+          /* Slide 9 pyramid list heights */
+          .max-w-\[420px\] {
+            max-w: 320px !important;
+          }
+          .p-3\.5 {
+            padding: 0.4rem 0.6rem !important;
+          }
+          
+          /* Slide 10 method process steps */
+          .w-10.h-10 {
+            width: 1.75rem !important;
+            height: 1.75rem !important;
+          }
+          .w-10.h-10 span {
+            font-size: 9px !important;
+          }
+          .flex-grow.flex.flex-col.items-center span {
+            font-size: 7px !important;
+          }
+          
+          /* Slide 13 metrics dashboard mockup */
+          .max-w-\[460px\] {
+            max-w: 360px !important;
+          }
+          .p-5 {
+            padding: 0.6rem !important;
+          }
+          .p-3.bg-black\/20 {
+            padding: 0.4rem !important;
+          }
+          .text-xl {
+            font-size: 1.1rem !important;
+          }
+          
+          /* General helper utility sizes */
+          .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.35rem !important;
+          }
+          .mb-8 {
+            margin-bottom: 0.35rem !important;
+          }
+          .mb-6 {
+            margin-bottom: 0.35rem !important;
+          }
+          .mt-6 {
+            margin-top: 0.35rem !important;
+          }
+          .gap-6 {
+            gap: 0.35rem !important;
+          }
         }
       `}</style>
 
@@ -484,10 +613,10 @@ export default function Presentation() {
                     { label: 'Clientes', angle: 240, text: 'Atendimento direto' },
                     { label: 'Decisões', angle: 300, text: 'Validações diárias' }
                   ].map((node, idx) => {
-                    const radius = 130; // distance from center
                     const radian = (node.angle * Math.PI) / 180;
                     const x = Math.cos(radian) * radius;
                     const y = Math.sin(radian) * radius;
+                    const lineHeight = radius * 0.45;
 
                     return (
                       <div 
@@ -503,8 +632,8 @@ export default function Presentation() {
                         <div 
                           className="absolute w-[2px] bg-gradient-to-t from-[#d4af37]/45 to-transparent z-0" 
                           style={{
-                            height: '60px',
-                            top: node.angle < 180 ? '-60px' : '30px',
+                            height: `${lineHeight}px`,
+                            top: node.angle < 180 ? `-${lineHeight}px` : '30px',
                             transform: `rotate(${node.angle + 90}deg)`,
                             transformOrigin: 'bottom center'
                           }}
