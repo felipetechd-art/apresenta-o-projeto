@@ -1868,18 +1868,15 @@ export default function Presentation() {
                   </div>
 
                   {/* Right part: Valuation Anchoring Box */}
-                  <div className="col-span-4 bg-[#d4af37]/5 border border-[#d4af37]/35 rounded-xl p-3.5 flex flex-col justify-between shadow-[0_0_20px_rgba(212,175,55,0.1)] text-left">
+                  <div className="col-span-4 bg-[#d4af37]/5 border border-[#d4af37]/35 rounded-xl p-3.5 flex flex-col justify-center shadow-[0_0_20px_rgba(212,175,55,0.1)] text-left">
                     <div>
                       <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">🎯 VALOR DA SOLUÇÃO</span>
                       <p className="text-[11px] sm:text-xs text-gray-300 leading-normal font-light">
                         Se a sua inércia custa <strong className="text-white">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months)}</strong> nos próximos 12 meses...
                       </p>
-                      <p className="text-[11px] sm:text-xs text-[#d4af37] font-semibold leading-normal mt-1">
-                        Você me pagaria metade disso (<strong className="text-[#ffd700]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months / 2)}</strong>) para resolver este problema em definitivo?
+                      <p className="text-[11px] sm:text-xs text-[#d4af37] font-semibold leading-normal mt-1.5">
+                        Concorda que o PGE vale no mínimo <strong className="text-[#ffd700]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months / 2)}</strong> para resolver esse problema em definitivo?
                       </p>
-                    </div>
-                    <div className="text-[9px] text-gray-400 mt-1.5 border-t border-[#d4af37]/20 pt-1.5 italic text-right font-medium">
-                      No mínimo, a solução do PGE vale {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months / 2)}
                     </div>
                   </div>
 
