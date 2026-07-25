@@ -1319,40 +1319,40 @@ export default function Presentation() {
 
           {/* SLIDE 5: O CUSTO DA DEPENDÊNCIA */}
           {(isMobile || currentSlide === 4) && (
-            <div id="slide-4" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+            <div id="slide-4" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-2 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
               <div className="flex flex-col justify-center h-full">
-              <div className="mb-3">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1 block">Cálculo de Risco</span>
-                <h2 className="text-2xl lg:text-3xl font-heading font-extrabold text-white">
+              <div className="mb-2">
+                <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-0.5 block">Cálculo de Risco</span>
+                <h2 className="text-xl lg:text-2xl font-heading font-extrabold text-white leading-tight">
                   O CUSTO INVISÍVEL DE UMA <br/>
                   <span className="text-gold-premium">EMPRESA DEPENDENTE DO DONO</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 mb-2.5">
                 {[
                   { title: 'TEMPO', desc: 'Horas de valor intelectual desperdiçadas resolvendo atritos operacionais diários que poderiam ser automatizados ou delegados.' },
                   { title: 'DECISÕES', desc: 'A velocidade de inovação e entrega fica limitada pela capacidade física da agenda do fundador.' },
                   { title: 'CRESCIMENTO', desc: 'Gargalo comercial. Escalar as vendas gera caos de entrega, forçando o dono a travar novos negócios.' },
                   { title: 'VALOR E RISCO', desc: 'Frágil e não-vendável. Empresas excessivamente dependentes do fundador não constroem equity real.' }
                 ].map((cost, idx) => (
-                  <div key={idx} className="premium-card p-4 rounded-xl flex flex-col justify-between min-h-[170px] lg:min-h-[185px]">
+                  <div key={idx} className="premium-card p-3 rounded-xl flex flex-col justify-between">
                     <div>
-                      <div className="w-6 h-6 rounded bg-[#d4af37]/5 flex items-center justify-center border border-[#d4af37]/20 mb-2">
-                        <span className="text-[10px] font-bold text-[#d4af37]">{idx + 1}</span>
+                      <div className="w-5 h-5 rounded bg-[#d4af37]/5 flex items-center justify-center border border-[#d4af37]/20 mb-1">
+                        <span className="text-[9px] font-bold text-[#d4af37]">{idx + 1}</span>
                       </div>
-                      <h3 className="font-heading font-bold text-xs text-white mb-1.5 uppercase tracking-wide">{cost.title}</h3>
-                      <p className="text-[10px] text-gray-400 font-light leading-relaxed">{cost.desc}</p>
+                      <h3 className="font-heading font-bold text-[11px] text-white mb-1 uppercase tracking-wide">{cost.title}</h3>
+                      <p className="text-[9px] text-gray-400 font-light leading-relaxed">{cost.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
               
               {/* Interactive Risk Calculator */}
-              <div className="premium-card p-4 rounded-xl border border-[#d4af37]/20 bg-gradient-to-r from-[#0a1120] to-[#0e172a] shadow-[0_12px_40px_rgba(0,0,0,0.5)] mt-1">
-                <div className="flex flex-col gap-4">
+              <div className="premium-card p-3 rounded-xl border border-[#d4af37]/20 bg-gradient-to-r from-[#0a1120] to-[#0e172a] shadow-[0_12px_40px_rgba(0,0,0,0.5)] mt-0">
+                <div className="flex flex-col gap-3">
                   
                   {/* Title & Formula */}
-                  <div className="flex items-center justify-between border-b border-gray-800/80 pb-2 text-left">
+                  <div className="flex items-center justify-between border-b border-gray-800/80 pb-1.5 text-left">
                     <div>
                       <span className="text-[9px] font-accent text-[#d4af37] font-bold uppercase tracking-wider">Simulador de Risco e Alavancagem</span>
                       <h4 className="text-xs font-heading font-extrabold text-white mt-0.5 uppercase">Custo de Centralização vs. Retorno Estratégico</h4>
@@ -1363,40 +1363,40 @@ export default function Presentation() {
                   </div>
 
                   {/* Inputs Row / Center Column */}
-                  <div className="flex items-center justify-center min-h-[60px] w-full">
+                  <div className="flex items-center justify-center min-h-[45px] w-full">
                     {calcState === 'idle' && (
-                      <form onSubmit={handleCalculateCusto} className="w-full flex flex-col gap-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end w-full">
+                      <form onSubmit={handleCalculateCusto} className="w-full flex flex-col gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 items-end w-full">
                           
                           {/* Row 1/Col 1: Valor Hora */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Valor da sua hora (R$)</label>
+                            <label className="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-1">Valor da sua hora (R$)</label>
                             <input 
                               type="number" 
                               placeholder="Ex: 150" 
                               value={hourlyRate}
                               onChange={(e) => setHourlyRate(e.target.value)}
-                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                               required
                             />
                           </div>
                           
                           {/* Row 1/Col 2: Horas Semanais */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Horas trab. / semana</label>
+                            <label className="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-1">Horas trab. / semana</label>
                             <input 
                               type="number" 
                               placeholder="Ex: 44" 
                               value={hoursPerWeek}
                               onChange={(e) => setHoursPerWeek(e.target.value)}
-                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                               required
                             />
                           </div>
 
                           {/* Row 1/Col 3: Tempo Estratégico % */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tempo estratégico (%)</label>
+                            <label className="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tempo estratégico (%)</label>
                             <input 
                               type="number" 
                               min="0"
@@ -1404,27 +1404,27 @@ export default function Presentation() {
                               placeholder="Ex: 20" 
                               value={strategicPercent}
                               onChange={(e) => setStrategicPercent(e.target.value)}
-                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                               required
                             />
                           </div>
 
                           {/* Row 2/Col 1: Crescimento Faturamento */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Crescimento anual (%)</label>
+                            <label className="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-1">Crescimento anual (%)</label>
                             <input 
                               type="number" 
                               placeholder="Ex: 80" 
                               value={annualGrowth}
                               onChange={(e) => setAnnualGrowth(e.target.value)}
-                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                               required
                             />
                           </div>
 
                           {/* Row 2/Col 2: Decisões Estratégicas % */}
                           <div className="flex flex-col text-left">
-                            <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Resp. no resultado (%)</label>
+                            <label className="text-[8px] text-gray-400 font-bold uppercase tracking-wider mb-1">Resp. no resultado (%)</label>
                             <input 
                               type="number" 
                               min="0"
@@ -1432,7 +1432,7 @@ export default function Presentation() {
                               placeholder="Ex: 50" 
                               value={growthFromStrategy}
                               onChange={(e) => setGrowthFromStrategy(e.target.value)}
-                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1.5 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                              className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2.5 py-1 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                               required
                             />
                           </div>
@@ -1441,7 +1441,7 @@ export default function Presentation() {
                         <div className="flex justify-end mt-1">
                           <button 
                             type="submit"
-                            className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-xs rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                            className="px-6 py-1.5 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-xs rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
                           >
                             Calcular Custo & Impacto
                           </button>
@@ -1460,30 +1460,30 @@ export default function Presentation() {
                     )}
 
                     {calcState === 'done' && (
-                      <div className="flex flex-col lg:flex-row items-stretch gap-4 md:gap-6 w-full animate-fade-in text-left">
+                      <div className="flex flex-col lg:flex-row items-stretch gap-3 md:gap-4 w-full animate-fade-in text-left">
                         
                         {/* Column 1: Time Cost Metrics (Left) */}
-                        <div className="flex-1 flex flex-col justify-between border-r-0 lg:border-r border-gray-800/80 pr-0 lg:pr-6 gap-3">
-                          <div className="space-y-3">
+                        <div className="flex-1 flex flex-col justify-between border-r-0 lg:border-r border-gray-800/80 pr-0 lg:pr-4 gap-2">
+                          <div className="space-y-2">
                             
                             {/* Card 1.1: Custo Operacional de Oportunidade */}
-                            <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-3 sm:p-4 transition-all duration-300">
-                              <span className="text-[9px] text-red-500 font-bold uppercase tracking-wider block mb-1">⚠️ CUSTO OPERACIONAL DE OPORTUNIDADE</span>
-                              <span className="text-xl md:text-2xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.25)] animate-pulse block">
+                            <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-2.5 sm:p-3 transition-all duration-300">
+                              <span className="text-[8px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">⚠️ CUSTO OPERACIONAL DE OPORTUNIDADE</span>
+                              <span className="text-lg md:text-xl font-heading font-extrabold text-red-500 tracking-wide drop-shadow-[0_0_10px_rgba(239,68,68,0.25)] animate-pulse block">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedOpportunityCost)}
                               </span>
-                              <p className="text-[11px] text-gray-300 font-light mt-1.5 leading-relaxed">
+                              <p className="text-[9.5px] text-gray-300 font-light mt-1 leading-relaxed">
                                 Horas intelectuais engolidas por burocracias operacionais que deveriam ser delegadas.
                               </p>
                             </div>
                             
                             {/* Card 1.2: Investimento do Tempo */}
-                            <div className="bg-[#34d399]/5 border border-[#34d399]/10 hover:border-[#34d399]/25 rounded-xl p-3 sm:p-4 transition-all duration-300">
-                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block mb-1">💎 INVESTIMENTO DO SEU TEMPO EM ESTRATÉGIA</span>
-                              <span className="text-lg md:text-xl font-heading font-extrabold text-[#34d399] tracking-wide block">
+                            <div className="bg-[#34d399]/5 border border-[#34d399]/10 hover:border-[#34d399]/25 rounded-xl p-2.5 sm:p-3 transition-all duration-300">
+                              <span className="text-[8px] text-[#34d399] font-bold uppercase tracking-wider block mb-0.5">💎 INVESTIMENTO DO SEU TEMPO EM ESTRATÉGIA</span>
+                              <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculatedStrategicInvestment)}
                               </span>
-                              <p className="text-[11px] text-gray-300 font-light mt-1.5 leading-relaxed">
+                              <p className="text-[9.5px] text-gray-300 font-light mt-1 leading-relaxed">
                                 Custo do seu tempo intelectual que foi efetivamente dedicado a estruturar o crescimento.
                               </p>
                             </div>
@@ -1492,55 +1492,55 @@ export default function Presentation() {
                           
                           <button 
                             onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('20'); setAnnualGrowth('80'); setGrowthFromStrategy('50'); }}
-                            className="mt-4 px-4 py-2 border border-gray-800 hover:border-[#d4af37]/50 text-[10px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
+                            className="mt-2 px-3 py-1 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
                           >
                             Refazer Simulação
                           </button>
                         </div>
 
                         {/* Column 2: Growth Impact Metrics (Right) */}
-                        <div className="flex-1 flex flex-col justify-between gap-3">
-                          <div className="space-y-3">
+                        <div className="flex-1 flex flex-col justify-between gap-2">
+                          <div className="space-y-2">
                             
                             {/* Card 2.1: Crescimento devido a decisões */}
-                            <div className="bg-white/5 border border-gray-800/80 hover:border-[#34d399]/20 rounded-xl p-3 transition-all duration-300">
-                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block mb-1">📈 CRESCIMENTO DEVIDO ÀS SUAS DECISÕES ESTRATÉGICAS</span>
-                              <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
+                            <div className="bg-white/5 border border-gray-800/80 hover:border-[#34d399]/20 rounded-xl p-2 sm:p-2.5 transition-all duration-300">
+                              <span className="text-[8px] text-[#34d399] font-bold uppercase tracking-wider block mb-0.5">📈 CRESCIMENTO DEVIDO ÀS SUAS DECISÕES ESTRATÉGICAS</span>
+                              <span className="text-sm md:text-base font-heading font-extrabold text-[#34d399] tracking-wide block">
                                 {calculatedActualReturn.toFixed(1)}% de crescimento gerado
                               </span>
-                              <p className="text-[11px] text-gray-300 font-light mt-1 leading-relaxed">
+                              <p className="text-[9.5px] text-gray-300 font-light mt-0.5 leading-relaxed">
                                 Com apenas {strategicPercent}% das suas horas dedicadas a decisões, você gerou {calculatedActualReturn.toFixed(1)}% do crescimento total.
                               </p>
                             </div>
 
                             {/* Card 2.2: Dobrando a Dedicação */}
-                            <div className="bg-white/5 border border-gray-800/80 hover:border-[#34d399]/20 rounded-xl p-3 transition-all duration-300">
-                              <span className="text-[9px] text-[#34d399] font-bold uppercase tracking-wider block mb-1">⚡ DOBRANDO A DEDICAÇÃO (Projeção {parseFloat(strategicPercent) * 2}%)</span>
-                              <span className="text-base md:text-lg font-heading font-extrabold text-[#34d399] tracking-wide block">
+                            <div className="bg-white/5 border border-gray-800/80 hover:border-[#34d399]/20 rounded-xl p-2 sm:p-2.5 transition-all duration-300">
+                              <span className="text-[8px] text-[#34d399] font-bold uppercase tracking-wider block mb-0.5">⚡ DOBRANDO A DEDICAÇÃO (Projeção {parseFloat(strategicPercent) * 2}%)</span>
+                              <span className="text-sm md:text-base font-heading font-extrabold text-[#34d399] tracking-wide block">
                                 +{calculatedActualReturn.toFixed(1)}% de crescimento projetado
                               </span>
-                              <p className="text-[11px] text-gray-300 font-light mt-1 leading-relaxed">
+                              <p className="text-[9.5px] text-gray-300 font-light mt-0.5 leading-relaxed">
                                 Se você passar para {parseFloat(strategicPercent) * 2}% do seu tempo em estratégia, o crescimento projetado ganharia mais +{calculatedActualReturn.toFixed(1)}%.
                               </p>
                             </div>
                             
                             {/* Card 2.3: Potencial Deixado na Mesa */}
-                            <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-3 transition-all duration-300">
-                              <span className="text-[9px] text-orange-500 font-bold uppercase tracking-wider block mb-1">❌ POTENCIAL DEIXADO NA MESA (Operação Centralizada)</span>
-                              <span className="text-base md:text-lg font-heading font-extrabold text-orange-500 tracking-wide block animate-pulse">
+                            <div className="bg-red-500/5 border border-red-500/10 hover:border-red-500/25 rounded-xl p-2 sm:p-2.5 transition-all duration-300">
+                              <span className="text-[8px] text-orange-500 font-bold uppercase tracking-wider block mb-0.5">❌ POTENCIAL DEIXADO NA MESA (Operação Centralizada)</span>
+                              <span className="text-sm md:text-base font-heading font-extrabold text-orange-500 tracking-wide block animate-pulse">
                                 +{calculatedLostGrowth.toFixed(1)}% de crescimento perdido
                               </span>
-                              <p className="text-[11px] text-gray-300 font-light mt-1 leading-relaxed">
+                              <p className="text-[9.5px] text-gray-300 font-light mt-0.5 leading-relaxed">
                                 O faturamento incremental que você abriu mão por passar {100 - parseFloat(strategicPercent)}% do tempo focado na operação.
                               </p>
                             </div>
 
                           </div>
 
-                          <div className="mt-4 border-t border-gray-800/80 pt-2.5 text-left">
-                            <span className="text-[9px] text-[#d4af37] font-bold uppercase tracking-wider block">🎯 Como recuperar esse faturamento não-alavancado:</span>
-                            <p className="text-[9px] text-gray-400 leading-normal font-light">
-                              Ao invés de gastar tempo na operação, direcione suas horas para ajustes de preços/margens, estratégias comerciais de vendas, automação de rotinas e a contratação de gestores.
+                          <div className="mt-2 border-t border-gray-800/80 pt-1.5 text-left">
+                            <span className="text-[8px] text-[#d4af37] font-bold uppercase tracking-wider block">🎯 Como recuperar esse faturamento não-alavancado:</span>
+                            <p className="text-[8px] text-gray-400 leading-normal font-light">
+                              Ao invés de gastar tempo na operação, direcione suas horas para preço/margens, estratégias de vendas, automação e atração de líderes.
                             </p>
                           </div>
                         </div>
