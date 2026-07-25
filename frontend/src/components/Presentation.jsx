@@ -1492,9 +1492,9 @@ export default function Presentation() {
                           
                           <button 
                             onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('20'); setAnnualGrowth('80'); setGrowthFromStrategy('50'); }}
-                            className="mt-2 px-3 py-1 border border-gray-800 hover:border-[#d4af37]/50 text-[9px] text-gray-400 hover:text-white uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
+                            className="mt-3 px-4 py-1.5 border border-gray-800 hover:border-[#d4af37] text-[10px] text-gray-400 hover:text-[#d4af37] bg-black/20 hover:bg-[#d4af37]/5 uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
                           >
-                            Refazer Simulação
+                            Calcular Novamente
                           </button>
                         </div>
 
