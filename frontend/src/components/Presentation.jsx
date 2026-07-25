@@ -1637,93 +1637,114 @@ export default function Presentation() {
           )}
 
           {/* SLIDE 13: COMO MEDIMOS A TRANSFORMAÇÃO */}
-          {currentSlide === 12 && (
-            <div className="flex flex-col justify-center h-full">
-              <div className="mb-4">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Governo com Dados</span>
-                <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
-                  AQUILO QUE NÃO MEDIMOS VIRA SENSAÇÃO.<br/>
-                  <span className="text-gold-premium">AQUILO QUE MEDIMOS VIRA GESTÃO.</span>
-                </h2>
-              </div>
-              <div className="grid grid-cols-12 gap-8 items-center">
-                <div className="col-span-5 flex flex-col gap-3 text-xs">
-                  <p className="text-gray-400 font-light leading-relaxed mb-2">
-                    A evolução do programa não é medida por "sensação de melhora". Nós criamos indicadores de governança que mostram claramente a redução da centralização do fundador.
-                  </p>
-                  
-                  {[
-                    { label: 'Índice de Dependência (IDE)', now: '90%', target: 'Abaixo de 20%', desc: 'Nota que mede a presença do dono em rotinas críticas.' },
-                    { label: 'Liberdade Operacional (CLO)', now: '15%', target: 'Acima de 80%', desc: 'Porcentagem de tempo livre para planejamento estratégico.' },
-                    { label: 'Autonomia das Lideranças', now: 'Muito Baixa', target: 'Nível Avançado', desc: 'Capacidade do time de gerir prioridades e alçadas.' }
-                  ].map((met, idx) => (
-                    <div key={idx} className="p-3 bg-white/2 border border-gray-900 rounded-lg flex flex-col justify-between">
-                      <div className="flex justify-between items-center font-bold">
-                        <span className="text-white text-[11px] uppercase">{met.label}</span>
-                        <span className="text-[#d4af37] text-[10px] font-mono">{met.target}</span>
-                      </div>
-                      <p className="text-[10px] text-gray-500 mt-1 font-light">{met.desc}</p>
-                    </div>
-                  ))}
+          {/* SLIDE 13: GOVERNO COM DADOS */}
+          {currentSlide === 12 && (() => {
+            const initialCLO = parseFloat(strategicPercent) || 20;
+            const initialAutonomy = slide6AutonomyPercent || 30;
+            const initialIDE = 100 - initialAutonomy;
+            const initialDecisions = initialIDE;
+            
+            const targetIDE = 18;
+            const targetCLO = 85;
+            const targetDecisions = 12;
+            const targetAutonomy = 100;
+            
+            const decisionsReduction = initialDecisions > 0 
+              ? ((targetDecisions - initialDecisions) / initialDecisions) * 100 
+              : -88;
+
+            return (
+              <div className="flex flex-col justify-center h-full">
+                <div className="mb-4">
+                  <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Governo com Dados</span>
+                  <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
+                    AQUILO QUE NÃO MEDIMOS VIRA SENSAÇÃO.<br/>
+                    <span className="text-gold-premium">AQUILO QUE MEDIMOS VIRA GESTÃO.</span>
+                  </h2>
                 </div>
+                <div className="grid grid-cols-12 gap-8 items-center">
+                  <div className="col-span-5 flex flex-col gap-3 text-xs">
+                    <p className="text-gray-300 font-light leading-relaxed mb-2 text-xs sm:text-[13px]">
+                      A evolução do programa não é medida por "sensação de melhora". Nós criamos indicadores de governança que mostram claramente a redução da centralização do fundador.
+                    </p>
+                    
+                    {[
+                      { label: 'Índice de Dependência (IDE)', now: `${initialIDE.toFixed(0)}%`, target: `${targetIDE}%`, desc: 'Nota que mede a presença do dono em rotinas críticas.' },
+                      { label: 'Liberdade Operacional (CLO)', now: `${initialCLO.toFixed(0)}%`, target: `${targetCLO}%`, desc: 'Porcentagem de tempo livre para planejamento estratégico.' },
+                      { label: 'Autonomia das Lideranças', now: `${initialAutonomy.toFixed(0)}%`, target: `${targetAutonomy}%`, desc: 'Capacidade do time de gerir prioridades e alçadas.' }
+                    ].map((met, idx) => (
+                      <div key={idx} className="p-3 bg-white/2 border border-gray-900 rounded-lg flex flex-col justify-between">
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="text-white text-[11px] uppercase">{met.label}</span>
+                          <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                            <span className="text-red-500 line-through">{met.now}</span>
+                            <span className="text-gray-400">➔</span>
+                            <span className="text-[#34d399] font-bold">{met.target}</span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-1 font-light leading-normal">{met.desc}</p>
+                      </div>
+                    ))}
+                  </div>
 
-                <div className="col-span-7 flex justify-center">
-                  {/* Conceptual Dashboard Mockup */}
-                  <div className="w-full max-w-[460px] premium-card p-5 rounded-xl border border-gray-800 flex flex-col gap-4">
-                    <span className="text-[10px] font-mono text-[#3b82f6] uppercase tracking-wider block border-b border-gray-850 pb-2">
-                      Dashboard Conceitual de Governança
-                    </span>
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Metric 1 */}
-                      <div className="p-3 bg-black/20 rounded-lg border border-gray-900">
-                        <span className="block text-[8px] text-gray-500 uppercase font-mono">IDE (Dependência)</span>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-xl font-heading font-extrabold text-red-500">18%</span>
-                          <span className="text-[9px] text-gray-600 line-through">92% Inicial</span>
+                  <div className="col-span-7 flex justify-center">
+                    {/* Conceptual Dashboard Mockup */}
+                    <div className="w-full max-w-[460px] premium-card p-5 rounded-xl border border-gray-800 flex flex-col gap-4">
+                      <span className="text-[10px] font-mono text-[#3b82f6] uppercase tracking-wider block border-b border-gray-850 pb-2 text-left">
+                        Dashboard Conceitual de Governança
+                      </span>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Metric 1 */}
+                        <div className="p-3 bg-black/20 rounded-lg border border-gray-900 text-left">
+                          <span className="block text-[8px] text-gray-500 uppercase font-mono">IDE (Dependência)</span>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-xl font-heading font-extrabold text-red-500">{targetIDE}%</span>
+                            <span className="text-[9px] text-gray-500 line-through">{initialIDE.toFixed(0)}% Inicial</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-900 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-red-500" style={{ width: `${targetIDE}%` }} />
+                          </div>
                         </div>
-                        <div className="w-full h-1.5 bg-gray-900 rounded-full mt-2 overflow-hidden">
-                          <div className="h-full bg-red-500" style={{ width: '18%' }} />
+                        
+                        {/* Metric 2 */}
+                        <div className="p-3 bg-black/20 rounded-lg border border-gray-950 text-left">
+                          <span className="block text-[8px] text-gray-500 uppercase font-mono">CLO (Liberdade)</span>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-xl font-heading font-extrabold text-emerald-500">{targetCLO}%</span>
+                            <span className="text-[9px] text-gray-500">{initialCLO.toFixed(0)}% Inicial</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-900 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-emerald-500" style={{ width: `${targetCLO}%` }} />
+                          </div>
                         </div>
-                      </div>
-                      
-                      {/* Metric 2 */}
-                      <div className="p-3 bg-black/20 rounded-lg border border-gray-950">
-                        <span className="block text-[8px] text-gray-500 uppercase font-mono">CLO (Liberdade)</span>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-xl font-heading font-extrabold text-emerald-500">85%</span>
-                          <span className="text-[9px] text-gray-600">15% Inicial</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-gray-900 rounded-full mt-2 overflow-hidden">
-                          <div className="h-full bg-emerald-500" style={{ width: '85%' }} />
-                        </div>
-                      </div>
 
-                      {/* Metric 3 */}
-                      <div className="p-3 bg-black/20 rounded-lg border border-gray-900">
-                        <span className="block text-[8px] text-gray-500 uppercase font-mono">Decisões que Chegam ao Dono</span>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-xl font-heading font-extrabold text-white">12%</span>
-                          <span className="text-[9px] text-red-500 font-mono">-88%</span>
+                        {/* Metric 3 */}
+                        <div className="p-3 bg-black/20 rounded-lg border border-gray-900 text-left">
+                          <span className="block text-[8px] text-gray-500 uppercase font-mono">Decisões que Chegam ao Dono</span>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-xl font-heading font-extrabold text-white">{targetDecisions}%</span>
+                            <span className="text-[9px] text-red-500 font-mono">{decisionsReduction.toFixed(0)}%</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Metric 4 */}
-                      <div className="p-3 bg-black/20 rounded-lg border border-gray-900">
-                        <span className="block text-[8px] text-gray-500 uppercase font-mono">Processos Críticos Ativos</span>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-xl font-heading font-extrabold text-[#d4af37]">100%</span>
-                          <span className="text-[9px] text-gray-500">Implantados</span>
+                        {/* Metric 4 */}
+                        <div className="p-3 bg-black/20 rounded-lg border border-gray-900 text-left">
+                          <span className="block text-[8px] text-gray-500 uppercase font-mono">Processos Críticos Ativos</span>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-xl font-heading font-extrabold text-[#d4af37]">{targetAutonomy}%</span>
+                            <span className="text-[9px] text-gray-500">Implantados</span>
+                          </div>
                         </div>
                       </div>
+                      <span className="text-[8px] text-gray-500 text-center block mt-1">
+                        *Gráficos conceituais. A velocidade e os números exatos dependem da estrutura de cada empresa.
+                      </span>
                     </div>
-                    <span className="text-[8px] text-gray-500 text-center block mt-1">
-                      *Gráficos conceituais. A velocidade e os números exatos dependem da estrutura de cada empresa.
-                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* SLIDE 14: ROI / CUSTO DE NÃO AGIR */}
           {currentSlide === 13 && (() => {
