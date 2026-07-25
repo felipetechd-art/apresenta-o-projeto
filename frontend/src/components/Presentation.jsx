@@ -1741,8 +1741,8 @@ export default function Presentation() {
             return (
               <div className="flex flex-col justify-center h-full">
                 <div className="mb-4">
-                  <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1.5 block">Matemática de Escala</span>
-                  <h2 className="text-2xl lg:text-3xl font-heading font-extrabold text-white">
+                  <span className="text-xs sm:text-sm font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1.5 block">Matemática de Escala</span>
+                  <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
                     QUANTO VALE REDUZIR A <br/>
                     <span className="text-gold-premium">DEPENDÊNCIA DA SUA EMPRESA?</span>
                   </h2>
@@ -1753,13 +1753,13 @@ export default function Presentation() {
                   {/* Left Column: Wasted hours details */}
                   <div className="col-span-4 flex flex-col gap-3 justify-between">
                     <div className="premium-card p-4 rounded-xl border-l-4 border-l-red-500/50 bg-[#0c0d12]">
-                      <span className="text-[8px] text-red-500 font-mono font-bold block mb-1">O CUSTO REAL DA OPERAÇÃO</span>
-                      <div className="text-[10px] sm:text-xs text-slate-300 font-light space-y-1.5">
-                        <div className="flex justify-between border-b border-gray-900 pb-1">
+                      <span className="text-[10px] text-red-500 font-mono font-bold block mb-1.5">O CUSTO REAL DA OPERAÇÃO</span>
+                      <div className="text-xs sm:text-sm text-slate-300 font-light space-y-2">
+                        <div className="flex justify-between border-b border-gray-900 pb-1.5">
                           <span>Horas semanais na operação:</span>
                           <strong className="text-white">{weeklyOpHours.toFixed(1)}h</strong>
                         </div>
-                        <div className="flex justify-between border-b border-gray-900 pb-1">
+                        <div className="flex justify-between border-b border-gray-900 pb-1.5">
                           <span>Semanas comerciais/ano:</span>
                           <strong className="text-white">52 semanas</strong>
                         </div>
@@ -1771,15 +1771,15 @@ export default function Presentation() {
                     </div>
                     
                     <div className="p-3.5 bg-white/2 border border-gray-800 rounded-lg">
-                      <p className="text-[11px] text-gray-300 leading-relaxed font-light">
-                        Com o seu tempo intelectual avaliado em <strong className="text-white">R$ {rate}/h</strong>, você queima <strong className="text-red-400">R$ {new Intl.NumberFormat('pt-BR').format(annualOpCost)}/ano</strong> em rotinas operacionais simples, além de <strong className="text-red-400">R$ {new Intl.NumberFormat('pt-BR').format(annualReworkCost)}/ano</strong> gerenciando refações.
+                      <p className="text-xs sm:text-[13px] text-gray-300 leading-relaxed font-light">
+                        Com o seu tempo intelectual avaliado em <strong className="text-white text-xs sm:text-[13px]">R$ {rate}/h</strong>, você queima <strong className="text-red-400 text-xs sm:text-[13px]">R$ {new Intl.NumberFormat('pt-BR').format(annualOpCost)}/ano</strong> em rotinas operacionais simples, além de <strong className="text-red-400 text-xs sm:text-[13px]">R$ {new Intl.NumberFormat('pt-BR').format(annualReworkCost)}/ano</strong> gerenciando refações.
                       </p>
                     </div>
 
                     {/* Cost of continuing / Inércia Title */}
-                    <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-3 text-left">
-                      <span className="text-[8px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">⚠️ CUSTO TOTAL DE NÃO AGIR</span>
-                      <span className="text-lg font-heading font-extrabold text-red-500 tracking-wide block animate-pulse">
+                    <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-3.5 text-left">
+                      <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-1">⚠️ CUSTO TOTAL DE NÃO AGIR</span>
+                      <span className="text-xl sm:text-2xl font-heading font-extrabold text-red-500 tracking-wide block animate-pulse">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalLoss12Months)} / ano
                       </span>
                     </div>
@@ -1791,9 +1791,9 @@ export default function Presentation() {
                     {/* Scenario 1: Inércia (Red background card) */}
                     <div className="premium-card p-4 rounded-xl border border-red-500/10 bg-red-500/2 hover:border-red-500/20 transition-all duration-300 flex flex-col justify-between">
                       <div>
-                        <span className="text-[8px] text-red-500 font-mono font-bold block mb-1">CENÁRIO 1: INÉRCIA (Sem agir)</span>
-                        <h4 className="font-heading font-extrabold text-xs text-white uppercase mb-2">Continuar Preso na Operação</h4>
-                        <ul className="space-y-2 text-[10px] sm:text-[11px] text-gray-400">
+                        <span className="text-[9px] sm:text-[10px] text-red-500 font-mono font-bold block mb-1">CENÁRIO 1: INÉRCIA (Sem agir)</span>
+                        <h4 className="font-heading font-extrabold text-sm sm:text-base text-white uppercase mb-2">Continuar Preso na Operação</h4>
+                        <ul className="space-y-2.5 text-xs sm:text-[13px] text-gray-400">
                           <li className="flex items-start gap-1.5">
                             <span className="text-red-500">❌</span>
                             <span><strong>R$ {new Intl.NumberFormat('pt-BR').format(totalLoss12Months)}</strong> de capital próprio queimado em tarefas de baixo valor.</span>
@@ -1808,7 +1808,7 @@ export default function Presentation() {
                           </li>
                         </ul>
                       </div>
-                      <div className="mt-3 text-[10px] text-red-400 font-semibold italic">
+                      <div className="mt-3 text-[11px] sm:text-xs text-red-400 font-semibold italic">
                         "O custo real da inércia é o lucro que você nunca vai ver."
                       </div>
                     </div>
@@ -1816,9 +1816,9 @@ export default function Presentation() {
                     {/* Scenario 2: Alavancagem PGE (Gold border card) */}
                     <div className="premium-card p-4 rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/3 hover:border-[#d4af37]/40 transition-all duration-300 flex flex-col justify-between shadow-[0_0_15px_rgba(212,175,55,0.05)]">
                       <div>
-                        <span className="text-[8px] text-[#d4af37] font-mono font-bold block mb-1">CENÁRIO 2: ALAVANCAGEM PGE</span>
-                        <h4 className="font-heading font-extrabold text-xs text-white uppercase mb-2">Remodelação Executiva e Autonomia</h4>
-                        <ul className="space-y-2 text-[10px] sm:text-[11px] text-gray-300">
+                        <span className="text-[9px] sm:text-[10px] text-[#d4af37] font-mono font-bold block mb-1">CENÁRIO 2: ALAVANCAGEM PGE</span>
+                        <h4 className="font-heading font-extrabold text-sm sm:text-base text-white uppercase mb-2">Remodelação Executiva e Autonomia</h4>
+                        <ul className="space-y-2.5 text-xs sm:text-[13px] text-gray-300">
                           <li className="flex items-start gap-1.5">
                             <span className="text-[#34d399]">✓</span>
                             <span><strong>+{weeklyOpHours.toFixed(0)} horas/semana</strong> livres para focar em alianças, inovação e expansão.</span>
@@ -1833,7 +1833,7 @@ export default function Presentation() {
                           </li>
                         </ul>
                       </div>
-                      <div className="mt-3 text-[10px] text-[#d4af37] font-semibold italic">
+                      <div className="mt-3 text-[11px] sm:text-xs text-[#d4af37] font-semibold italic">
                         "Seu tempo é a alavanca mais cara do seu negócio."
                       </div>
                     </div>
@@ -1842,26 +1842,47 @@ export default function Presentation() {
 
                 </div>
 
-                {/* Bottom cumulative cost comparison chart */}
-                <div className="bg-black/50 border border-gray-800 rounded-xl p-3 flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-[10px] font-bold text-white uppercase tracking-wider">
-                    <span>Projeção Acumulada de Desperdício (Custo de Não Agir nos próximos ciclos)</span>
-                    <span className="text-red-500 animate-pulse">Prejuízo de Inércia acumulado</span>
+                {/* Bottom cumulative cost comparison + valuation split */}
+                <div className="grid grid-cols-12 gap-4 items-stretch">
+                  
+                  {/* Left part: Cumulative Loss Projections */}
+                  <div className="col-span-8 bg-black/50 border border-gray-800 rounded-xl p-3 flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-[10px] font-bold text-white uppercase tracking-wider">
+                      <span>Projeção Acumulada de Desperdício (Inércia operacional)</span>
+                      <span className="text-red-500 animate-pulse text-[9px]">Prejuízo acumulado</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      {[
+                        { period: 'Ciclo de 12 Meses', value: totalLoss12Months, bg: 'bg-red-500/10 border-red-500/20' },
+                        { period: 'Ciclo de 24 Meses', value: totalLoss12Months * 2, bg: 'bg-red-500/15 border-red-500/30' },
+                        { period: 'Ciclo de 36 Meses', value: totalLoss12Months * 3, bg: 'bg-red-500/20 border-red-500/40' }
+                      ].map((item, idx) => (
+                        <div key={idx} className={`p-2.5 rounded-lg border ${item.bg} flex flex-col justify-center`}>
+                          <span className="text-[9px] text-gray-400 font-medium uppercase tracking-wider block">{item.period}</span>
+                          <span className="text-xs sm:text-sm lg:text-base font-heading font-extrabold text-red-500 mt-0.5">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(item.value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    {[
-                      { period: 'Ciclo de 12 Meses', value: totalLoss12Months, bg: 'bg-red-500/10 border-red-500/20' },
-                      { period: 'Ciclo de 24 Meses', value: totalLoss12Months * 2, bg: 'bg-red-500/15 border-red-500/30' },
-                      { period: 'Ciclo de 36 Meses', value: totalLoss12Months * 3, bg: 'bg-red-500/20 border-red-500/40' }
-                    ].map((item, idx) => (
-                      <div key={idx} className={`p-2 rounded-lg border ${item.bg} flex flex-col justify-center`}>
-                        <span className="text-[8px] text-gray-400 font-medium uppercase tracking-wider block">{item.period}</span>
-                        <span className="text-xs sm:text-sm font-heading font-extrabold text-red-500 mt-0.5">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(item.value)}
-                        </span>
-                      </div>
-                    ))}
+
+                  {/* Right part: Valuation Anchoring Box */}
+                  <div className="col-span-4 bg-[#d4af37]/5 border border-[#d4af37]/35 rounded-xl p-3.5 flex flex-col justify-between shadow-[0_0_20px_rgba(212,175,55,0.1)] text-left">
+                    <div>
+                      <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">🎯 VALOR DA SOLUÇÃO</span>
+                      <p className="text-[11px] sm:text-xs text-gray-300 leading-normal font-light">
+                        Se a sua inércia custa <strong className="text-white">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months)}</strong> nos próximos 12 meses...
+                      </p>
+                      <p className="text-[11px] sm:text-xs text-[#d4af37] font-semibold leading-normal mt-1">
+                        Você me pagaria metade disso (<strong className="text-[#ffd700]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months / 2)}</strong>) para resolver este problema em definitivo?
+                      </p>
+                    </div>
+                    <div className="text-[9px] text-gray-400 mt-1.5 border-t border-[#d4af37]/20 pt-1.5 italic text-right font-medium">
+                      No mínimo, a solução do PGE vale {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalLoss12Months / 2)}
+                    </div>
                   </div>
+
                 </div>
 
               </div>
