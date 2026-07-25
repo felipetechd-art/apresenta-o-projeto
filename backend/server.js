@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -1419,6 +1422,115 @@ app.get('/api/clientes', (req, res) => {
 // Route to get Configurações / Integrações metrics
 app.get('/api/configuracoes', (req, res) => {
   return res.json(baseConfiguracoesData);
+});
+
+// Endpoint to upload a document to D4Sign and send it to signers
+app.post('/api/contract/send-d4sign', async (req, res) => {
+  try {
+    const { pdfBase64, docName, clientEmail, clientName, consultantEmail } = req.body;
+
+    if (!pdfBase64 || !docName || !clientEmail || !clientName || !consultantEmail) {
+      return res.status(400).json({ error: 'Parâmetros incompletos.' });
+    }
+
+    const apiToken = process.env.D4SIGN_API_TOKEN;
+    const cryptKey = process.env.D4SIGN_CRYPT_KEY;
+    const safeUuid = process.env.D4SIGN_SAFE_UUID;
+
+    if (!apiToken || !cryptKey || !safeUuid) {
+      return res.status(500).json({ 
+        error: 'Configuração do D4Sign ausente no servidor. Configure as variáveis D4SIGN_API_TOKEN, D4SIGN_CRYPT_KEY e D4SIGN_SAFE_UUID no arquivo .env.' 
+      });
+    }
+
+    // Remove any base64 headers if present (e.g. "data:application/pdf;base64,")
+    const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, '');
+
+    // Step 1: Upload document
+    const uploadUrl = `https://api.d4sign.com.br/v1/documents/${safeUuid}/upload?tokenAPI=${apiToken}&cryptKey=${cryptKey}`;
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        base64: base64Data,
+        mime: 'application/pdf',
+        name: docName
+      })
+    });
+
+    const uploadResult = await uploadResponse.json();
+    if (!uploadResponse.ok || uploadResult.status !== 'success') {
+      console.error('D4Sign upload error:', uploadResult);
+      return res.status(500).json({ error: 'Erro ao enviar documento para o D4Sign.', details: uploadResult });
+    }
+
+    const docUuid = uploadResult.uuid;
+
+    // Step 2: Create links / Add signers
+    const createLinkUrl = `https://api.d4sign.com.br/v1/documents/${docUuid}/createlink?tokenAPI=${apiToken}&cryptKey=${cryptKey}`;
+    const signersResponse = await fetch(createLinkUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        signers: [
+          {
+            email: clientEmail,
+            act: '1', // 1 = Assinar
+            foreign: '0',
+            certificated: '0',
+            signature_behavior: '0',
+            embed_method: ''
+          },
+          {
+            email: consultantEmail,
+            act: '1', // 1 = Assinar
+            foreign: '0',
+            certificated: '0',
+            signature_behavior: '0',
+            embed_method: ''
+          }
+        ]
+      })
+    });
+
+    const signersResult = await signersResponse.json();
+    if (!signersResponse.ok || (signersResult.status && signersResult.status !== 'success')) {
+      console.error('D4Sign create link error:', signersResult);
+      return res.status(500).json({ error: 'Erro ao adicionar signatários no D4Sign.', details: signersResult });
+    }
+
+    // Step 3: Send to signers
+    const sendUrl = `https://api.d4sign.com.br/v1/documents/${docUuid}/sendtosigner?tokenAPI=${apiToken}&cryptKey=${cryptKey}`;
+    const sendResponse = await fetch(sendUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Por favor, assine o contrato do Programa Governo Empresarial.',
+        skip_email: '0'
+      })
+    });
+
+    const sendResult = await sendResponse.json();
+    if (!sendResponse.ok || sendResult.status !== 'success') {
+      console.error('D4Sign send error:', sendResult);
+      return res.status(500).json({ error: 'Erro ao enviar e-mail de assinatura do D4Sign.', details: sendResult });
+    }
+
+    return res.json({ success: true, docUuid, message: 'Contrato enviado com sucesso para assinatura no D4Sign!' });
+
+  } catch (error) {
+    console.error('D4Sign Integration Exception:', error);
+    return res.status(500).json({ error: 'Erro interno ao processar integração D4Sign.', details: error.message });
+  }
 });
 
 app.listen(PORT, () => {
