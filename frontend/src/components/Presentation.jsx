@@ -27,6 +27,7 @@ import {
   Layout
 } from 'lucide-react';
 import felipeImg from '../assets/felipe.jpg';
+import ClientGovernanceCenter from './ClientGovernanceCenter.jsx';
 
 const formatBRLInput = (value) => {
   if (value === undefined || value === null) return '';
@@ -95,6 +96,7 @@ export default function Presentation() {
   const [consultantEmail, setConsultantEmail] = useState('');
   const [d4signStatus, setD4signStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [d4signMessage, setD4signMessage] = useState('');
+  const [isClientDashboardOpen, setIsClientDashboardOpen] = useState(false);
   
   const [activeLogoIdx, setActiveLogoIdx] = useState(0);
 
@@ -2801,6 +2803,13 @@ export default function Presentation() {
                 </button>
                 <button 
                   type="button" 
+                  onClick={() => setIsClientDashboardOpen(true)}
+                  className="px-4 py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15"
+                >
+                  Painel do Cliente
+                </button>
+                <button 
+                  type="button" 
                   onClick={handleDownloadContract}
                   disabled={isEntranceTooLow}
                   className="px-4 py-2 border border-gray-800 hover:border-[#d4af37]/50 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
@@ -2821,6 +2830,19 @@ export default function Presentation() {
           </div>
         );
       })()}
+
+      {isClientDashboardOpen && (
+        <ClientGovernanceCenter
+          clientName={clientName}
+          totalInvestment={totalInvestment}
+          hourlyRate={hourlyRate}
+          hoursPerWeek={hoursPerWeek}
+          strategicPercent={strategicPercent}
+          calculatedOpportunityCost={calculatedOpportunityCost}
+          calculatedLostGrowth={calculatedLostGrowth}
+          onClose={() => setIsClientDashboardOpen(false)}
+        />
+      )}
 
       {/* FOOTER CONTROLS */}
       <footer className="px-4 md:px-10 py-3.5 md:py-5 flex items-center justify-between z-10 shrink-0 border-t border-[#1b2a3f]/25 bg-gradient-to-t from-[#060b13] to-transparent">
