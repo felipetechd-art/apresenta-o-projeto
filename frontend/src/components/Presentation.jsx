@@ -68,8 +68,8 @@ export default function Presentation() {
   const [repName, setRepName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
-  const [totalInvestment, setTotalInvestment] = useState('15000');
-  const [entranceValue, setEntranceValue] = useState('3000');
+  const [totalInvestment, setTotalInvestment] = useState('80000');
+  const [entranceValue, setEntranceValue] = useState('20000');
   const [installments, setInstallments] = useState('12');
   const [paymentMethod, setPaymentMethod] = useState('credit'); // 'credit' | 'pix'
   const [clientAddress, setClientAddress] = useState('');
