@@ -96,6 +96,22 @@ export default function Presentation() {
   const [d4signStatus, setD4signStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [d4signMessage, setD4signMessage] = useState('');
   
+  const [activeLogoIdx, setActiveLogoIdx] = useState(0);
+
+  useEffect(() => {
+    const logosCount = 7;
+    const interval = setInterval(() => {
+      setActiveLogoIdx((prevIdx) => {
+        let nextIdx = prevIdx;
+        while (nextIdx === prevIdx) {
+          nextIdx = Math.floor(Math.random() * logosCount);
+        }
+        return nextIdx;
+      });
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
+
   const totalSlides = 15;
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -1111,9 +1127,16 @@ export default function Presentation() {
                 {/* Associated Companies Logos */}
                 <div className="border-t border-gray-800/80 pt-4">
                   <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-3">Marcas & Projetos Associados</span>
-                  <div className="flex flex-wrap items-center justify-start gap-x-4 md:gap-x-6 gap-y-2 opacity-55">
-                    {['XGrow', 'EventX', 'D360', 'ADVAI', 'E3T', 'NeuroVerse'].map((logo, idx) => (
-                      <span key={idx} className="text-xs font-heading font-bold text-gray-400 uppercase tracking-wider border border-gray-800 px-2 py-0.5 rounded bg-white/5">
+                  <div className="flex flex-wrap items-center justify-start gap-x-4 md:gap-x-6 gap-y-2">
+                    {['XGrow', 'EventX', 'D360', 'ADVAI', 'E3T', 'NeuroVerse', 'Axion'].map((logo, idx) => (
+                      <span 
+                        key={idx} 
+                        className={`text-xs font-heading font-bold uppercase tracking-wider border px-2.5 py-0.5 rounded transition-all duration-700 ${
+                          idx === activeLogoIdx 
+                            ? 'bg-[#d4af37]/20 border-[#d4af37] text-white opacity-100 shadow-[0_0_8px_rgba(212,175,55,0.45)] scale-105 font-extrabold' 
+                            : 'bg-white/5 border-gray-800/80 text-gray-600 opacity-25 scale-100'
+                        }`}
+                      >
                         {logo}
                       </span>
                     ))}
