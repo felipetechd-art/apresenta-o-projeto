@@ -1726,67 +1726,147 @@ export default function Presentation() {
           )}
 
           {/* SLIDE 14: ROI / CUSTO DE NÃO AGIR */}
-          {currentSlide === 13 && (
-            <div className="flex flex-col justify-center h-full">
-              <div className="mb-6">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Matemática de Escala</span>
-                <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
-                  QUANTO VALE REDUZIR A <br/>
-                  <span className="text-gold-premium">DEPENDÊNCIA DA SUA EMPRESA?</span>
-                </h2>
-              </div>
-              <div className="grid grid-cols-12 gap-8 items-center mb-6">
-                <div className="col-span-5 flex flex-col justify-center gap-4">
-                  <div className="premium-card p-5 rounded-xl border-l-4 border-l-red-500/50">
-                    <span className="text-[9px] text-red-500 font-mono block mb-1">O CUSTO DA OPERAÇÃO</span>
-                    <div className="text-xs text-slate-300 font-light space-y-1.5">
-                      <div className="flex justify-between border-b border-gray-900 pb-1.5">
-                        <span>Horas semanais na operação:</span>
-                        <strong className="text-white">20 horas</strong>
-                      </div>
-                      <div className="flex justify-between border-b border-gray-900 pb-1.5">
-                        <span>Semanas comerciais por ano:</span>
-                        <strong className="text-white">48 semanas</strong>
-                      </div>
-                      <div className="flex justify-between text-[#d4af37] font-bold pt-1">
-                        <span>Total de tempo desperdiçado:</span>
-                        <span>960 horas/ano</span>
+          {currentSlide === 13 && (() => {
+            const rate = parseFloat(hourlyRate) || 150;
+            const totalHours = parseFloat(hoursPerWeek) || 40;
+            const stratPercent = parseFloat(strategicPercent) || 20;
+            const opPercent = 100 - stratPercent;
+            const weeklyOpHours = totalHours * (opPercent / 100);
+            const annualOpHours = weeklyOpHours * 52;
+            const annualOpCost = annualOpHours * rate;
+            const hoursLost = slide6HoursLost || 14;
+            const annualReworkCost = hoursLost * rate * 52;
+            const totalLoss12Months = annualOpCost + annualReworkCost;
+
+            return (
+              <div className="flex flex-col justify-center h-full">
+                <div className="mb-4">
+                  <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1.5 block">Matemática de Escala</span>
+                  <h2 className="text-2xl lg:text-3xl font-heading font-extrabold text-white">
+                    QUANTO VALE REDUZIR A <br/>
+                    <span className="text-gold-premium">DEPENDÊNCIA DA SUA EMPRESA?</span>
+                  </h2>
+                </div>
+                
+                <div className="grid grid-cols-12 gap-6 items-stretch mb-4">
+                  
+                  {/* Left Column: Wasted hours details */}
+                  <div className="col-span-4 flex flex-col gap-3 justify-between">
+                    <div className="premium-card p-4 rounded-xl border-l-4 border-l-red-500/50 bg-[#0c0d12]">
+                      <span className="text-[8px] text-red-500 font-mono font-bold block mb-1">O CUSTO REAL DA OPERAÇÃO</span>
+                      <div className="text-[10px] sm:text-xs text-slate-300 font-light space-y-1.5">
+                        <div className="flex justify-between border-b border-gray-900 pb-1">
+                          <span>Horas semanais na operação:</span>
+                          <strong className="text-white">{weeklyOpHours.toFixed(1)}h</strong>
+                        </div>
+                        <div className="flex justify-between border-b border-gray-900 pb-1">
+                          <span>Semanas comerciais/ano:</span>
+                          <strong className="text-white">52 semanas</strong>
+                        </div>
+                        <div className="flex justify-between text-[#d4af37] font-bold pt-0.5">
+                          <span>Tempo operacional anual:</span>
+                          <span>{annualOpHours.toFixed(0)} horas</span>
+                        </div>
                       </div>
                     </div>
+                    
+                    <div className="p-3.5 bg-white/2 border border-gray-800 rounded-lg">
+                      <p className="text-[11px] text-gray-300 leading-relaxed font-light">
+                        Com o seu tempo intelectual avaliado em <strong className="text-white">R$ {rate}/h</strong>, você queima <strong className="text-red-400">R$ {new Intl.NumberFormat('pt-BR').format(annualOpCost)}/ano</strong> em rotinas operacionais simples, além de <strong className="text-red-400">R$ {new Intl.NumberFormat('pt-BR').format(annualReworkCost)}/ano</strong> gerenciando refações.
+                      </p>
+                    </div>
+
+                    {/* Cost of continuing / Inércia Title */}
+                    <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-3 text-left">
+                      <span className="text-[8px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">⚠️ CUSTO TOTAL DE NÃO AGIR</span>
+                      <span className="text-lg font-heading font-extrabold text-red-500 tracking-wide block animate-pulse">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalLoss12Months)} / ano
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-4 bg-white/2 border border-gray-800 rounded-lg">
-                    <p className="text-[11px] text-gray-400 leading-relaxed font-light">
-                      Se o seu tempo estratégico vale R$ 200/hora, são R$ 192.000 ao ano queimados na operação. Se vale R$ 500/hora, são R$ 480.000.
-                    </p>
+
+                  {/* Center/Right Columns: Scenario comparison boxes */}
+                  <div className="col-span-8 grid grid-cols-2 gap-4">
+                    
+                    {/* Scenario 1: Inércia (Red background card) */}
+                    <div className="premium-card p-4 rounded-xl border border-red-500/10 bg-red-500/2 hover:border-red-500/20 transition-all duration-300 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[8px] text-red-500 font-mono font-bold block mb-1">CENÁRIO 1: INÉRCIA (Sem agir)</span>
+                        <h4 className="font-heading font-extrabold text-xs text-white uppercase mb-2">Continuar Preso na Operação</h4>
+                        <ul className="space-y-2 text-[10px] sm:text-[11px] text-gray-400">
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-red-500">❌</span>
+                            <span><strong>R$ {new Intl.NumberFormat('pt-BR').format(totalLoss12Months)}</strong> de capital próprio queimado em tarefas de baixo valor.</span>
+                          </li>
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-red-500">❌</span>
+                            <span><strong>+{calculatedLostGrowth.toFixed(1)}%</strong> de crescimento de faturamento anual que você abre mão.</span>
+                          </li>
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-red-500">❌</span>
+                            <span>Fadiga crônica, apagando incêndios da equipe e sofrendo com re-centralização constante.</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <div className="mt-3 text-[10px] text-red-400 font-semibold italic">
+                        "O custo real da inércia é o lucro que você nunca vai ver."
+                      </div>
+                    </div>
+
+                    {/* Scenario 2: Alavancagem PGE (Gold border card) */}
+                    <div className="premium-card p-4 rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/3 hover:border-[#d4af37]/40 transition-all duration-300 flex flex-col justify-between shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+                      <div>
+                        <span className="text-[8px] text-[#d4af37] font-mono font-bold block mb-1">CENÁRIO 2: ALAVANCAGEM PGE</span>
+                        <h4 className="font-heading font-extrabold text-xs text-white uppercase mb-2">Remodelação Executiva e Autonomia</h4>
+                        <ul className="space-y-2 text-[10px] sm:text-[11px] text-gray-300">
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-[#34d399]">✓</span>
+                            <span><strong>+{weeklyOpHours.toFixed(0)} horas/semana</strong> livres para focar em alianças, inovação e expansão.</span>
+                          </li>
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-[#34d399]">✓</span>
+                            <span><strong>100% de Autonomia Real</strong> na equipe com processos e métricas claras (Zera retrabalho).</span>
+                          </li>
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-[#34d399]">✓</span>
+                            <span><strong>+{calculatedActualReturn.toFixed(1)}%</strong> de crescimento projetado imediato, escalando para <strong>+{(calculatedActualReturn * 2).toFixed(1)}%</strong> ao dobrar o tempo estratégico.</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <div className="mt-3 text-[10px] text-[#d4af37] font-semibold italic">
+                        "Seu tempo é a alavanca mais cara do seu negócio."
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Bottom cumulative cost comparison chart */}
+                <div className="bg-black/50 border border-gray-800 rounded-xl p-3 flex flex-col gap-2">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-white uppercase tracking-wider">
+                    <span>Projeção Acumulada de Desperdício (Custo de Não Agir nos próximos ciclos)</span>
+                    <span className="text-red-500 animate-pulse">Prejuízo de Inércia acumulado</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    {[
+                      { period: 'Ciclo de 12 Meses', value: totalLoss12Months, bg: 'bg-red-500/10 border-red-500/20' },
+                      { period: 'Ciclo de 24 Meses', value: totalLoss12Months * 2, bg: 'bg-red-500/15 border-red-500/30' },
+                      { period: 'Ciclo de 36 Meses', value: totalLoss12Months * 3, bg: 'bg-red-500/20 border-red-500/40' }
+                    ].map((item, idx) => (
+                      <div key={idx} className={`p-2 rounded-lg border ${item.bg} flex flex-col justify-center`}>
+                        <span className="text-[8px] text-gray-400 font-medium uppercase tracking-wider block">{item.period}</span>
+                        <span className="text-xs sm:text-sm font-heading font-extrabold text-red-500 mt-0.5">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(item.value)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className="col-span-7 grid grid-cols-2 gap-4">
-                  {[
-                    { title: 'Decisões Rápidas', desc: 'Processo ágil sem precisar que você esteja presente para validar.' },
-                    { title: 'Menos Retrabalho', desc: 'POPs claros garantem consistência nas entregas diárias.' },
-                    { title: 'Líderes Autônomos', desc: 'Gestores de alto nível capacitados e com poder de decisão.' },
-                    { title: 'Expansão e Inovação', desc: 'Tempo livre para você focar no que realmente multiplica o negócio.' }
-                  ].map((roi, idx) => (
-                    <div key={idx} className="premium-card p-4 rounded-xl flex flex-col justify-between">
-                      <div>
-                        <div className="w-6 h-6 rounded-full bg-[#d4af37]/10 flex items-center justify-center border border-[#d4af37]/30 mb-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#d4af37]" />
-                        </div>
-                        <h4 className="font-heading font-bold text-xs text-white uppercase mb-1">{roi.title}</h4>
-                        <p className="text-[10px] text-gray-400 font-light leading-relaxed">{roi.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
-              <div className="text-center">
-                <span className="text-sm font-heading font-bold text-red-500 uppercase tracking-widest">
-                  QUAL É O CUSTO DE CONTINUAR ASSIM POR MAIS 12 MESES?
-                </span>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* SLIDE 15: FECHAMENTO */}
           {currentSlide === 14 && (
