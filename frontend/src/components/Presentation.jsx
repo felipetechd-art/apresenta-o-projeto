@@ -49,6 +49,7 @@ export default function Presentation() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev'
   const [radius, setRadius] = useState(165);
   const [activeLayer, setActiveLayer] = useState(0);
@@ -102,6 +103,7 @@ export default function Presentation() {
       const width = window.innerWidth;
       const height = window.innerHeight;
       setIsPortrait(height > width && width < 768);
+      setIsMobile(width < 768);
       
       if (width < 380) {
         setRadius(80);
@@ -124,6 +126,41 @@ export default function Presentation() {
     window.addEventListener('resize', checkOrientation);
     return () => window.removeEventListener('resize', checkOrientation);
   }, []);
+
+  // Scroll Spy Observer to sync currentSlide index as the user scrolls on mobile portrait
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const options = {
+      root: null, // browser viewport
+      rootMargin: '-30% 0px -50% 0px', // detects intersection around the upper middle
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const slideId = entry.target.id;
+          const slideIdx = parseInt(slideId.split('-')[1]);
+          if (!isNaN(slideIdx)) {
+            setCurrentSlide(slideIdx);
+          }
+        }
+      });
+    }, options);
+
+    const timer = setTimeout(() => {
+      for (let i = 0; i < totalSlides; i++) {
+        const el = document.getElementById(`slide-${i}`);
+        if (el) observer.observe(el);
+      }
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [isMobile]);
 
   // Loop highlight for Slide 1 government structure
   useEffect(() => {
@@ -182,14 +219,20 @@ export default function Presentation() {
   }, []);
 
   const nextSlide = () => {
-    if (currentSlide < totalSlides - 1) {
+    if (isMobile) {
+      const nextIdx = Math.min(totalSlides - 1, currentSlide + 1);
+      jumpToSlide(nextIdx);
+    } else if (currentSlide < totalSlides - 1) {
       setSlideDirection('next');
       setCurrentSlide(prev => prev + 1);
     }
   };
 
   const prevSlide = () => {
-    if (currentSlide > 0) {
+    if (isMobile) {
+      const prevIdx = Math.max(0, currentSlide - 1);
+      jumpToSlide(prevIdx);
+    } else if (currentSlide > 0) {
       setSlideDirection('prev');
       setCurrentSlide(prev => prev - 1);
     }
@@ -197,8 +240,15 @@ export default function Presentation() {
 
   const jumpToSlide = (index) => {
     if (index >= 0 && index < totalSlides) {
-      setSlideDirection(index > currentSlide ? 'next' : 'prev');
-      setCurrentSlide(index);
+      if (isMobile) {
+        const element = document.getElementById(`slide-${index}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else {
+        setSlideDirection(index > currentSlide ? 'next' : 'prev');
+        setCurrentSlide(index);
+      }
     }
   };
 
@@ -274,9 +324,10 @@ export default function Presentation() {
     const fmtBalance = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balanceVal);
     const fmtInst = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(instValue);
     
+    const cardSuffix = paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito (mais juros da plataforma)';
     const paymentLine = entranceVal > 0 
-      ? `[ ] Integral [X] Entrada de ${fmtEntrance} + saldo de ${fmtBalance} em ${instCount} parcelas de ${fmtInst} no ${paymentMethod === 'pix' ? 'PIX' : 'Cartao de Credito'}`
-      : `[X] Integral de ${fmtTotal} no ${paymentMethod === 'pix' ? 'PIX' : 'Cartao de Credito'} [ ] Entrada + Saldo`;
+      ? `[ ] Integral [X] Entrada de ${fmtEntrance} + saldo de ${fmtBalance} em ${instCount} parcelas de ${fmtInst} no ${cardSuffix}`
+      : `[X] Integral de ${fmtTotal} no ${cardSuffix} [ ] Entrada + Saldo`;
 
     const contratanteLabel = personType === 'PF' 
       ? `${clientName} - CPF: ${docNumber}`
@@ -303,10 +354,10 @@ export default function Presentation() {
 </head>
 <body>
 
-<h3>CONTRATO GERAL DE PRESTACAO DE SERVICOS</h3>
-<h4>CONSULTORIA + IMPLEMENTACAO</h4>
+<h3>CONTRATO GERAL DE PRESTAÇÃO DE SERVIÇOS</h3>
+<h4>CONSULTORIA + IMPLEMENTAÇÃO</h4>
 
-<h2>QUADRO DA CONTRATACAO</h2>
+<h2>QUADRO DA CONTRATAÇÃO</h2>
 <table>
   <tr>
     <th>CAMPO</th>
@@ -318,7 +369,7 @@ export default function Presentation() {
   </tr>
   <tr>
     <td><strong>Projeto / referência</strong></td>
-    <td>Consultoria e Implementacao PGC (Programa Governo Empresarial)</td>
+    <td>Consultoria e Implementação PGE (Programa Governo Empresarial)</td>
   </tr>
   <tr>
     <td><strong>Reunião de definição</strong></td>
@@ -352,18 +403,18 @@ export default function Presentation() {
 <p>O escopo específico é aquele definido pelas Partes na reunião virtual indicada no Quadro da Contratação. A gravação, o resumo da reunião, propostas, mensagens e confirmações escritas relacionadas ao projeto poderão ser reunidos posteriormente no Anexo I e passam a integrar este Contrato como prova do que foi combinado.</p>
 <p>Solicitações que não estejam claramente compreendidas no escopo acordado serão consideradas serviços adicionais e dependerão de nova aprovação comercial.</p>
 
-<p><strong>3. VIGENCIA E EXECUCAO</strong></p>
+<p><strong>3. VIGÊNCIA E EXECUÇÃO</strong></p>
 <p>Este Contrato não possui prazo global fixo. Ele permanecerá vigente até a conclusão dos serviços acordados ou até seu encerramento na forma da Cláusula 7. Datas e previsões informadas durante o projeto são estimativas e podem ser ajustadas conforme complexidade, aprovações, informações, acessos e dependências da CONTRATANTE ou de terceiros.</p>
 
 <p><strong>4. RESPONSABILIDADES DAS PARTES</strong></p>
 <p>A CONTRATADA deverá executar o escopo com diligência profissional, manter comunicação sobre o andamento e preservar a confidencialidade das informações recebidas.</p>
 <p>A CONTRATANTE deverá fornecer informações, conteúdos, acessos e aprovações necessários; indicar um responsável pelas decisões; e realizar os pagamentos nas condições combinadas. Atrasos ou omissões da CONTRATANTE poderão suspender ou reprogramar a execução sem caracterizar falha da CONTRATADA.</p>
 
-<p><strong>5. PAGAMENTO E INADIMPLENCIA</strong></p>
+<p><strong>5. PAGAMENTO E INADIMPLÊNCIA</strong></p>
 <p>O investimento, a entrada, o saldo e os vencimentos são os definidos no Quadro da Contratação. O pagamento da entrada autoriza o início da mobilização, da consultoria e da implementação.</p>
 <p>Em caso de atraso, poderão incidir multa de 2% sobre a parcela vencida e juros de 1% ao mês, calculados proporcionalmente. A CONTRATADA poderá suspender os serviços enquanto houver valor vencido, retomando-os após a regularização conforme disponibilidade operacional.</p>
 
-<p><strong>6. SERVICOS ENTREGUES, APROVACOES E RESULTADOS</strong></p>
+<p><strong>6. SERVIÇOS ENTREGUES, APROVAÇÕES E RESULTADOS</strong></p>
 <p>Reuniões realizadas, diagnósticos, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
 <p>A prestação constitui obrigação de meio. A CONTRATADA não garante faturamento, vendas, audiência, aprovação de plataformas, desempenho comercial ou qualquer resultado que dependa de decisões da CONTRATANTE, mercado, mídia, tecnologia ou terceiros.</p>
 
@@ -381,7 +432,7 @@ export default function Presentation() {
 <p><strong>9. TERCEIROS E DESPESAS EXTERNAS</strong></p>
 <p>Custos de plataformas, licenças, hospedagem, mídia, tráfego, APIs, inteligência artificial, domínios, gateways e outros fornecedores não estão incluídos, salvo indicação expressa no escopo ou no Quadro da Contratação. A CONTRATADA não responde por falhas, alterações, bloqueios ou indisponibilidades causadas por terceiros.</p>
 
-<p><strong>10. COMUNICACOES, ASSINATURA E FORO</strong></p>
+<p><strong>10. COMUNICAÇÕES, ASSINATURA E FORO</strong></p>
 <p>E-mails, mensagens em canais oficiais, gravações, comprovantes de pagamento, documentos e assinaturas eletrônicas poderão comprovar aprovações, entregas, alterações e demais comunicações entre as Partes.</p>
 <p>Este Contrato não cria sociedade, representação comercial, vínculo trabalhista ou exclusividade entre as Partes. Alterações relevantes deverão ser registradas por escrito.</p>
 <p>Fica eleito o foro indicado no Quadro da Contratação, ressalvadas as regras legais obrigatórias. As Partes reconhecem a validade da assinatura eletrônica e do aceite por pagamento previsto neste instrumento.</p>
@@ -549,7 +600,7 @@ export default function Presentation() {
         }
 
         /* Responsive adjustments for mobile landscape and low viewports */
-        @media (max-height: 640px) {
+        @media (max-height: 660px), (max-width: 767px) {
           header {
             padding: 0.5rem 2rem !important;
           }
@@ -676,18 +727,7 @@ export default function Presentation() {
         }
       `}</style>
 
-      {/* Portrait rotation warning on mobile */}
-      {isPortrait && (
-        <div className="absolute inset-0 bg-[#060b13] z-50 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-          <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30 mb-6">
-            <RotateCcw className="w-8 h-8 text-amber-500 animate-spin" style={{ animationDuration: '4s' }} />
-          </div>
-          <h2 className="text-xl font-heading font-bold text-white mb-2">Gire seu dispositivo</h2>
-          <p className="text-gray-400 text-sm max-w-sm">
-            Para desfrutar da experiência cinematográfica executiva 16:9 completa, por favor rotacione o seu celular para a horizontal.
-          </p>
-        </div>
-      )}
+      {/* Portrait rotation warning on mobile disabled to support portrait presentation */}
 
       {/* TOP PROGRESS BAR */}
       <div className="w-full h-1 bg-[#101926] relative z-10">
@@ -698,65 +738,66 @@ export default function Presentation() {
       </div>
 
       {/* TOP HEADER CONTROLS */}
-      <header className="px-10 py-5 flex items-center justify-between z-10 shrink-0 border-b border-[#1b2a3f]/25 bg-gradient-to-b from-[#060b13] to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37] animate-pulse" />
-          <span className="text-[11px] font-accent uppercase tracking-[0.25em] text-gray-400 font-medium">Felipe Damasceno</span>
+      <header className="px-4 md:px-10 py-3.5 md:py-5 flex items-center justify-between z-10 shrink-0 border-b border-[#1b2a3f]/25 bg-gradient-to-b from-[#060b13] to-transparent">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#d4af37] animate-pulse" />
+          <span className="text-[9px] md:text-[11px] font-accent uppercase tracking-[0.2em] md:tracking-[0.25em] text-gray-400 font-medium">Felipe Damasceno</span>
         </div>
-        <div className="flex items-center gap-6">
-          <span className="text-xs font-accent text-gray-500 tracking-[0.1em] font-semibold">
+        <div className="flex items-center gap-3 md:gap-6">
+          <span className="hidden sm:inline text-[9px] md:text-xs font-accent text-gray-500 tracking-[0.1em] font-semibold">
             PROGRAMA GOVERNO EMPRESARIAL
           </span>
-          <div className="h-4 w-[1px] bg-gray-800" />
+          <div className="hidden sm:block h-4 w-[1px] bg-gray-800" />
           <button 
             onClick={toggleFullscreen}
             className="text-gray-400 hover:text-[#d4af37] transition-colors p-1 rounded hover:bg-white/5"
             title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />}
           </button>
           <a 
             href="/"
-            className="text-[10px] font-accent uppercase tracking-widest text-gray-400 hover:text-white border border-gray-800 px-3 py-1 rounded-md bg-white/5 transition-all hover:bg-white/10"
+            className="text-[8px] md:text-[10px] font-accent uppercase tracking-wider md:tracking-widest text-gray-400 hover:text-white border border-gray-800 px-2 md:px-3 py-1 rounded-md bg-white/5 transition-all hover:bg-white/10"
           >
-            Voltar ao Dashboard
+            Voltar
           </a>
         </div>
       </header>
 
       {/* MAIN SLIDE CONTAINER */}
-      <main className="flex-grow flex items-center justify-center px-16 relative overflow-hidden">
+      <main className="flex-grow flex items-center justify-center px-4 md:px-16 relative overflow-y-auto md:overflow-hidden h-full py-4 md:py-0">
         
         {/* BACKGROUND GLOWS FOR PREMIUM FEEL */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#d4af37]/3 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#3b82f6]/2 rounded-full blur-[160px] pointer-events-none" />
-
+ 
         {/* INTERACTIVE NAVIGATION AREAS (CLICK EDGES TO NAVIGATE) */}
         <div 
           onClick={prevSlide}
-          className={`absolute left-0 top-0 bottom-0 w-16 flex items-center justify-start pl-4 cursor-pointer group z-20 transition-all ${currentSlide === 0 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+          className={`absolute left-0 top-0 bottom-0 w-8 md:w-16 flex items-center justify-start pl-1 md:pl-4 cursor-pointer group z-20 transition-all ${isMobile || currentSlide === 0 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
         >
-          <div className="w-10 h-10 rounded-full border border-gray-800 bg-[#060b13]/80 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:border-[#d4af37]/45 transition-all">
-            <ChevronLeft className="w-5 h-5 text-gray-400 group-hover:text-[#d4af37]" />
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-800 bg-[#060b13]/80 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:border-[#d4af37]/45 transition-all">
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-[#d4af37]" />
           </div>
         </div>
 
         <div 
           onClick={nextSlide}
-          className={`absolute right-0 top-0 bottom-0 w-16 flex items-center justify-end pr-4 cursor-pointer group z-20 transition-all ${currentSlide === totalSlides - 1 ? 'pointer-events-none opacity-0' : 'opacity-150'}`}
+          className={`absolute right-0 top-0 bottom-0 w-8 md:w-16 flex items-center justify-end pr-1 md:pr-4 cursor-pointer group z-20 transition-all ${isMobile || currentSlide === totalSlides - 1 ? 'pointer-events-none opacity-0' : 'opacity-150'}`}
         >
-          <div className="w-10 h-10 rounded-full border border-gray-800 bg-[#060b13]/80 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:border-[#d4af37]/45 transition-all">
-            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#d4af37]" />
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-800 bg-[#060b13]/80 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:border-[#d4af37]/45 transition-all">
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-[#d4af37]" />
           </div>
         </div>
 
         {/* SLIDE SWITCHER */}
-        <div className={`w-full max-w-6xl h-full flex flex-col justify-center py-6 ${animationClass}`} key={currentSlide}>
+        <div className={`w-full max-w-6xl ${isMobile ? 'flex flex-col gap-16 py-6' : 'h-full flex flex-col justify-center py-2 md:py-6 ' + animationClass}`} key={isMobile ? 'mobile-folds' : currentSlide}>
           
           {/* SLIDE 1: CAPA */}
-          {currentSlide === 0 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-7 flex flex-col justify-center">
+          {(isMobile || currentSlide === 0) && (
+            <div id="slide-0" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-7 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.3em] mb-4 animate-fade-in">Apresentação Comercial</span>
                 <h1 className="text-5xl lg:text-6xl font-heading font-extrabold text-white leading-tight mb-6">
                   PROGRAMA <br/>
@@ -775,7 +816,7 @@ export default function Presentation() {
                   </button>
                 </div>
               </div>
-              <div className="col-span-5 flex justify-center items-center">
+              <div className="col-span-12 md:col-span-5 flex justify-center items-center mt-6 md:mt-0">
                 {/* SVG Structure Representation */}
                 <div className="w-full max-w-[360px] premium-card p-8 rounded-2xl border-l-4 border-l-[#d4af37] flex flex-col gap-6">
                   <div className="border-b border-[#1b2a3f] pb-3">
@@ -810,13 +851,15 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 2: FELIPE DAMASCENO */}
-          {currentSlide === 1 && (
-            <div className="grid grid-cols-12 gap-10 items-center h-full">
-              <div className="col-span-5 flex justify-center">
-                <div className="relative w-full max-w-[340px] aspect-[4/5] rounded-xl overflow-hidden border border-gray-800 bg-gradient-to-b from-gray-900 to-black flex flex-col justify-end p-6 group shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+          {(isMobile || currentSlide === 1) && (
+            <div id="slide-1" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-5 flex justify-center">
+                <div className="relative w-full max-w-[240px] md:max-w-[340px] aspect-[4/5] rounded-xl overflow-hidden border border-gray-800 bg-gradient-to-b from-gray-900 to-black flex flex-col justify-end p-6 group shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                   <img src={felipeImg} className="absolute inset-0 w-full h-full object-cover object-top filter grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500" alt="Felipe Damasceno" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#060b13] via-[#060b13]/10 to-transparent z-10 pointer-events-none" />
                   <div className="relative z-20 border-t border-gray-800/80 pt-3">
@@ -825,7 +868,7 @@ export default function Presentation() {
                   </div>
                 </div>
               </div>
-              <div className="col-span-7 flex flex-col justify-center">
+              <div className="col-span-12 md:col-span-7 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">A Trajetória</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-3">
                   EU NÃO APRENDI ISSO APENAS ESTUDANDO EMPRESAS.<br/>
@@ -834,7 +877,7 @@ export default function Presentation() {
                 <p className="text-sm text-gray-400 mb-6 font-light leading-relaxed">
                   Eu conheço os dois lados da moeda: sei a emoção de crescer um negócio de alta velocidade e sei a dor física e mental de se tornar refém dele.
                 </p>
-                <div className="grid grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6">
                   <div className="border-l border-[#d4af37]/40 pl-4">
                     <span className="block text-2xl font-heading font-extrabold text-white">+15 Anos</span>
                     <span className="block text-[10px] text-gray-500 uppercase tracking-wider mt-1">Negócios, Tech e Educação</span>
@@ -852,7 +895,7 @@ export default function Presentation() {
                 {/* Associated Companies Logos */}
                 <div className="border-t border-gray-800/80 pt-4">
                   <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-3">Marcas & Projetos Associados</span>
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 opacity-55">
+                  <div className="flex flex-wrap items-center justify-start gap-x-4 md:gap-x-6 gap-y-2 opacity-55">
                     {['XGrow', 'EventX', 'D360', 'ADVAI', 'E3T', 'NeuroVerse'].map((logo, idx) => (
                       <span key={idx} className="text-xs font-heading font-bold text-gray-400 uppercase tracking-wider border border-gray-800 px-2 py-0.5 rounded bg-white/5">
                         {logo}
@@ -862,11 +905,13 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 3: A HISTÓRIA */}
-          {currentSlide === 2 && (
-            <div className="flex flex-col justify-center h-full">
+          {(isMobile || currentSlide === 2) && (
+            <div id="slide-2" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="flex flex-col justify-center h-full">
               <div className="mb-6">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">O Contraste do Sucesso</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
@@ -874,7 +919,7 @@ export default function Presentation() {
                   <span className="text-gold-premium">E ME TORNEI REFÉM DELA.</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-2 gap-8 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
                 <div className="premium-card p-6 rounded-xl border-t-2 border-t-emerald-600/50">
                   <div className="flex items-center gap-2 text-emerald-500 mb-3">
                     <TrendingUp className="w-5 h-5" />
@@ -931,12 +976,14 @@ export default function Presentation() {
                 </p>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 4: O ESPELHO DO EMPRESÁRIO */}
-          {currentSlide === 3 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-5 flex flex-col justify-center">
+          {(isMobile || currentSlide === 3) && (
+            <div id="slide-3" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">O Retrato da Operação</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
                   A EMPRESA CRESCEU.<br/>
@@ -951,7 +998,7 @@ export default function Presentation() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-7 flex justify-center">
+              <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0 relative overflow-visible py-10 md:py-0">
                 {/* Visual Radial Diagram */}
                 <div className="relative w-full max-w-[500px] md:max-w-[540px] aspect-square flex items-center justify-center">
                   
@@ -1028,11 +1075,13 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 5: O CUSTO DA DEPENDÊNCIA */}
-          {currentSlide === 4 && (
-            <div className="flex flex-col justify-center h-full">
+          {(isMobile || currentSlide === 4) && (
+            <div id="slide-4" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="flex flex-col justify-center h-full">
               <div className="mb-3">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1 block">Cálculo de Risco</span>
                 <h2 className="text-2xl lg:text-3xl font-heading font-extrabold text-white">
@@ -1040,7 +1089,7 @@ export default function Presentation() {
                   <span className="text-gold-premium">EMPRESA DEPENDENTE DO DONO</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 {[
                   { title: 'TEMPO', desc: 'Horas de valor intelectual desperdiçadas resolvendo atritos operacionais diários que poderiam ser automatizados ou delegados.' },
                   { title: 'DECISÕES', desc: 'A velocidade de inovação e entrega fica limitada pela capacidade física da agenda do fundador.' },
@@ -1078,7 +1127,7 @@ export default function Presentation() {
                   <div className="flex items-center justify-center min-h-[60px] w-full">
                     {calcState === 'idle' && (
                       <form onSubmit={handleCalculateCusto} className="w-full flex flex-col gap-4">
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end w-full">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end w-full">
                           
                           {/* Row 1/Col 1: Valor Hora */}
                           <div className="flex flex-col text-left">
@@ -1172,10 +1221,10 @@ export default function Presentation() {
                     )}
 
                     {calcState === 'done' && (
-                      <div className="flex flex-col lg:flex-row items-stretch gap-6 w-full animate-fade-in text-left">
+                      <div className="flex flex-col lg:flex-row items-stretch gap-4 md:gap-6 w-full animate-fade-in text-left">
                         
                         {/* Column 1: Time Cost Metrics (Left) */}
-                        <div className="flex-1 flex flex-col justify-between border-r border-gray-800/80 pr-6 gap-3">
+                        <div className="flex-1 flex flex-col justify-between border-r-0 lg:border-r border-gray-800/80 pr-0 lg:pr-6 gap-3">
                           <div className="space-y-3">
                             
                             {/* Card 1.1: Custo Operacional de Oportunidade */}
@@ -1263,12 +1312,14 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 6: POR QUE DELEGAR NÃO RESOLVEU */}
-          {currentSlide === 5 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-5 flex flex-col justify-center">
+          {(isMobile || currentSlide === 5) && (
+            <div id="slide-5" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">Quebra de Objeção</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
                   DELEGAR TAREFAS NÃO É<br/>
@@ -1283,19 +1334,19 @@ export default function Presentation() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-7 flex flex-col gap-4">
+              <div className="col-span-12 md:col-span-7 flex flex-col gap-4">
                 
                 {/* O Fluxo Ruim */}
                 <div className="premium-card p-3 rounded-xl border-l-4 border-l-red-500/50">
                   <span className="text-[9px] uppercase font-mono tracking-wider text-red-500 font-bold block mb-1">FLUXO INADEQUADO</span>
-                  <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-white">
-                    <span className="bg-white/5 px-2 py-1 rounded text-center">Dono centraliza</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-red-500" />
-                    <span className="bg-white/5 px-2 py-1 rounded text-center">Delega tarefa</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-red-500" />
-                    <span className="bg-red-500/10 border border-red-500/30 px-2 py-1 rounded text-red-500 text-center">Problema surge</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-red-500" />
-                    <span className="bg-white/5 px-2 py-1 rounded text-center">Volta ao dono</span>
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0 text-[10px] sm:text-xs font-bold text-white">
+                    <span className="bg-white/5 px-2 py-1 rounded text-center w-full sm:w-auto">Dono centraliza</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-red-500 rotate-90 sm:rotate-0" />
+                    <span className="bg-white/5 px-2 py-1 rounded text-center w-full sm:w-auto">Delega tarefa</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-red-500 rotate-90 sm:rotate-0" />
+                    <span className="bg-red-500/10 border border-red-500/30 px-2 py-1 rounded text-red-500 text-center w-full sm:w-auto">Problema surge</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-red-500 rotate-90 sm:rotate-0" />
+                    <span className="bg-white/5 px-2 py-1 rounded text-center w-full sm:w-auto">Volta ao dono</span>
                   </div>
                 </div>
 
@@ -1346,7 +1397,7 @@ export default function Presentation() {
                     {/* Inputs or Results */}
                     {slide6CalcState === 'idle' && (
                       <form onSubmit={handleCalculateSlide6} className="w-full flex flex-col gap-3">
-                        <div className="grid grid-cols-3 gap-3 items-end w-full">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end w-full">
                           
                           <div className="flex flex-col text-left">
                             <label className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-1">Delegadas / semana</label>
@@ -1464,11 +1515,13 @@ export default function Presentation() {
 
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 7: A CAUSA-RAIZ */}
-          {currentSlide === 6 && (
-            <div className="flex flex-col justify-center h-full">
+          {(isMobile || currentSlide === 6) && (
+            <div id="slide-6" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="flex flex-col justify-center h-full">
               <div className="mb-8">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Diagnóstico de Gestão</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
@@ -1476,7 +1529,7 @@ export default function Presentation() {
                   <span className="text-gold-premium">SEU MODELO DE GESTÃO NÃO CRESCEU JUNTO.</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-2 gap-8 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-6">
                 <div className="premium-card p-6 rounded-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/3 rounded-bl-full pointer-events-none" />
                   <span className="text-xs font-mono font-bold text-red-500 uppercase tracking-widest block mb-4">MODELO ANTERIOR (Centralizado)</span>
@@ -1539,11 +1592,13 @@ export default function Presentation() {
                 </span>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 8: A TRANSFORMAÇÃO */}
-          {currentSlide === 7 && (
-            <div className="flex flex-col justify-center h-full">
+          {(isMobile || currentSlide === 7) && (
+            <div id="slide-7" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="flex flex-col justify-center h-full">
               <div className="mb-6">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">O Alvo do Programa</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
@@ -1551,8 +1606,8 @@ export default function Presentation() {
                   <span className="text-gold-premium">DE EMPRESÁRIO OPERACIONAL A EMPRESÁRIO QUE GOVERNA</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-12 gap-6 items-center">
-                <div className="col-span-4 bg-white/2 border border-gray-800 p-6 rounded-xl min-h-[220px] flex flex-col justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center py-4 md:py-0">
+                <div className="col-span-12 md:col-span-4 bg-white/2 border border-gray-800 p-6 rounded-xl min-h-[220px] flex flex-col justify-between">
                   <div>
                     <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-3">PERFIL OPERACIONAL</span>
                     <ul className="space-y-2 text-[11px] text-gray-400">
@@ -1565,11 +1620,11 @@ export default function Presentation() {
                   </div>
                 </div>
                 
-                <div className="col-span-1 flex justify-center">
-                  <ArrowRight className="w-6 h-6 text-[#d4af37]" />
+                <div className="col-span-12 md:col-span-1 flex justify-center">
+                  <ArrowRight className="w-6 h-6 text-[#d4af37] rotate-90 md:rotate-0" />
                 </div>
 
-                <div className="col-span-7 grid grid-cols-3 gap-4">
+                <div className="col-span-12 md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
                     { title: 'PESSOAS', key: 'Liderança', text: 'Lideranças maduras e autônomas assumem responsabilidades operacionais, de contratação e de entrega.' },
                     { title: 'PROCESSOS', key: 'Rotinas', text: 'Engrenagem corporativa funciona com fluxos de processos documentados, alçadas e cadências estratégicas.' },
@@ -1591,12 +1646,14 @@ export default function Presentation() {
                 </p>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 9: A SOLUÇÃO */}
-          {currentSlide === 8 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-5 flex flex-col justify-center">
+          {(isMobile || currentSlide === 8) && (
+            <div id="slide-8" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">O Programa</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
                   PROGRAMA <br/>
@@ -1611,7 +1668,7 @@ export default function Presentation() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-7 flex justify-center">
+              <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0">
                 {/* Visual Pyramid Levels */}
                 <div className="w-full max-w-[420px] flex flex-col gap-3">
                   {[
@@ -1633,19 +1690,21 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 10: MÉTODO POTÊNCIA EMPRESARIAL */}
-          {currentSlide === 9 && (
-            <div className="flex flex-col justify-center h-full">
+          {(isMobile || currentSlide === 9) && (
+            <div id="slide-9" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="flex flex-col justify-center h-full">
               <div className="mb-6">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">O Mecanismo Único</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
                   MÉTODO <span className="text-gold-premium">POTÊNCIA EMPRESARIAL</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-12 gap-8 items-center">
-                <div className="col-span-5 flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center py-4 md:py-0">
+                <div className="col-span-12 md:col-span-5 flex flex-col gap-4 text-left">
                   <h3 className="text-sm font-heading font-bold text-white uppercase tracking-wider border-b border-gray-800 pb-2">Os Instrumentos Diagnósticos</h3>
                   
                   <div className="p-4 bg-white/2 border border-gray-800 rounded-xl">
@@ -1665,12 +1724,12 @@ export default function Presentation() {
                   </div>
                 </div>
 
-                <div className="col-span-7 flex flex-col gap-6">
+                <div className="col-span-12 md:col-span-7 flex flex-col gap-6 w-full mt-6 md:mt-0">
                   <div className="text-center p-3 bg-white/3 border border-gray-800 rounded-lg">
                     <span className="font-heading font-bold text-xs text-white">IDE + CLO = MAPA DA DEPENDÊNCIA CORPORATIVA</span>
                   </div>
 
-                  <div className="flex items-center justify-between gap-1 relative pt-4">
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 md:gap-1 relative pt-2 md:pt-4">
                     {/* Process Steps */}
                     {[
                       { step: '01', title: 'DIAGNOSTICAR', desc: 'Mapear IDE + CLO' },
@@ -1679,24 +1738,39 @@ export default function Presentation() {
                       { step: '04', title: 'AUTOMATIZAR', desc: 'Implantação de IAs e CRM' },
                       { step: '05', title: 'GOVERNAR', desc: 'Acompanhar indicadores' }
                     ].map((item, idx) => (
-                      <div key={idx} className="flex-grow flex flex-col items-center text-center px-1.5 relative">
-                        {/* Grey base line */}
+                      <div key={idx} className="flex-grow flex flex-row md:flex-col items-center md:items-center text-left md:text-center px-1.5 relative gap-3 md:gap-0">
+                        {/* Grey base line for desktop */}
                         {idx < 4 && (
-                          <div className="absolute top-[19px] left-1/2 w-full h-[1.5px] bg-gray-800/80 z-0" />
+                          <div className="hidden md:block absolute top-[19px] left-1/2 w-full h-[1.5px] bg-gray-800/80 z-0" />
                         )}
                         
-                        {/* Animated energy line */}
+                        {/* Animated energy line for desktop */}
                         {idx < 4 && (
                           <div 
-                            className="absolute top-[19px] left-1/2 w-full h-[2.5px] bg-gradient-to-r from-[#d4af37] to-[#ffd700] z-0 origin-left transition-all duration-500 shadow-[0_0_8px_rgba(212,175,55,0.4)]"
+                            className="hidden md:block absolute top-[19px] left-1/2 w-full h-[2.5px] bg-gradient-to-r from-[#d4af37] to-[#ffd700] z-0 origin-left transition-all duration-500 shadow-[0_0_8px_rgba(212,175,55,0.4)]"
                             style={{
                               transform: `scaleX(${potenciaStep >= (idx * 2 + 1) ? 1 : 0})`
                             }}
                           />
                         )}
 
+                        {/* Grey base line for mobile */}
+                        {idx < 4 && (
+                          <div className="md:hidden absolute left-[19px] top-[40px] w-[1.5px] h-[calc(100%)] bg-gray-800/80 z-0" />
+                        )}
+
+                        {/* Animated energy line for mobile */}
+                        {idx < 4 && (
+                          <div 
+                            className="md:hidden absolute left-[19px] top-[40px] w-[2.5px] h-[calc(100%)] bg-gradient-to-b from-[#d4af37] to-[#ffd700] z-0 origin-top transition-all duration-500 shadow-[0_0_8px_rgba(212,175,55,0.4)]"
+                            style={{
+                              transform: `scaleY(${potenciaStep >= (idx * 2 + 1) ? 1 : 0})`
+                            }}
+                          />
+                        )}
+
                         {/* Circle */}
-                        <div className={`w-10 h-10 rounded-full border flex items-center justify-center mb-2 relative z-10 shadow-md transition-all duration-500 ${
+                        <div className={`w-10 h-10 rounded-full border flex items-center justify-center relative z-10 shadow-md transition-all duration-500 shrink-0 ${
                           potenciaStep >= idx * 2 
                             ? 'border-[#d4af37] bg-[#121c2e] shadow-[0_0_15px_rgba(212,175,55,0.35)] scale-[1.08]' 
                             : 'border-gray-800 bg-[#0c1625]'
@@ -1705,20 +1779,24 @@ export default function Presentation() {
                         </div>
 
                         {/* Titles */}
-                        <span className={`block text-[9px] font-bold uppercase tracking-wider transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-white font-extrabold' : 'text-gray-500 font-normal'}`}>{item.title}</span>
-                        <span className={`block text-[8px] mt-0.5 max-w-[100px] leading-tight transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-gray-300 font-medium' : 'text-gray-600 font-light'}`}>{item.desc}</span>
+                        <div className="flex flex-col md:items-center mt-1">
+                          <span className={`block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-white font-extrabold' : 'text-gray-500 font-normal'}`}>{item.title}</span>
+                          <span className={`block text-[8px] sm:text-[9px] mt-0.5 max-w-[200px] leading-tight transition-colors duration-500 ${potenciaStep >= idx * 2 ? 'text-gray-300 font-medium' : 'text-gray-600 font-light'}`}>{item.desc}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 11: ROADMAP ESTRATÉGICO */}
-          {currentSlide === 10 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-5 flex flex-col justify-center">
+          {(isMobile || currentSlide === 10) && (
+            <div id="slide-10" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">A Implementação</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
                   O QUE PRECISA SAIR DA<br/>
@@ -1733,7 +1811,7 @@ export default function Presentation() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-7 flex justify-center">
+              <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0">
                 {/* Visual Roadmap Board Mockup */}
                 <div className="w-full max-w-[460px] premium-card p-6 rounded-xl border border-gray-800 flex flex-col gap-4">
                   <div className="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -1766,12 +1844,14 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 12: CONSELHO ESTRATÉGICO DE ESCALA */}
-          {currentSlide === 11 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-5 flex flex-col justify-center">
+          {(isMobile || currentSlide === 11) && (
+            <div id="slide-11" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">Acompanhamento</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-3">
                   NÃO ENTREGAMOS UM PLANO <br/>
@@ -1789,22 +1869,22 @@ export default function Presentation() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-7 flex flex-col gap-6">
+              <div className="col-span-12 md:col-span-7 flex flex-col gap-6 w-full mt-6 md:mt-0">
                 
                 {/* Loop Ciclo */}
-                <div className="flex items-center justify-between p-4 bg-[#0e1625]/90 border border-gray-800 rounded-xl text-xs font-bold text-white text-center">
+                <div className="flex flex-wrap md:flex-nowrap items-center justify-center md:justify-between p-4 bg-[#0e1625]/90 border border-gray-800 rounded-xl text-xs font-bold text-white text-center gap-2">
                   {['DECIDIR', 'EXECUTAR', 'MEDIR', 'CORRIGIR', 'AVANÇAR'].map((cycle, idx) => (
-                    <div key={idx} className="flex-grow flex items-center justify-center gap-2" key={idx}>
-                      <span className="bg-white/5 border border-gray-800 px-3 py-1.5 rounded hover:border-[#d4af37]/50 transition-colors">
+                    <div key={idx} className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="bg-white/5 border border-gray-800 px-2.5 py-1.5 rounded hover:border-[#d4af37]/50 transition-colors text-[9px] sm:text-xs">
                         {cycle}
                       </span>
-                      {idx < 4 && <span className="text-[#d4af37] font-mono">→</span>}
+                      {idx < 4 && <span className="text-[#d4af37] font-mono text-[9px] sm:text-xs">→</span>}
                     </div>
                   ))}
                 </div>
 
                 {/* Key deliveries cards */}
-                <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className="premium-card p-4 rounded-xl flex flex-col justify-between">
                     <div>
                       <span className="text-[9px] text-[#d4af37] font-mono block mb-1">ALINHAMENTO</span>
@@ -1828,11 +1908,12 @@ export default function Presentation() {
 
               </div>
             </div>
+          </div>
           )}
 
           {/* SLIDE 13: COMO MEDIMOS A TRANSFORMAÇÃO */}
           {/* SLIDE 13: GOVERNO COM DADOS */}
-          {currentSlide === 12 && (() => {
+          {(isMobile || currentSlide === 12) && (() => {
             const initialCLO = parseFloat(strategicPercent) || 20;
             const initialAutonomy = slide6AutonomyPercent || 30;
             const initialIDE = 100 - initialAutonomy;
@@ -1848,7 +1929,8 @@ export default function Presentation() {
               : -88;
 
             return (
-              <div className="flex flex-col justify-center h-full">
+              <div id="slide-12" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+                <div className="flex flex-col justify-center h-full">
                 <div className="mb-4">
                   <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Governo com Dados</span>
                   <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
@@ -1856,8 +1938,8 @@ export default function Presentation() {
                     <span className="text-gold-premium">AQUILO QUE MEDIMOS VIRA GESTÃO.</span>
                   </h2>
                 </div>
-                <div className="grid grid-cols-12 gap-8 items-center">
-                  <div className="col-span-5 flex flex-col gap-3 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center py-4 md:py-0">
+                  <div className="col-span-12 md:col-span-5 flex flex-col gap-3 text-xs text-left">
                     <p className="text-gray-300 font-light leading-relaxed mb-2 text-xs sm:text-[13px]">
                       A evolução do programa não é medida por "sensação de melhora". Nós criamos indicadores de governança que mostram claramente a redução da centralização do fundador.
                     </p>
@@ -1881,7 +1963,7 @@ export default function Presentation() {
                     ))}
                   </div>
 
-                  <div className="col-span-7 flex justify-center">
+                  <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0">
                     {/* Conceptual Dashboard Mockup */}
                     <div className="w-full max-w-[460px] premium-card p-5 rounded-xl border border-gray-800 flex flex-col gap-4">
                       <span className="text-[10px] font-mono text-[#3b82f6] uppercase tracking-wider block border-b border-gray-850 pb-2 text-left">
@@ -1937,11 +2019,12 @@ export default function Presentation() {
                   </div>
                 </div>
               </div>
-            );
-          })()}
+            </div>
+          );
+        })()}
 
           {/* SLIDE 14: ROI / CUSTO DE NÃO AGIR */}
-          {currentSlide === 13 && (() => {
+          {(isMobile || currentSlide === 13) && (() => {
             const rate = parseFloat(hourlyRate) || 150;
             const totalHours = parseFloat(hoursPerWeek) || 40;
             const stratPercent = parseFloat(strategicPercent) || 20;
@@ -1954,7 +2037,8 @@ export default function Presentation() {
             const totalLoss12Months = annualOpCost + annualReworkCost;
 
             return (
-              <div className="flex flex-col justify-center h-full">
+              <div id="slide-13" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+                <div className="flex flex-col justify-center h-full">
                 <div className="mb-4">
                   <span className="text-xs sm:text-sm font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-1.5 block">Matemática de Escala</span>
                   <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
@@ -1963,10 +2047,10 @@ export default function Presentation() {
                   </h2>
                 </div>
                 
-                <div className="grid grid-cols-12 gap-6 items-stretch mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch mb-4 py-4 md:py-0">
                   
                   {/* Left Column: Wasted hours details */}
-                  <div className="col-span-4 flex flex-col gap-3 justify-between">
+                  <div className="col-span-12 md:col-span-4 flex flex-col gap-3 justify-between">
                     <div className="premium-card p-4 rounded-xl border-l-4 border-l-red-500/50 bg-[#0c0d12]">
                       <span className="text-[10px] text-red-500 font-mono font-bold block mb-1.5">O CUSTO REAL DA OPERAÇÃO</span>
                       <div className="text-xs sm:text-sm text-slate-300 font-light space-y-2">
@@ -2001,7 +2085,7 @@ export default function Presentation() {
                   </div>
 
                   {/* Center/Right Columns: Scenario comparison boxes */}
-                  <div className="col-span-8 grid grid-cols-2 gap-4">
+                  <div className="col-span-12 md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     
                     {/* Scenario 1: Inércia (Red background card) */}
                     <div className="premium-card p-4 rounded-xl border border-red-500/10 bg-red-500/2 hover:border-red-500/20 transition-all duration-300 flex flex-col justify-between">
@@ -2058,15 +2142,15 @@ export default function Presentation() {
                 </div>
 
                 {/* Bottom cumulative cost comparison + valuation split */}
-                <div className="grid grid-cols-12 gap-4 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch mt-4">
                   
                   {/* Left part: Cumulative Loss Projections */}
-                  <div className="col-span-8 bg-black/50 border border-gray-800 rounded-xl p-3 flex flex-col gap-2">
+                  <div className="col-span-12 md:col-span-8 bg-black/50 border border-gray-800 rounded-xl p-3 flex flex-col gap-2">
                     <div className="flex justify-between items-center text-[10px] font-bold text-white uppercase tracking-wider">
                       <span>Projeção Acumulada de Desperdício (Inércia operacional)</span>
                       <span className="text-red-500 animate-pulse text-[9px]">Prejuízo acumulado</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                       {[
                         { period: 'Ciclo de 12 Meses', value: totalLoss12Months, bg: 'bg-red-500/10 border-red-500/20' },
                         { period: 'Ciclo de 24 Meses', value: totalLoss12Months * 2, bg: 'bg-red-500/15 border-red-500/30' },
@@ -2083,7 +2167,7 @@ export default function Presentation() {
                   </div>
 
                   {/* Right part: Valuation Anchoring Box */}
-                  <div className="col-span-4 bg-[#d4af37]/5 border border-[#d4af37]/35 rounded-xl p-3.5 flex flex-col justify-center shadow-[0_0_20px_rgba(212,175,55,0.1)] text-left">
+                  <div className="col-span-12 md:col-span-4 bg-[#d4af37]/5 border border-[#d4af37]/35 rounded-xl p-3.5 flex flex-col justify-center shadow-[0_0_20px_rgba(212,175,55,0.1)] text-left">
                     <div>
                       <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">🎯 VALOR DA SOLUÇÃO</span>
                       <p className="text-[11px] sm:text-xs text-gray-300 leading-normal font-light">
@@ -2096,15 +2180,16 @@ export default function Presentation() {
                   </div>
 
                 </div>
-
               </div>
-            );
-          })()}
+            </div>
+          );
+        })()}
 
           {/* SLIDE 15: FECHAMENTO */}
-          {currentSlide === 14 && (
-            <div className="grid grid-cols-12 gap-8 items-center h-full">
-              <div className="col-span-7 flex flex-col justify-center">
+          {(isMobile || currentSlide === 14) && (
+            <div id="slide-14" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
+              <div className="col-span-12 md:col-span-7 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.35em] mb-3">O Chamado</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
                   SUA EMPRESA JÁ CRESCEU.<br/>
@@ -2136,7 +2221,7 @@ export default function Presentation() {
                 </div>
               </div>
 
-              <div className="col-span-5 flex justify-center">
+              <div className="col-span-12 md:col-span-5 flex justify-center mt-6 md:mt-0">
                 <div className="w-full max-w-[340px] premium-card p-6 rounded-2xl border-2 border-[#d4af37] flex flex-col gap-4 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[#d4af37]/5 rounded-bl-full pointer-events-none" />
                   
@@ -2183,6 +2268,7 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
+          </div>
           )}
 
         </div>
@@ -2472,40 +2558,40 @@ export default function Presentation() {
       })()}
 
       {/* FOOTER CONTROLS */}
-      <footer className="px-10 py-5 flex items-center justify-between z-10 shrink-0 border-t border-[#1b2a3f]/25 bg-gradient-to-t from-[#060b13] to-transparent">
+      <footer className="px-4 md:px-10 py-3.5 md:py-5 flex items-center justify-between z-10 shrink-0 border-t border-[#1b2a3f]/25 bg-gradient-to-t from-[#060b13] to-transparent">
         
         {/* Previous Button */}
         <button 
           onClick={prevSlide}
-          className={`flex items-center gap-2 text-xs font-accent tracking-wider uppercase transition-colors cursor-pointer ${currentSlide === 0 ? 'text-gray-600 pointer-events-none' : 'text-gray-400 hover:text-white'}`}
+          className={`flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-accent tracking-wider uppercase transition-colors cursor-pointer ${currentSlide === 0 ? 'text-gray-600 pointer-events-none' : 'text-gray-400 hover:text-white'}`}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
           Anterior
         </button>
 
         {/* Slide progress index dots */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2 max-w-[40%] overflow-x-auto custom-scrollbar-none">
           {Array.from({ length: totalSlides }).map((_, idx) => (
             <button 
               key={idx}
               onClick={() => jumpToSlide(idx)}
-              className={`w-2.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-[#d4af37] w-6' : 'bg-gray-850 hover:bg-gray-700'}`}
+              className={`w-1.5 md:w-2.5 h-1 md:h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-[#d4af37] w-4 md:w-6' : 'bg-gray-850 hover:bg-gray-700'}`}
               title={`Slide ${idx + 1}`}
             />
           ))}
         </div>
 
         {/* Next Button / Slide indicator */}
-        <div className="flex items-center gap-6">
-          <span className="text-xs font-mono tracking-widest text-[#d4af37] font-bold">
+        <div className="flex items-center gap-3 md:gap-6">
+          <span className="text-[10px] md:text-xs font-mono tracking-widest text-[#d4af37] font-bold">
             {String(currentSlide + 1).padStart(2, '0')} / {String(totalSlides).padStart(2, '0')}
           </span>
           <button 
             onClick={nextSlide}
-            className={`flex items-center gap-2 text-xs font-accent tracking-wider uppercase transition-colors cursor-pointer ${currentSlide === totalSlides - 1 ? 'text-gray-600 pointer-events-none' : 'text-gray-400 hover:text-white'}`}
+            className={`flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs font-accent tracking-wider uppercase transition-colors cursor-pointer ${currentSlide === totalSlides - 1 ? 'text-gray-600 pointer-events-none' : 'text-gray-400 hover:text-white'}`}
           >
             Próximo
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </button>
         </div>
       </footer>
