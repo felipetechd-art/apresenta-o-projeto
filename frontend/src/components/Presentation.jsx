@@ -2758,6 +2758,11 @@ export default function Presentation() {
                       </span>
                     </div>
                   </div>
+                  {paymentMethod === 'credit' && (
+                    <div className="text-[9px] text-[#d4af37]/80 text-right mt-2 font-sans italic">
+                      *Valores sujeitos a acréscimo de juros da operadora do cartão conforme o número de parcelas.
+                    </div>
+                  )}
                 </div>
 
               </div>
