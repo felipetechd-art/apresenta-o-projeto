@@ -28,6 +28,23 @@ import {
 } from 'lucide-react';
 import felipeImg from '../assets/felipe.jpg';
 
+const formatBRLInput = (value) => {
+  if (value === undefined || value === null) return '';
+  const cleanValue = String(value).replace(/\D/g, '');
+  if (!cleanValue) return '';
+  const numberValue = parseFloat(cleanValue) / 100;
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(numberValue);
+};
+
+const getNumericValue = (formattedValue) => {
+  if (!formattedValue) return 0;
+  const cleanValue = String(formattedValue).replace(/\D/g, '');
+  return parseFloat(cleanValue) / 100;
+};
+
 export default function Presentation() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -68,9 +85,9 @@ export default function Presentation() {
   const [repName, setRepName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
-  const [totalInvestment, setTotalInvestment] = useState('80000');
-  const [entranceValue, setEntranceValue] = useState('20000');
-  const [installments, setInstallments] = useState('12');
+  const [totalInvestment, setTotalInvestment] = useState(formatBRLInput('8000000'));
+  const [entranceValue, setEntranceValue] = useState('');
+  const [installments, setInstallments] = useState('1');
   const [paymentMethod, setPaymentMethod] = useState('credit'); // 'credit' | 'pix'
   const [clientAddress, setClientAddress] = useState('');
   const [contractForo, setContractForo] = useState('Barueri/SP');
@@ -246,8 +263,8 @@ export default function Presentation() {
     const today = new Date();
     const dateStr = today.toLocaleDateString('pt-BR');
     
-    const investmentVal = parseFloat(totalInvestment) || 0;
-    const entranceVal = parseFloat(entranceValue) || 0;
+    const investmentVal = getNumericValue(totalInvestment);
+    const entranceVal = getNumericValue(entranceValue);
     const balanceVal = Math.max(0, investmentVal - entranceVal);
     const instCount = parseInt(installments) || 1;
     const instValue = instCount > 0 ? (balanceVal / instCount) : 0;
@@ -2173,268 +2190,286 @@ export default function Presentation() {
       </main>
 
       {/* Contract Generation Modal */}
-      {isContractModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-4">
-          <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[90vh] flex flex-col">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-800 p-4">
-              <div className="text-left">
-                <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-wider block">FECHAMENTO COMERCIAL</span>
-                <h3 className="text-base font-heading font-extrabold text-white uppercase">Dados do Programa de Governo Empresarial</h3>
-              </div>
-              <button 
-                onClick={() => setIsContractModalOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors cursor-pointer text-xl font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
+      {isContractModalOpen && (() => {
+        const totalVal = getNumericValue(totalInvestment);
+        const entranceVal = getNumericValue(entranceValue);
+        const isEntranceTooLow = entranceVal > 0 && entranceVal < totalVal * 0.3;
+        const balanceVal = Math.max(0, totalVal - entranceVal);
+        const instCount = parseInt(installments) || 1;
+        const instValue = instCount > 0 ? (balanceVal / instCount) : 0;
 
-            {/* Scrollable Content */}
-            <div className="p-6 overflow-y-auto space-y-4 text-left custom-scrollbar">
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-4">
+            <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[90vh] flex flex-col">
               
-              {/* Pessoa Selection Toggle */}
-              <div className="flex gap-4 items-center justify-start bg-black/40 border border-gray-800 p-2.5 rounded-lg">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Contratação:</span>
-                <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
-                  <input 
-                    type="radio" 
-                    name="personType" 
-                    value="PJ" 
-                    checked={personType === 'PJ'} 
-                    onChange={() => { setPersonType('PJ'); setDocNumber(''); setClientName(''); }}
-                    className="accent-[#d4af37]"
-                  />
-                  Pessoa Jurídica (CNPJ)
-                </label>
-                <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
-                  <input 
-                    type="radio" 
-                    name="personType" 
-                    value="PF" 
-                    checked={personType === 'PF'} 
-                    onChange={() => { setPersonType('PF'); setDocNumber(''); setClientName(''); }}
-                    className="accent-[#d4af37]"
-                  />
-                  Pessoa Física (CPF)
-                </label>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-gray-800 p-4">
+                <div className="text-left">
+                  <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-wider block">FECHAMENTO COMERCIAL</span>
+                  <h3 className="text-base font-heading font-extrabold text-white uppercase">Dados do Programa de Governo Empresarial</h3>
+                </div>
+                <button 
+                  onClick={() => setIsContractModalOpen(false)}
+                  className="text-gray-400 hover:text-white transition-colors cursor-pointer text-xl font-bold p-1"
+                >
+                  ✕
+                </button>
               </div>
 
-              {/* Form Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Scrollable Content */}
+              <div className="p-6 overflow-y-auto space-y-4 text-left custom-scrollbar">
                 
-                {/* CPF or CNPJ */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                    {personType === 'PJ' ? 'CNPJ' : 'CPF'}
+                {/* Pessoa Selection Toggle */}
+                <div className="flex gap-4 items-center justify-start bg-black/40 border border-gray-800 p-2.5 rounded-lg">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Contratação:</span>
+                  <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
+                    <input 
+                      type="radio" 
+                      name="personType" 
+                      value="PJ" 
+                      checked={personType === 'PJ'} 
+                      onChange={() => { setPersonType('PJ'); setDocNumber(''); setClientName(''); }}
+                      className="accent-[#d4af37]"
+                    />
+                    Pessoa Jurídica (CNPJ)
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder={personType === 'PJ' ? '00.000.000/0001-00' : '000.000.000-00'} 
-                    value={docNumber}
-                    onChange={(e) => setDocNumber(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
-                    required
-                  />
+                  <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
+                    <input 
+                      type="radio" 
+                      name="personType" 
+                      value="PF" 
+                      checked={personType === 'PF'} 
+                      onChange={() => { setPersonType('PF'); setDocNumber(''); setClientName(''); }}
+                      className="accent-[#d4af37]"
+                    />
+                    Pessoa Física (CPF)
+                  </label>
                 </div>
 
-                {/* Client Name or Company Name */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                    {personType === 'PJ' ? 'Razão Social / Nome da Empresa' : 'Nome Completo'}
-                  </label>
-                  <input 
-                    type="text" 
-                    placeholder={personType === 'PJ' ? 'Ex: Empresa LTDA' : 'Ex: João da Silva'} 
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                    required
-                  />
-                </div>
-
-                {/* Representative Name (PJ Only) */}
-                {personType === 'PJ' && (
-                  <div className="flex flex-col md:col-span-2">
+                {/* Form Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* CPF or CNPJ */}
+                  <div className="flex flex-col">
                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                      Nome do Representante Legal (Signatário)
+                      {personType === 'PJ' ? 'CNPJ' : 'CPF'}
                     </label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Felipe Damasceno (Representante que assina)" 
-                      value={repName}
-                      onChange={(e) => setRepName(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                    />
-                  </div>
-                )}
-
-                {/* Email */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">E-mail</label>
-                  <input 
-                    type="email" 
-                    placeholder="email@cliente.com" 
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                    required
-                  />
-                </div>
-
-                {/* Phone & Criar Grupo */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Telefone</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="tel" 
-                      placeholder="(11) 99999-9999" 
-                      value={clientPhone}
-                      onChange={(e) => setClientPhone(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none flex-grow transition-all duration-300 font-mono"
+                      placeholder={personType === 'PJ' ? '00.000.000/0001-00' : '000.000.000-00'} 
+                      value={docNumber}
+                      onChange={(e) => setDocNumber(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                       required
                     />
-                    <a 
-                      href={`https://wa.me/5581994691175?text=Oi%2C%20vamos%20criar%20o%20grupo.%20Nome%3A%20${encodeURIComponent(clientName)}%20-%20Tel%3A%20${encodeURIComponent(clientPhone)}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="px-3 bg-[#25d366]/10 border border-[#25d366]/30 hover:bg-[#25d366]/25 text-[#25d366] font-bold text-[10px] rounded-lg uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                  </div>
+
+                  {/* Client Name or Company Name */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                      {personType === 'PJ' ? 'Razão Social / Nome da Empresa' : 'Nome Completo'}
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder={personType === 'PJ' ? 'Ex: Empresa LTDA' : 'Ex: João da Silva'} 
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Representative Name (PJ Only) */}
+                  {personType === 'PJ' && (
+                    <div className="flex flex-col md:col-span-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        Nome do Representante Legal (Signatário)
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Felipe Damasceno (Representante que assina)" 
+                        value={repName}
+                        onChange={(e) => setRepName(e.target.value)}
+                        className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                      />
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">E-mail</label>
+                    <input 
+                      type="email" 
+                      placeholder="email@cliente.com" 
+                      value={clientEmail}
+                      onChange={(e) => setClientEmail(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Phone & Criar Grupo */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Telefone</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="tel" 
+                        placeholder="(11) 99999-9999" 
+                        value={clientPhone}
+                        onChange={(e) => setClientPhone(e.target.value)}
+                        className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none flex-grow transition-all duration-300 font-mono"
+                        required
+                      />
+                      <a 
+                        href={`https://wa.me/5581994691175?text=Oi%2C%20vamos%20criar%20o%20grupo.%20Nome%3A%20${encodeURIComponent(clientName)}%20-%20Tel%3A%20${encodeURIComponent(clientPhone)}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="px-3 bg-[#25d366]/10 border border-[#25d366]/30 hover:bg-[#25d366]/25 text-[#25d366] font-bold text-[10px] rounded-lg uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        Criar Grupo
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  <div className="flex flex-col md:col-span-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Endereço Completo</label>
+                    <input 
+                      type="text" 
+                      placeholder="Rua, Número, Bairro, CEP, Cidade/UF" 
+                      value={clientAddress}
+                      onChange={(e) => setClientAddress(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Investimento Total */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Investimento Total (R$)</label>
+                    <input 
+                      type="text" 
+                      placeholder="R$ 0,00" 
+                      value={totalInvestment}
+                      onChange={(e) => setTotalInvestment(formatBRLInput(e.target.value))}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                      required
+                    />
+                  </div>
+
+                  {/* Valor Sinal de Entrada */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        Valor Sinal de Entrada (R$)
+                      </label>
+                      {isEntranceTooLow && (
+                        <span className="text-[10px] text-red-500 font-bold uppercase animate-pulse">
+                          Valor calculado não disponível
+                        </span>
+                      )}
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: R$ 24.000,00" 
+                      value={entranceValue}
+                      onChange={(e) => setEntranceValue(formatBRLInput(e.target.value))}
+                      className={`bg-black/40 border text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono ${isEntranceTooLow ? 'border-red-500/50 focus:border-red-500' : 'border-gray-800 focus:border-[#d4af37]'}`}
+                    />
+                  </div>
+
+                  {/* Forma de Pagamento */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Forma de Pagamento (Saldo)</label>
+                    <select 
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
                     >
-                      Criar Grupo
-                    </a>
+                      <option value="credit">Cartão de Crédito</option>
+                      <option value="pix">PIX</option>
+                    </select>
                   </div>
+
+                  {/* Simulador de Parcela */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Parcelamento do Saldo</label>
+                    <select 
+                      value={installments}
+                      onChange={(e) => setInstallments(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
+                    >
+                      {[...Array(12)].map((_, i) => (
+                        <option key={i+1} value={i+1}>{i+1}x parcelas</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Foro da comarca */}
+                  <div className="flex flex-col md:col-span-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Foro / Comarca Eleita</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Barueri/SP" 
+                      value={contractForo}
+                      onChange={(e) => setContractForo(e.target.value)}
+                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                      required
+                    />
+                  </div>
+
                 </div>
 
-                {/* Address */}
-                <div className="flex flex-col md:col-span-2">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Endereço Completo</label>
-                  <input 
-                    type="text" 
-                    placeholder="Rua, Número, Bairro, CEP, Cidade/UF" 
-                    value={clientAddress}
-                    onChange={(e) => setClientAddress(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                    required
-                  />
-                </div>
-
-                {/* Investimento Total */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Investimento Total (R$)</label>
-                  <input 
-                    type="number" 
-                    placeholder="Ex: 15000" 
-                    value={totalInvestment}
-                    onChange={(e) => setTotalInvestment(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
-                    required
-                  />
-                </div>
-
-                {/* Valor Sinal de Entrada */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Valor Sinal de Entrada (R$)</label>
-                  <input 
-                    type="number" 
-                    placeholder="Ex: 3000" 
-                    value={entranceValue}
-                    onChange={(e) => setEntranceValue(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
-                    required
-                  />
-                </div>
-
-                {/* Forma de Pagamento */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Forma de Pagamento (Saldo)</label>
-                  <select 
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
-                  >
-                    <option value="credit">Cartão de Crédito</option>
-                    <option value="pix">PIX</option>
-                  </select>
-                </div>
-
-                {/* Simulador de Parcela */}
-                <div className="flex flex-col">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Parcelamento do Saldo</label>
-                  <select 
-                    value={installments}
-                    onChange={(e) => setInstallments(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
-                  >
-                    {[...Array(12)].map((_, i) => (
-                      <option key={i+1} value={i+1}>{i+1}x parcelas</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Foro da comarca */}
-                <div className="flex flex-col md:col-span-2">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Foro / Comarca Eleita</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Barueri/SP" 
-                    value={contractForo}
-                    onChange={(e) => setContractForo(e.target.value)}
-                    className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                    required
-                  />
+                {/* Dynamic Calculation preview box */}
+                <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 rounded-xl p-3.5 mt-2">
+                  <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">RESUMO DO FLUXO FINANCEIRO</span>
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
+                      <span className="text-[8px] text-gray-500 block uppercase font-mono">Entrada (Hoje)</span>
+                      <span className="text-white font-mono font-bold">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entranceVal)}
+                      </span>
+                    </div>
+                    <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
+                      <span className="text-[8px] text-gray-500 block uppercase font-mono">Saldo Financiado</span>
+                      <span className="text-white font-mono font-bold">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balanceVal)}
+                      </span>
+                    </div>
+                    <div className="p-2 bg-[#d4af37]/10 rounded-lg border border-[#d4af37]/20">
+                      <span className="text-[8px] text-[#d4af37] block uppercase font-mono">Parcelamento do Saldo</span>
+                      <span className="text-[#ffd700] font-mono font-bold">
+                        {installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(instValue)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
               </div>
 
-              {/* Dynamic Calculation preview box */}
-              <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 rounded-xl p-3.5 mt-2">
-                <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">RESUMO DO FLUXO FINANCEIRO</span>
-                <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
-                    <span className="text-[8px] text-gray-500 block uppercase font-mono">Entrada (Hoje)</span>
-                    <span className="text-white font-mono font-bold">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(entranceValue) || 0)}
-                    </span>
-                  </div>
-                  <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
-                    <span className="text-[8px] text-gray-500 block uppercase font-mono">Saldo Financiado</span>
-                    <span className="text-white font-mono font-bold">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.max(0, (parseFloat(totalInvestment) || 0) - (parseFloat(entranceValue) || 0)))}
-                    </span>
-                  </div>
-                  <div className="p-2 bg-[#d4af37]/10 rounded-lg border border-[#d4af37]/20">
-                    <span className="text-[8px] text-[#d4af37] block uppercase font-mono">Parcelamento do Saldo</span>
-                    <span className="text-[#ffd700] font-mono font-bold">
-                      {installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.max(0, (parseFloat(totalInvestment) || 0) - (parseFloat(entranceValue) || 0)) / (parseInt(installments) || 1))}
-                    </span>
-                  </div>
-                </div>
+              {/* Footer Buttons */}
+              <div className="border-t border-gray-800 p-4 flex justify-end gap-3 bg-black/20">
+                <button 
+                  type="button" 
+                  onClick={() => setIsContractModalOpen(false)}
+                  className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleDownloadContract}
+                  disabled={isEntranceTooLow}
+                  className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+                >
+                  Gerar Contrato (.DOC)
+                </button>
               </div>
 
             </div>
-
-            {/* Footer Buttons */}
-            <div className="border-t border-gray-800 p-4 flex justify-end gap-3 bg-black/20">
-              <button 
-                type="button" 
-                onClick={() => setIsContractModalOpen(false)}
-                className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="button" 
-                onClick={handleDownloadContract}
-                className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)]"
-              >
-                Gerar Contrato (.DOC)
-              </button>
-            </div>
-
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* FOOTER CONTROLS */}
       <footer className="px-10 py-5 flex items-center justify-between z-10 shrink-0 border-t border-[#1b2a3f]/25 bg-gradient-to-t from-[#060b13] to-transparent">
