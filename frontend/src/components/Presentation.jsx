@@ -1494,7 +1494,7 @@ export default function Presentation() {
                             onClick={() => { setCalcState('idle'); setHourlyRate(''); setHoursPerWeek(''); setStrategicPercent('20'); setAnnualGrowth('80'); setGrowthFromStrategy('50'); }}
                             className="mt-3 px-4 py-1.5 border border-gray-800 hover:border-[#d4af37] text-[10px] text-gray-400 hover:text-[#d4af37] bg-black/20 hover:bg-[#d4af37]/5 uppercase font-bold tracking-wider rounded-lg transition-all cursor-pointer w-fit"
                           >
-                            Calcular Novamente
+                            Refazer Simulação
                           </button>
                         </div>
 
