@@ -1,7 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { X, Maximize2, Minimize2, BarChart2, Calendar, TrendingUp, ShieldAlert, Loader } from 'lucide-react';
 import { ROLES } from '../../domain/governance/auth.js';
-
+import { GovernanceHeader } from './ui/GovernanceHeader.jsx';
 // Lazy loading das abas
 const DashboardTab = lazy(() => import('./tabs/DashboardTab').then(m => ({ default: m.DashboardTab })));
 const MonthlyClosingTab = lazy(() => import('./tabs/MonthlyClosingTab').then(m => ({ default: m.MonthlyClosingTab })));
@@ -51,23 +51,17 @@ export function GovernanceAppShell({ dashboardData, onClose }) {
           </div>
         )}
 
-        {/* Header Corporativo */}
-        <div className={`border-b border-[var(--color-border-color)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-black/30 gap-4 sm:gap-0 ${import.meta.env.VITE_ENABLE_ROLE_SIMULATION !== 'true' ? 'rounded-t-2xl' : ''}`}>
-          <div className="text-left">
-            <span className="text-[10px] font-accent text-[var(--color-primary-yellow)] uppercase tracking-[0.2em] font-bold">
-              Programa Governo Empresarial
-            </span>
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight">
-                Centro de Governança PGE
-              </h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white/70 text-xs font-medium border border-white/10 mt-1">
-                Mês {dashboardData.month}
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 mt-1 font-medium">{dashboardData.clientName}</p>
-          </div>
+        <GovernanceHeader 
+          clientName={dashboardData.clientName}
+          startDate={new Intl.DateTimeFormat('pt-BR').format(new Date())}
+          mode={dashboardData.isPreviewMode ? 'preview' : 'administrative'}
+          onClose={onClose}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={handleToggleFullscreen}
+        />
 
+        {/* Navigation Tabs */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-gray-800 bg-[#050a14] px-4 py-2 gap-3">
           <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-hide">
             {TABS.map(tab => (
               <button 
@@ -83,23 +77,6 @@ export function GovernanceAppShell({ dashboardData, onClose }) {
                 {tab.label}
               </button>
             ))}
-          </div>
-
-          <div className="flex items-center gap-4 text-gray-400 absolute sm:relative top-4 right-4 sm:top-0 sm:right-0">
-            <button 
-              onClick={handleToggleFullscreen}
-              className="hover:text-white transition-colors cursor-pointer"
-              title={isFullscreen ? "Minimizar" : "Tela Cheia"}
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-            <div className="w-px h-4 bg-gray-700 hidden sm:block"></div>
-            <button 
-              onClick={onClose}
-              className="hover:text-red-400 transition-colors p-1 bg-black/40 rounded-full border border-gray-800 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
 

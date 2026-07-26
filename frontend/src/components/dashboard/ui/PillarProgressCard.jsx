@@ -26,16 +26,25 @@ export function PillarProgressCard({ id, name, currentScore }) {
       </div>
       
       <div>
-        <div className="flex justify-between items-end mb-2">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Aderência</span>
-          <span className="text-lg font-heading font-bold text-white">{score}%</span>
-        </div>
-        <div className="w-full bg-[var(--color-background-main)] rounded-full h-1.5 border border-black/50">
-          <div 
-            className="bg-gradient-to-r from-[var(--color-primary-yellow-dark)] to-[var(--color-primary-yellow)] h-1.5 rounded-full transition-all duration-1000"
-            style={{ width: `${score}%` }}
-          />
-        </div>
+        {currentScore === null ? (
+          <div className="flex justify-between items-end mb-2">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Aderência</span>
+            <span className="text-[10px] font-medium text-gray-500 italic">Aguardando medição</span>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Aderência</span>
+              <span className="text-lg font-heading font-bold text-white">{score}%</span>
+            </div>
+            <div className="w-full bg-[var(--color-background-main)] rounded-full h-1.5 border border-black/50">
+              <div 
+                className="bg-gradient-to-r from-[var(--color-primary-yellow-dark)] to-[var(--color-primary-yellow)] h-1.5 rounded-full transition-all duration-1000"
+                style={{ width: `${score}%` }}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

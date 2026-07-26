@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useRoadmap } from './useRoadmap.js';
 import { useMonthlyClosing } from './useMonthlyClosing.js';
-import { calculateIGE, getMaturityLevel } from '../domain/governance/calculations.js';
+import { calculateIGE, getMaturityLevel, clampPercentage } from '../domain/governance/calculations.js';
 import { ROLES } from '../domain/governance/auth.js';
+import { PresentationGovernanceDraftRepository } from '../repositories/PresentationGovernanceDraftRepository.js';
 
 export function useGovernanceDashboard(initialProps = {}) {
   // Simulação de Role (Modo Demonstração)
@@ -14,29 +15,38 @@ export function useGovernanceDashboard(initialProps = {}) {
 
   const roadmap = useRoadmap(initialProps.companyId);
   const closing = useMonthlyClosing(initialProps.companyId);
+  const { companyId, presentationSessionId } = initialProps;
   
+  // Draft integration for Prévia Administrativa
+  const draftData = (!companyId && presentationSessionId) 
+    ? PresentationGovernanceDraftRepository.findBySessionId(presentationSessionId) 
+    : null;
+
   // Pegamos o snapshot mais recente para os cards principais
   const snapshots = closing.snapshots;
   const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
 
-  // Calculamos IGE baseado nos últimos dados, ou defaults de demonstração (Mês 1)
-  const currentIde = latestSnapshot ? latestSnapshot.metrics.provisionalIde : 85;
-  const currentClo = latestSnapshot ? latestSnapshot.metrics.clo : 15;
-  const currentAutonomy = latestSnapshot ? latestSnapshot.metrics.autonomy : 12;
-  const currentProcessMaturity = latestSnapshot ? latestSnapshot.metrics.processMaturity : 8; // Demo
-  const currentAutomation = 5; // Demo
-  const currentGovernance = 10; // Demo
+  // Calculamos IGE baseado nos últimos dados, ou draft (Prévia), ou null
+  const currentIde = latestSnapshot ? latestSnapshot.metrics.provisionalIde : (draftData?.diagnosticData?.ideDependency != null ? clampPercentage(draftData.diagnosticData.ideDependency) : null);
+  const currentClo = latestSnapshot ? latestSnapshot.metrics.clo : (draftData?.diagnosticData?.cloOperationalFreedom != null ? clampPercentage(draftData.diagnosticData.cloOperationalFreedom) : null);
+  const currentAutonomy = latestSnapshot ? latestSnapshot.metrics.autonomy : (draftData?.diagnosticData?.cloOperationalFreedom != null ? clampPercentage(draftData.diagnosticData.cloOperationalFreedom) : null); // fallback
+  const currentProcessMaturity = latestSnapshot ? latestSnapshot.metrics.processMaturity : null; // Aguardando medição
+  const currentAutomation = null; // Aguardando medição
+  const currentGovernance = null; // Aguardando medição
 
-  const ige = calculateIGE({
-    ide: currentIde,
-    clo: currentClo,
-    autonomy: currentAutonomy,
-    processMaturity: currentProcessMaturity,
-    automation: currentAutomation,
-    governance: currentGovernance
+  const isPreviewMode = !companyId && !!presentationSessionId;
+
+  // IGE should be null in preview mode because we don't have all pillars measured
+  const ige = isPreviewMode ? null : calculateIGE({
+    ide: currentIde || 0,
+    clo: currentClo || 0,
+    autonomy: currentAutonomy || 0,
+    processMaturity: currentProcessMaturity || 0,
+    automation: currentAutomation || 0,
+    governance: currentGovernance || 0
   });
 
-  const maturityLevel = getMaturityLevel(ige);
+  const maturityLevel = ige !== null ? getMaturityLevel(ige) : 'Aguardando medição';
 
   const decisionsToOwner = latestSnapshot?.rawData?.decisionsToOwner ?? 35; // Demo
   
@@ -77,9 +87,11 @@ export function useGovernanceDashboard(initialProps = {}) {
     roadmap.addTask(task, actor);
   }, [roadmap, actor]);
 
+
   return {
-    clientName: initialProps.clientName || 'Empresa Demonstração',
+    clientName: draftData?.clientInfo?.name || initialProps.clientName || 'Empresa Demonstração',
     month: latestSnapshot ? latestSnapshot.month : 1,
+    isPreviewMode,
     actor,
     setActor,
     ige,
@@ -87,8 +99,8 @@ export function useGovernanceDashboard(initialProps = {}) {
     ide: currentIde,
     clo: currentClo,
     autonomy: currentAutonomy,
-    decisionsToOwner,
-    roadmapProgress: roadmap.progress,
+    decisionsToOwner: latestSnapshot?.rawData?.decisionsToOwner ?? null,
+    roadmapProgress: isPreviewMode ? null : roadmap.progress,
     pillars,
     tasks: roadmap.tasks,
     snapshots,

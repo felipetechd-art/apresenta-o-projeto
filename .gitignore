@@ -35,3 +35,6 @@ lerna-debug.log*
 
 # Gemini files
 .gemini/
+
+# Firebase cache
+.firebase/hosting*.cache

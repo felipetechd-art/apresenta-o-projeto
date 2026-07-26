@@ -248,7 +248,9 @@ export function MonthlyClosingTab({ dashboardData }) {
             </h3>
             <div className="mb-4 bg-black/30 rounded-lg p-3 border border-gray-800 flex justify-between items-center">
               <span className="text-xs font-bold text-gray-400 uppercase">Avanço do Roadmap:</span>
-              <span className="text-lg font-bold text-white">{roadmapProgress.toFixed(1)}%</span>
+              <span className="text-lg font-bold text-white">
+                {roadmapProgress !== null ? `${roadmapProgress.toFixed(1)}%` : <span className="text-sm font-medium text-gray-500 italic">Aguardando medição</span>}
+              </span>
             </div>
             
             <div className="flex flex-col gap-1">

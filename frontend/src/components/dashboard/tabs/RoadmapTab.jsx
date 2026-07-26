@@ -77,10 +77,12 @@ export function RoadmapTab({ dashboardData }) {
             <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-[var(--color-primary-yellow)] transition-all duration-500" 
-                style={{ width: `${roadmapProgress}%` }}
+                style={{ width: `${roadmapProgress !== null ? roadmapProgress : 0}%` }}
               />
             </div>
-            <span className="text-sm font-bold text-white">{roadmapProgress.toFixed(0)}%</span>
+            <span className="text-sm font-bold text-white">
+              {roadmapProgress !== null ? `${roadmapProgress.toFixed(0)}%` : '—'}
+            </span>
           </div>
         </div>
 

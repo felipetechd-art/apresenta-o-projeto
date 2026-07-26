@@ -17,7 +17,7 @@ export function DashboardTab({ dashboardData }) {
         </div>
         <MetricCard 
           title="Índice de Dependência" 
-          value={`${ide}%`} 
+          value={ide !== null ? `${ide}%` : null} 
           subtitle="IDE"
           icon={AlertTriangle}
           evolution={-2} // Fake evolution for layout
@@ -25,14 +25,14 @@ export function DashboardTab({ dashboardData }) {
         />
         <MetricCard 
           title="Liberdade Operacional" 
-          value={`${clo}%`} 
+          value={clo !== null ? `${clo}%` : null} 
           subtitle="CLO"
           icon={Activity}
           evolution={5}
         />
         <MetricCard 
           title="Autonomia (Lideranças)" 
-          value={`${autonomy}%`} 
+          value={autonomy !== null ? `${autonomy}%` : null} 
           icon={BrainCircuit}
           evolution={1}
         />
@@ -82,7 +82,7 @@ export function DashboardTab({ dashboardData }) {
               Prioridades do Mês
             </h2>
             <span className="text-[10px] font-bold bg-[var(--color-primary-yellow)]/10 text-[var(--color-primary-yellow)] px-2 py-1 rounded">
-              Roadmap: {roadmapProgress}%
+              Roadmap: {roadmapProgress !== null ? `${roadmapProgress}%` : 'Aguardando medição'}
             </span>
           </div>
           

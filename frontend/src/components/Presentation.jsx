@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { PresentationSessionService } from '../domain/governance/presentationSession';
+import { mapPresentationToGovernanceDraft } from '../domain/governance/presentationMapper';
+import { PresentationGovernanceDraftRepository } from '../repositories/PresentationGovernanceDraftRepository';
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,6 +31,7 @@ import {
 } from 'lucide-react';
 import felipeImg from '../assets/felipe.jpg';
 import ClientGovernanceCenter from './ClientGovernanceCenter.jsx';
+import { NewGovernancePanelWrapper } from './NewGovernancePanelWrapper.jsx';
 
 const formatBRLInput = (value) => {
   if (value === undefined || value === null) return '';
@@ -106,6 +110,18 @@ export default function Presentation() {
   const [contractStep, setContractStep] = useState(1); // 1 = dados cadastrais, 2 = pagamento
   
   const [activeLogoIdx, setActiveLogoIdx] = useState(0);
+  const [presentationSessionId, setPresentationSessionId] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let session = params.get('session');
+    if (!session) {
+      session = crypto.randomUUID();
+      const newUrl = window.location.pathname + '?session=' + session;
+      window.history.replaceState({ path: newUrl }, '', newUrl);
+    }
+    setPresentationSessionId(session);
+  }, []);
 
   useEffect(() => {
     const logosCount = 7;
@@ -2951,7 +2967,22 @@ export default function Presentation() {
                     </button>
                     <button 
                       type="button" 
-                      onClick={() => setIsClientDashboardOpen(true)}
+                      onClick={() => {
+                        const sessionId = presentationSessionId;
+                        if (import.meta.env.VITE_ENABLE_NEW_GOVERNANCE_PANEL === 'true' && sessionId) {
+                          const pData = {
+                            clientName, clientEmail, clientPhone, docNumber, repName, clientAddress, employeeCount, leaderCount,
+                            hourlyRate, hoursPerWeek, strategicPercent, annualGrowth, growthFromStrategy,
+                            delegatedTasks, returningTasks, reworkHours, 
+                            ideDependency: 100 - (slide6AutonomyPercent || 15),
+                            cloOperationalFreedom: slide6AutonomyPercent || 15,
+                            totalInvestment, entranceValue, installments, paymentMethod, consultantEmail
+                          };
+                          const draft = mapPresentationToGovernanceDraft(pData);
+                          PresentationGovernanceDraftRepository.save(sessionId, draft);
+                        }
+                        setIsClientDashboardOpen(true);
+                      }}
                       className="px-4 py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15"
                     >
                       Painel do Cliente
@@ -2974,21 +3005,30 @@ export default function Presentation() {
       })()}
 
       {isClientDashboardOpen && (
-        <ClientGovernanceCenter
-          clientName={clientName}
-          totalInvestment={totalInvestment}
-          hourlyRate={hourlyRate}
-          hoursPerWeek={hoursPerWeek}
-          strategicPercent={strategicPercent}
-          calculatedOpportunityCost={calculatedOpportunityCost}
-          calculatedLostGrowth={calculatedLostGrowth}
-          initialAutonomy={slide6AutonomyPercent || 15}
-          onClose={() => setIsClientDashboardOpen(false)}
-          onBackToContract={() => {
-            setIsClientDashboardOpen(false);
-            setIsContractModalOpen(true);
-          }}
-        />
+        import.meta.env.VITE_ENABLE_NEW_GOVERNANCE_PANEL === 'true' ? (
+          <NewGovernancePanelWrapper
+            presentationSessionId={presentationSessionId}
+            clientName={clientName}
+            onClose={() => setIsClientDashboardOpen(false)}
+          />
+        ) : (
+          <ClientGovernanceCenter
+            presentationSessionId={presentationSessionId}
+            clientName={clientName}
+            totalInvestment={totalInvestment}
+            hourlyRate={hourlyRate}
+            hoursPerWeek={hoursPerWeek}
+            strategicPercent={strategicPercent}
+            calculatedOpportunityCost={calculatedOpportunityCost}
+            calculatedLostGrowth={calculatedLostGrowth}
+            initialAutonomy={slide6AutonomyPercent || 15}
+            onClose={() => setIsClientDashboardOpen(false)}
+            onBackToContract={() => {
+              setIsClientDashboardOpen(false);
+              setIsContractModalOpen(true);
+            }}
+          />
+        )
       )}
 
       {/* FOOTER CONTROLS */}

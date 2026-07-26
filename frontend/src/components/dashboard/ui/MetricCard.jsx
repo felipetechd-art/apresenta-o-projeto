@@ -16,15 +16,21 @@ export function MetricCard({ title, value, subtitle, icon: Icon, evolution, evol
       </div>
       
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-heading font-bold text-white">
-          {value}
-        </span>
-        {subtitle && (
-          <span className="text-xs text-gray-500 font-medium">{subtitle}</span>
+        {value === null ? (
+          <span className="text-xs font-medium text-gray-500 italic mt-2 leading-tight break-words">Aguardando medição</span>
+        ) : (
+          <>
+            <span className="text-3xl font-heading font-bold text-white">
+              {value}
+            </span>
+            {subtitle && (
+              <span className="text-xs text-gray-500 font-medium">{subtitle}</span>
+            )}
+          </>
         )}
       </div>
 
-      {(evolution !== undefined || evolutionText) && (
+      {value !== null && (evolution !== undefined || evolutionText) && (
         <div className={`mt-3 text-xs font-bold flex items-center gap-1 ${evoColor}`}>
           {evolution > 0 ? '↑' : evolution < 0 ? '↓' : '−'}
           <span>

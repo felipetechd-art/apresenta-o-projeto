@@ -13,10 +13,14 @@ export function MaturityCard({ ige, maturityLevel }) {
       <div className="flex items-center justify-between mb-4 relative z-10">
         <div>
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Nível de Maturidade</h3>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-heading font-bold text-gold-gradient">{ige}</span>
-            <span className="text-xs text-[var(--color-primary-yellow)] font-bold">IGE</span>
-          </div>
+          {ige === null ? (
+            <div className="text-xs font-medium text-gray-500 italic mt-2 leading-tight">Aguardando medição</div>
+          ) : (
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-3xl font-heading font-bold text-gold-gradient">{ige}</span>
+              <span className="text-xs text-[var(--color-primary-yellow)] font-bold">IGE</span>
+            </div>
+          )}
         </div>
         <div className="w-10 h-10 rounded-full bg-[var(--color-primary-yellow)]/10 flex items-center justify-center">
           <Target className="w-5 h-5 text-[var(--color-primary-yellow)]" />
@@ -24,7 +28,9 @@ export function MaturityCard({ ige, maturityLevel }) {
       </div>
 
       <div className="relative z-10">
-        <h4 className="text-lg font-heading font-bold text-white mb-2">{maturityLevel}</h4>
+        <h4 className={`font-heading font-bold mb-2 ${ige === null ? 'text-sm text-gray-500 italic' : 'text-lg text-white'}`}>
+          {maturityLevel}
+        </h4>
         
         <div className="flex w-full gap-1 h-1.5">
           {levels.map((level, idx) => {

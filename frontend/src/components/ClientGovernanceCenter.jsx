@@ -6,6 +6,7 @@ import { GovernanceAppShell } from './dashboard/GovernanceAppShell.jsx';
 export default function ClientGovernanceCenter({ 
   onClose, 
   onBackToContract,
+  presentationSessionId,
   clientName = 'Empresário PGE',
   totalInvestment = 'R$ 80.000,00',
   hourlyRate = '150',
@@ -21,12 +22,10 @@ export default function ClientGovernanceCenter({
   const [strategicPriority, setStrategicPriority] = useState('Liderança & Processos');
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // Integração Nova Arquitetura SaaS
+  // Suporte legado para o botão "Experimentar Novo Painel" caso a flag principal esteja falsa
   const [useNewVersion, setUseNewVersion] = useState(false);
-  // O sistema ainda não possui um auth central para definir o companyId real.
-  // Usamos "demo-company" como limitação do MVP.
-  const companyId = 'demo-company'; 
-  const newDashboardData = useGovernanceDashboard({ clientName, companyId });
+  const companyId = useNewVersion && presentationSessionId ? null : 'demo-company'; 
+  const newDashboardData = useGovernanceDashboard({ clientName, companyId, presentationSessionId });
 
   // Strategic Roadmap tasks state
   const [roadmapTasks, setRoadmapTasks] = useState([
