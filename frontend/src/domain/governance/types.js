@@ -44,37 +44,57 @@
  */
 
 /**
+ * @typedef {Object} Evidence
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ * @property {string} type - Tipo de evidência (ex: "link", "text", "document")
+ * @property {string} fileName
+ * @property {string} url - URL ou referência textual
+ * @property {string} uploadedBy - actorId
+ * @property {string} date - ISO Date
+ */
+
+/**
  * @typedef {Object} RoadmapTask
  * @property {string} id
  * @property {string} title
  * @property {string} description
- * @property {number} month - Mês de 1 a 12
- * @property {string} phaseId
- * @property {MethodStage} methodStage
+ * @property {string} [objective] - Objetivo da tarefa
+ * @property {number} month - 1 a 12
+ * @property {number} phase - 1, 2 ou 3
  * @property {Pillar} pillar
+ * @property {MethodStage} stage
  * @property {TaskType} type
- * @property {1 | 2 | 3} weight
+ * @property {number} weight - 1 (comum), 2 (importante), 3 (crítica)
+ * @property {string} [responsible] - ID ou nome do responsável
+ * @property {string[]} [supporters] - Apoiadores
+ * @property {string} [dueDate] - ISO Date
  * @property {TaskStatus} status
- * @property {string} ownerId
- * @property {string} [dueDate]
- * @property {number} [baseline]
- * @property {number} [target]
- * @property {string[]} impactedMetricIds
- * @property {string[]} definitionOfDone
- * @property {TaskEvidence[]} evidences
- * @property {string} [blockedReason]
- * @property {string} [validatedAt]
- * @property {string} [validatedBy]
+ * @property {string[]} checklist - Itens obrigatórios
+ * @property {string} definitionOfDone - Definição de concluído
+ * @property {string} [impactedMetric] - Indicador impactado (ex: "IDE", "CLO")
+ * @property {string} [baseline] - Valor atual antes da tarefa
+ * @property {string} [target] - Meta da tarefa
+ * @property {string[]} [dependencies] - IDs de outras tarefas
+ * @property {string[]} [blockers] - Motivos de bloqueio
+ * @property {Evidence[]} evidences - Evidências entregues
+ * @property {import("./audit").AuditEvent[]} [auditLog] - Histórico de alterações
+ * @property {string} [createdAt]
+ * @property {string} [updatedAt]
  */
 
 /**
  * @typedef {Object} MonthlySnapshot
- * @property {string} id
- * @property {number} month
- * @property {string} date
- * @property {"draft" | "submitted" | "validated"} status
- * @property {string} [notes]
- * @property {Object} rawData
+ * @property {string} id - UUID (Não apenas o mês, para permitir revisões)
+ * @property {string} [companyId]
+ * @property {number} [year]
+ * @property {number} month - 1 a 12
+ * @property {number} [revision] - Versão do snapshot (inicia em 1)
+ * @property {string} date - Data em formato ISO do momento do preenchimento
+ * @property {"draft" | "submitted" | "validated" | "returned"} status - Estado atual do lançamento
+ * @property {string} [notes] - Observações gerais
+ * @property {Object} rawData - Os dados puros informados pelo cliente
  * @property {number} rawData.totalHours
  * @property {number} rawData.operationalHours
  * @property {number} rawData.strategicHours
@@ -92,6 +112,14 @@
  * @property {number} metrics.processMaturity
  * @property {number} metrics.provisionalIde
  * @property {number} metrics.roadmapProgress
+ * @property {string} [createdAt]
+ * @property {string} [updatedAt]
+ * @property {string} [submittedAt]
+ * @property {string} [validatedAt]
+ * @property {string} [validatedBy] - ID ou Nome do Mentor
+ * @property {string} [returnedAt]
+ * @property {string} [returnReason]
+ * @property {string} [supersedesId] - Referência ao snapshot anterior que este substituiu
  */
 
 /**

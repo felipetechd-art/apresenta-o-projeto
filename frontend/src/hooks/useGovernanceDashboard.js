@@ -1,9 +1,17 @@
-// @ts-check
+import { useState, useCallback } from 'react';
 import { useRoadmap } from './useRoadmap.js';
 import { useMonthlyClosing } from './useMonthlyClosing.js';
 import { calculateIGE, getMaturityLevel } from '../domain/governance/calculations.js';
+import { ROLES } from '../domain/governance/auth.js';
 
 export function useGovernanceDashboard(initialProps = {}) {
+  // Simulação de Role (Modo Demonstração)
+  const [actor, setActor] = useState({
+    id: 'user-demo-1',
+    name: 'Usuário Demonstração',
+    role: ROLES.MENTORADO
+  });
+
   const roadmap = useRoadmap();
   const closing = useMonthlyClosing();
   
@@ -32,9 +40,6 @@ export function useGovernanceDashboard(initialProps = {}) {
 
   const decisionsToOwner = latestSnapshot?.rawData?.decisionsToOwner ?? 35; // Demo
   
-  // Dados simulados para os pilares (50% implementação / 50% aderência)
-  // No futuro, isso pode ser calculado de forma dinâmica cruzando as tarefas validadas de cada pilar 
-  // com as métricas de aderência coletadas no fechamento.
   const pillars = [
     { id: 'people', name: 'Pessoas e Lideranças', currentScore: 12 },
     { id: 'processes', name: 'Processos e Rotinas', currentScore: currentProcessMaturity },
@@ -43,9 +48,40 @@ export function useGovernanceDashboard(initialProps = {}) {
     { id: 'governance', name: 'Indicadores e Governança', currentScore: currentGovernance }
   ];
 
+  // Wrappers para injetar o actor automaticamente nas chamadas de domínio
+  const saveClosing = useCallback((month, date, rawData, roadmapProgress, status, notes) => {
+    closing.saveClosing(month, date, rawData, roadmapProgress, status, notes, actor);
+  }, [closing, actor]);
+
+  const validateClosing = useCallback((snapshotId) => {
+    closing.validateClosing(snapshotId, actor);
+  }, [closing, actor]);
+
+  const returnClosing = useCallback((snapshotId, reason) => {
+    closing.returnClosing(snapshotId, actor, reason);
+  }, [closing, actor]);
+
+  const createRevision = useCallback((month) => {
+    closing.createRevision(month, actor);
+  }, [closing, actor]);
+
+  const validateTask = useCallback((taskId) => {
+    roadmap.validateTask(taskId, actor);
+  }, [roadmap, actor]);
+
+  const updateTask = useCallback((task, action, comment) => {
+    roadmap.updateTask(task, actor, action, comment);
+  }, [roadmap, actor]);
+  
+  const addTask = useCallback((task) => {
+    roadmap.addTask(task, actor);
+  }, [roadmap, actor]);
+
   return {
     clientName: initialProps.clientName || 'Empresa Demonstração',
     month: latestSnapshot ? latestSnapshot.month : 1,
+    actor,
+    setActor,
     ige,
     maturityLevel,
     ide: currentIde,
@@ -56,8 +92,12 @@ export function useGovernanceDashboard(initialProps = {}) {
     pillars,
     tasks: roadmap.tasks,
     snapshots,
-    saveClosing: closing.saveClosing,
-    validateTask: roadmap.validateTask,
-    updateTask: roadmap.updateTask
+    saveClosing,
+    validateClosing,
+    returnClosing,
+    createRevision,
+    validateTask,
+    updateTask,
+    addTask
   };
 }

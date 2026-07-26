@@ -18,13 +18,18 @@ export function useRoadmap() {
     loadTasks();
   }, [loadTasks]);
 
-  const validateTask = useCallback((taskId, validatedBy) => {
-    RoadmapRepository.validateTask(taskId, validatedBy);
-    loadTasks(); // recarrega
+  const validateTask = useCallback((taskId, actor) => {
+    RoadmapRepository.validateTask(taskId, actor);
+    loadTasks();
   }, [loadTasks]);
 
-  const updateTask = useCallback((task) => {
-    RoadmapRepository.updateTask(task);
+  const updateTask = useCallback((task, actor, action, comment) => {
+    RoadmapRepository.updateTask(task, actor, action, comment);
+    loadTasks();
+  }, [loadTasks]);
+
+  const addTask = useCallback((task, actor) => {
+    RoadmapRepository.addTask(task, actor);
     loadTasks();
   }, [loadTasks]);
 
@@ -36,6 +41,7 @@ export function useRoadmap() {
     progress,
     validateTask,
     updateTask,
+    addTask,
     refresh: loadTasks
   };
 }

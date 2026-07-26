@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { X, Maximize2, Minimize2, BarChart2, Calendar, TrendingUp } from 'lucide-react';
-import { DashboardTab } from './tabs/DashboardTab';
-import { MonthlyClosingTab } from './tabs/MonthlyClosingTab';
+import React, { useState, Suspense, lazy } from 'react';
+import { X, Maximize2, Minimize2, BarChart2, Calendar, TrendingUp, ShieldAlert, Loader } from 'lucide-react';
+import { ROLES } from '../../domain/governance/auth.js';
+
+// Lazy loading das abas
+const DashboardTab = lazy(() => import('./tabs/DashboardTab').then(m => ({ default: m.DashboardTab })));
+const MonthlyClosingTab = lazy(() => import('./tabs/MonthlyClosingTab').then(m => ({ default: m.MonthlyClosingTab })));
+const RoadmapTab = lazy(() => import('./tabs/RoadmapTab').then(m => ({ default: m.RoadmapTab })));
 
 export function GovernanceAppShell({ dashboardData, onClose }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -15,6 +19,13 @@ export function GovernanceAppShell({ dashboardData, onClose }) {
 
   const handleToggleFullscreen = () => setIsFullscreen(!isFullscreen);
 
+  const toggleRole = () => {
+    dashboardData.setActor(prev => ({
+      ...prev,
+      role: prev.role === ROLES.MENTORADO ? ROLES.MENTOR : ROLES.MENTORADO
+    }));
+  };
+
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm transition-all duration-300`}>
       <div 
@@ -24,8 +35,24 @@ export function GovernanceAppShell({ dashboardData, onClose }) {
             : 'w-[1400px] max-w-[98vw] h-[95vh] rounded-2xl border'
         }`}
       >
+        {/* Simulador de Role (Apenas Local/Experimental) */}
+        {import.meta.env.VITE_ENABLE_ROLE_SIMULATION === 'true' && (
+          <div className="bg-red-500/20 border-b border-red-500/30 px-4 py-1.5 flex justify-center items-center gap-4 rounded-t-2xl">
+            <span className="text-[10px] text-red-300 font-bold uppercase tracking-wider flex items-center gap-2">
+              <ShieldAlert className="w-3 h-3" />
+              Modo de Demonstração — Visualizando como {dashboardData.actor.role === ROLES.MENTOR ? 'Mentor' : 'Mentorado'}
+            </span>
+            <button 
+              onClick={toggleRole}
+              className="text-[10px] bg-red-500/30 text-red-200 px-3 py-0.5 rounded cursor-pointer hover:bg-red-500/50 transition-colors"
+            >
+              Trocar Papel
+            </button>
+          </div>
+        )}
+
         {/* Header Corporativo */}
-        <div className="border-b border-[var(--color-border-color)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-black/30 rounded-t-2xl gap-4 sm:gap-0">
+        <div className={`border-b border-[var(--color-border-color)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-black/30 gap-4 sm:gap-0 ${import.meta.env.VITE_ENABLE_ROLE_SIMULATION !== 'true' ? 'rounded-t-2xl' : ''}`}>
           <div className="text-left">
             <span className="text-[10px] font-accent text-[var(--color-primary-yellow)] uppercase tracking-[0.2em] font-bold">
               Programa Governo Empresarial
@@ -76,10 +103,17 @@ export function GovernanceAppShell({ dashboardData, onClose }) {
           </div>
         </div>
 
-        {/* Corpo do Dashboard */}
-        {activeTab === 'dashboard' && <DashboardTab dashboardData={dashboardData} />}
-        {activeTab === 'closing' && <MonthlyClosingTab dashboardData={dashboardData} />}
-        {activeTab === 'roadmap' && <div className="p-8 text-white">Roadmap (Em desenvolvimento)</div>}
+        {/* Corpo do Dashboard - com Suspense */}
+        <Suspense fallback={
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
+            <Loader className="w-8 h-8 animate-spin mb-4 text-[var(--color-primary-yellow)]" />
+            <p className="text-sm font-bold uppercase tracking-wider">Carregando Módulo...</p>
+          </div>
+        }>
+          {activeTab === 'dashboard' && <DashboardTab dashboardData={dashboardData} />}
+          {activeTab === 'closing' && <MonthlyClosingTab dashboardData={dashboardData} />}
+          {activeTab === 'roadmap' && <RoadmapTab dashboardData={dashboardData} />}
+        </Suspense>
 
       </div>
     </div>

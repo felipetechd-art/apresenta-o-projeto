@@ -11,6 +11,7 @@ export function MonthlyClosingTab({ dashboardData }) {
   // Pegar snapshot existente para este mês, se houver
   const existingSnapshot = snapshots.find(s => s.month === selectedMonth);
   const isReadOnly = existingSnapshot?.status === 'validated';
+  const isMentor = dashboardData.actor?.role === 'mentor';
   
   // Pegar mês anterior para comparação
   const previousSnapshot = snapshots.find(s => s.month === selectedMonth - 1);
@@ -281,6 +282,39 @@ export function MonthlyClosingTab({ dashboardData }) {
                 </button>
               </>
             )}
+
+            {status === 'submitted' && isMentor && (
+               <>
+                 <button 
+                   onClick={() => {
+                     const reason = prompt("Motivo da devolução:");
+                     if (reason) dashboardData.returnClosing(existingSnapshot.id, reason);
+                   }}
+                   className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer"
+                 >
+                   Devolver p/ Correção
+                 </button>
+                 <button 
+                   onClick={() => dashboardData.validateClosing(existingSnapshot.id)}
+                   className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-white bg-green-600 hover:bg-green-700 transition-colors cursor-pointer"
+                 >
+                   Validar Fechamento
+                 </button>
+               </>
+            )}
+
+            {isReadOnly && isMentor && (
+               <button 
+                 onClick={() => {
+                   if (window.confirm("Isso criará uma nova revisão em Rascunho para este mês. Deseja continuar?")) {
+                     dashboardData.createRevision(selectedMonth);
+                   }
+                 }}
+                 className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors border border-gray-800 cursor-pointer"
+               >
+                 Autorizar Nova Revisão
+               </button>
+            )}
           </div>
         </div>
 
@@ -338,6 +372,3 @@ export function MonthlyClosingTab({ dashboardData }) {
     </div>
   );
 }
-
-// Para usar o ícone X no modal:
-import { X } from 'lucide-react';

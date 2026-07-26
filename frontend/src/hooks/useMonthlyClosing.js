@@ -22,14 +22,8 @@ export function useMonthlyClosing() {
 
   /**
    * Recebe os dados crus, calcula as métricas, salva no repo e recarrega.
-   * @param {number} month 
-   * @param {string} date 
-   * @param {Object} rawData 
-   * @param {number} roadmapProgress
-   * @param {"draft" | "submitted" | "validated"} status
-   * @param {string} [notes]
    */
-  const saveClosing = useCallback((month, date, rawData, roadmapProgress, status = 'draft', notes = '') => {
+  const saveClosing = useCallback((month, date, rawData, roadmapProgress, status = 'draft', notes = '', actor) => {
     const clo = calculateCLO(rawData.operationalHours, rawData.totalHours);
     const autonomy = calculateAutonomy(rawData.decisionsByLeaders, rawData.decisionsToOwner);
     const recentralizationRate = calculateRecentralization(rawData.recentralizedResponsibilities, rawData.delegatedResponsibilities);
@@ -41,14 +35,18 @@ export function useMonthlyClosing() {
       operationalHours: rawData.operationalHours,
       totalHours: rawData.totalHours,
       priorityProcesses: rawData.priorityProcesses,
-      independentProcesses: rawData.priorityProcesses - rawData.documentedProcesses, // Simplificação
+      independentProcesses: rawData.priorityProcesses - rawData.documentedProcesses,
       recentralized: rawData.recentralizedResponsibilities,
       delegated: rawData.delegatedResponsibilities
     });
 
+    const existingSnap = MonthlyClosingRepository.getSnapshotByMonth(month);
+    
     const snapshot = {
-      id: `snap-${month}`, // Usar apenas o mês garante que updates no mesmo mês sobrescrevam o draft anterior (regra 9)
+      id: existingSnap ? existingSnap.id : `snap-${crypto.randomUUID()}`, 
       month,
+      year: new Date(date).getFullYear(),
+      revision: existingSnap ? existingSnap.revision : 1,
       date,
       status,
       notes,
@@ -60,16 +58,35 @@ export function useMonthlyClosing() {
         processMaturity,
         provisionalIde,
         roadmapProgress
-      }
+      },
+      supersedesId: existingSnap ? existingSnap.supersedesId : undefined
     };
 
-    MonthlyClosingRepository.saveSnapshot(snapshot);
+    MonthlyClosingRepository.saveSnapshot(snapshot, actor);
+    loadSnapshots();
+  }, [loadSnapshots]);
+
+  const validateClosing = useCallback((snapshotId, actor) => {
+    MonthlyClosingRepository.validateSnapshot(snapshotId, actor);
+    loadSnapshots();
+  }, [loadSnapshots]);
+
+  const returnClosing = useCallback((snapshotId, actor, reason) => {
+    MonthlyClosingRepository.returnSnapshot(snapshotId, actor, reason);
+    loadSnapshots();
+  }, [loadSnapshots]);
+
+  const createRevision = useCallback((month, actor) => {
+    MonthlyClosingRepository.createRevision(month, actor);
     loadSnapshots();
   }, [loadSnapshots]);
 
   return {
     snapshots,
     saveClosing,
+    validateClosing,
+    returnClosing,
+    createRevision,
     refresh: loadSnapshots
   };
 }
