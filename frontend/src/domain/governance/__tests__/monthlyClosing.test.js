@@ -101,4 +101,21 @@ describe('MonthlyClosingRepository', () => {
     expect(mockStorage.length).toBe(2);
     expect(MonthlyClosingRepository.getSnapshots().length).toBe(2);
   });
+
+  it('fechamentos mensais permanecem isolados por companyId', () => {
+    vi.mocked(StorageHelper.getItem).mockReturnValue([]);
+    
+    const snap1 = { id: 'snap-1', month: 1, status: 'draft', revision: 1 };
+    MonthlyClosingRepository.saveSnapshot(snap1, mentorado, 'company-A');
+    
+    const snap2 = { id: 'snap-2', month: 1, status: 'draft', revision: 1 };
+    MonthlyClosingRepository.saveSnapshot(snap2, mentorado, 'company-B');
+    
+    const setItemCalls = vi.mocked(StorageHelper.setItem).mock.calls;
+    const callsForA = setItemCalls.filter(call => call[2] === 'company-A');
+    const callsForB = setItemCalls.filter(call => call[2] === 'company-B');
+    
+    expect(callsForA.length).toBeGreaterThan(0);
+    expect(callsForB.length).toBeGreaterThan(0);
+  });
 });

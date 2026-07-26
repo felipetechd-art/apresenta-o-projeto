@@ -11,10 +11,11 @@ export class MonthlyClosingRepository {
    */
   /**
    * Obtém o histórico completo de meses fechados, retornando sempre a revisão mais recente de cada mês.
+   * @param {string} companyId
    * @returns {import("../domain/governance/types.js").MonthlySnapshot[]}
    */
-  static getSnapshots() {
-    const all = StorageHelper.getItem(KEY, []);
+  static getSnapshots(companyId = 'demo-company') {
+    const all = StorageHelper.getItem(KEY, [], companyId);
     // Para cada mês, retorna a revisão mais alta.
     const latestByMonth = new Map();
     for (const snap of all) {
@@ -28,18 +29,20 @@ export class MonthlyClosingRepository {
 
   /**
    * Obtém o histórico bruto total (incluindo revisões antigas).
+   * @param {string} companyId
    */
-  static getAllRevisions() {
-    return StorageHelper.getItem(KEY, []);
+  static getAllRevisions(companyId = 'demo-company') {
+    return StorageHelper.getItem(KEY, [], companyId);
   }
 
   /**
    * Obtém o snapshot de um mês específico (a revisão mais recente).
    * @param {number} month 
+   * @param {string} companyId
    * @returns {import("../domain/governance/types.js").MonthlySnapshot | undefined}
    */
-  static getSnapshotByMonth(month) {
-    return this.getSnapshots().find(s => s.month === month);
+  static getSnapshotByMonth(month, companyId = 'demo-company') {
+    return this.getSnapshots(companyId).find(s => s.month === month);
   }
 
   /**
@@ -47,9 +50,10 @@ export class MonthlyClosingRepository {
    * Impede a sobrescrita caso a revisão atual esteja validada.
    * @param {import("../domain/governance/types.js").MonthlySnapshot} snapshot 
    * @param {import("../domain/governance/auth.js").Actor} actor
+   * @param {string} companyId
    */
-  static saveSnapshot(snapshot, actor) {
-    const all = this.getAllRevisions();
+  static saveSnapshot(snapshot, actor, companyId = 'demo-company') {
+    const all = this.getAllRevisions(companyId);
     const existingIndex = all.findIndex(s => s.id === snapshot.id);
     const existing = existingIndex !== -1 ? all[existingIndex] : null;
 
@@ -65,20 +69,21 @@ export class MonthlyClosingRepository {
       all.push(snapshot);
     }
     
-    StorageHelper.setItem(KEY, all);
+    StorageHelper.setItem(KEY, all, companyId);
   }
 
   /**
    * Valida um snapshot. Somente mentores podem realizar esta ação.
    * @param {string} snapshotId 
    * @param {import("../domain/governance/auth.js").Actor} actor 
+   * @param {string} companyId
    */
-  static validateSnapshot(snapshotId, actor) {
+  static validateSnapshot(snapshotId, actor, companyId = 'demo-company') {
     if (!canValidateMonthlyClosing(actor)) {
       throw new Error("Acesso Negado: Apenas o mentor pode validar um fechamento.");
     }
 
-    const all = this.getAllRevisions();
+    const all = this.getAllRevisions(companyId);
     const existingIndex = all.findIndex(s => s.id === snapshotId);
     
     if (existingIndex === -1) throw new Error("Snapshot não encontrado.");
@@ -88,18 +93,22 @@ export class MonthlyClosingRepository {
     all[existingIndex].validatedBy = actor.id || actor.name;
     all[existingIndex].updatedAt = new Date().toISOString();
 
-    StorageHelper.setItem(KEY, all);
+    StorageHelper.setItem(KEY, all, companyId);
   }
 
   /**
    * Devolve um snapshot para correção.
+   * @param {string} snapshotId
+   * @param {import("../domain/governance/auth.js").Actor} actor
+   * @param {string} reason
+   * @param {string} companyId
    */
-  static returnSnapshot(snapshotId, actor, reason) {
+  static returnSnapshot(snapshotId, actor, reason, companyId = 'demo-company') {
     if (!canReturnMonthlyClosing(actor)) {
       throw new Error("Acesso Negado: Apenas o mentor pode devolver um fechamento.");
     }
     
-    const all = this.getAllRevisions();
+    const all = this.getAllRevisions(companyId);
     const existingIndex = all.findIndex(s => s.id === snapshotId);
     if (existingIndex === -1) throw new Error("Snapshot não encontrado.");
 
@@ -108,19 +117,22 @@ export class MonthlyClosingRepository {
     all[existingIndex].returnedAt = new Date().toISOString();
     all[existingIndex].updatedAt = new Date().toISOString();
 
-    StorageHelper.setItem(KEY, all);
+    StorageHelper.setItem(KEY, all, companyId);
   }
 
   /**
    * Cria uma nova revisão a partir de um snapshot validado.
    * Útil quando o mentor autoriza uma correção retroativa.
+   * @param {number} month
+   * @param {import("../domain/governance/auth.js").Actor} actor
+   * @param {string} companyId
    */
-  static createRevision(month, actor) {
+  static createRevision(month, actor, companyId = 'demo-company') {
     if (!canCreateRevision(actor)) {
       throw new Error("Acesso Negado: Apenas o mentor pode autorizar a criação de uma nova revisão.");
     }
 
-    const latest = this.getSnapshotByMonth(month);
+    const latest = this.getSnapshotByMonth(month, companyId);
     if (!latest || latest.status !== 'validated') {
       throw new Error("Não há snapshot validado para revisar neste mês.");
     }
@@ -139,9 +151,9 @@ export class MonthlyClosingRepository {
       updatedAt: new Date().toISOString()
     };
 
-    const all = this.getAllRevisions();
+    const all = this.getAllRevisions(companyId);
     all.push(newRevision);
-    StorageHelper.setItem(KEY, all);
+    StorageHelper.setItem(KEY, all, companyId);
     return newRevision;
   }
 }

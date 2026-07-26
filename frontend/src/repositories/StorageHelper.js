@@ -1,38 +1,71 @@
 // @ts-check
 
 const STORAGE_PREFIX = "@PGE_GovCenter:";
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2; // Incremented for companyId isolation migration
 
 /**
  * Utilitário de persistência tipada no localStorage
  * Garante versionamento do schema para migrações futuras.
  */
 export class StorageHelper {
+  
+  /**
+   * Helper para construir a chave com companyId
+   * @param {string} companyId 
+   * @param {string} key 
+   */
+  static _buildKey(companyId, key) {
+    return `${STORAGE_PREFIX}${companyId}:${key}`;
+  }
+
+  /**
+   * Realiza a migração de dados globais antigos para o formato isolado por empresa.
+   * Só roda se existir o dado global e a empresa atual for demo-company.
+   */
+  static _migrateFromGlobal(companyId, key) {
+    if (companyId !== 'demo-company') return;
+
+    const oldKey = `${STORAGE_PREFIX}${key}`;
+    const oldItem = localStorage.getItem(oldKey);
+    
+    if (oldItem) {
+      const parsedOld = JSON.parse(oldItem);
+      const newKey = this._buildKey(companyId, key);
+      
+      // Salva no novo formato com o companyId
+      const payload = {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        timestamp: new Date().toISOString(),
+        data: parsedOld.data || parsedOld // fallback in case old format didn't have wrapper
+      };
+      localStorage.setItem(newKey, JSON.stringify(payload));
+      
+      // Remove o antigo (Idempotente e seguro, movimenta e apaga origem)
+      localStorage.removeItem(oldKey);
+    }
+  }
+
   /**
    * @template T
    * @param {string} key 
    * @param {T} defaultValue 
+   * @param {string} companyId
    * @returns {T}
    */
-  static getItem(key, defaultValue) {
+  static getItem(key, defaultValue, companyId = 'demo-company') {
     try {
-      const fullKey = `${STORAGE_PREFIX}${key}`;
+      this._migrateFromGlobal(companyId, key);
+
+      const fullKey = this._buildKey(companyId, key);
       const item = localStorage.getItem(fullKey);
       if (!item) return defaultValue;
 
       const parsed = JSON.parse(item);
       
-      // Se tivermos um esquema de versão, validamos. Se for mais antigo, 
-      // aqui entraria lógica de migração futura.
-      if (parsed.schemaVersion && parsed.schemaVersion < CURRENT_SCHEMA_VERSION) {
-        console.warn(`[PGE] Migração de dados de ${parsed.schemaVersion} para ${CURRENT_SCHEMA_VERSION} necessária futuramente.`);
-        // Para esta versão inicial, retornamos o valor
-      }
-      
       return parsed.data !== undefined ? parsed.data : defaultValue;
     } catch (error) {
       console.error(`[PGE] Erro ao ler ${key} do localStorage`, error);
-      return defaultValue; // Fallback se os dados estiverem corrompidos
+      return defaultValue;
     }
   }
 
@@ -40,10 +73,11 @@ export class StorageHelper {
    * @template T
    * @param {string} key 
    * @param {T} data 
+   * @param {string} companyId
    */
-  static setItem(key, data) {
+  static setItem(key, data, companyId = 'demo-company') {
     try {
-      const fullKey = `${STORAGE_PREFIX}${key}`;
+      const fullKey = this._buildKey(companyId, key);
       const payload = {
         schemaVersion: CURRENT_SCHEMA_VERSION,
         timestamp: new Date().toISOString(),
@@ -58,9 +92,10 @@ export class StorageHelper {
   /**
    * Remove item específico
    * @param {string} key 
+   * @param {string} companyId
    */
-  static removeItem(key) {
-    const fullKey = `${STORAGE_PREFIX}${key}`;
+  static removeItem(key, companyId = 'demo-company') {
+    const fullKey = this._buildKey(companyId, key);
     localStorage.removeItem(fullKey);
   }
 
