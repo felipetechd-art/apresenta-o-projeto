@@ -42,11 +42,16 @@ export class RoadmapRepository {
       return migrated;
     });
 
+    const normalize = (str) => {
+      if (!str) return "";
+      return str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+
     for (const seedTask of seedTasks) {
       // Comparação determinística: fallback para buscar por título igual (para migração de seeds com ID dinâmico legado)
       const exists = reconciledTasks.find(t => 
         t.id === seedTask.id || 
-        (t.title === seedTask.title && t.month === seedTask.month && t.type === 'mandatory')
+        (t.type === 'mandatory' && t.month === seedTask.month && normalize(t.title) === normalize(seedTask.title))
       );
       
       if (exists) {
@@ -112,7 +117,7 @@ export class RoadmapRepository {
       updatedTask.updatedAt = new Date().toISOString();
 
       tasks[index] = updatedTask;
-      this.saveTasks(tasks);
+      this.saveTasks(tasks, companyId);
     }
   }
 

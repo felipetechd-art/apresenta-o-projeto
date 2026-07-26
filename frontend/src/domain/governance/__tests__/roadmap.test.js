@@ -167,6 +167,63 @@ describe('RoadmapRepository', () => {
     expect(tasks.find(t => t.id === 'seed-m1-t1').title).toBe('Realizar diagnóstico IDE.');
   });
 
+  it('normalização de título não confunde acentos, espaços ou caixa na reconciliação', () => {
+    // Old dynamic ID from previous version with different casing and accents
+    const oldTask = { 
+      id: 'task-legacy', 
+      title: '  reAlIZaR diagNÓstico idé.   ', // Seed is "Realizar diagnóstico IDE."
+      month: 1, 
+      type: 'mandatory' 
+    };
+    mockStorage = [oldTask];
+    vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
+    
+    const tasks = RoadmapRepository.getTasks();
+    const migrated = tasks.find(t => t.id === 'seed-m1-t1');
+    expect(migrated).toBeDefined();
+    // It should preserve the title from the legacy task during migration if we just mutate the ID,
+    // wait, actually, if it matches, it mutates exists.id = seedTask.id. The rest of the legacy task remains.
+    // So migrated title might still be the old one. We just check if it was migrated.
+    expect(tasks.find(t => t.id === 'task-legacy')).toBeUndefined();
+  });
+
+  it('duas tarefas com títulos semelhantes no mesmo mês não são migradas incorretamente', () => {
+    const similarTask = { 
+      id: 'task-custom', 
+      title: 'Realizar diagnóstico CLO e IDE', // Similar but not exact
+      month: 1, 
+      type: 'custom' // Different type
+    };
+    mockStorage = [similarTask];
+    vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
+    
+    const tasks = RoadmapRepository.getTasks();
+    expect(tasks.find(t => t.id === 'task-custom')).toBeDefined();
+    // E as originais devem ter sido recriadas
+    expect(tasks.find(t => t.id === 'seed-m1-t1')).toBeDefined();
+    expect(tasks.find(t => t.id === 'seed-m1-t2')).toBeDefined();
+  });
+
+  it('uma tarefa legada já validada mantém status e auditoria após receber o ID estável', () => {
+    const oldTask = { 
+      id: 'task-legacy-validated', 
+      title: 'Realizar diagnóstico IDE.',
+      month: 1, 
+      type: 'mandatory',
+      status: 'validated',
+      auditLog: [{ action: 'validated', actor: { id: 'mentor' } }]
+    };
+    mockStorage = [oldTask];
+    vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
+    
+    const tasks = RoadmapRepository.getTasks();
+    const migrated = tasks.find(t => t.id === 'seed-m1-t1');
+    expect(migrated).toBeDefined();
+    expect(migrated.status).toBe('validated');
+    expect(migrated.auditLog.length).toBe(1);
+    expect(migrated.auditLog[0].action).toBe('validated');
+  });
+
   it('duas empresas possuem roadmaps independentes pelo companyId', () => {
     // Se o getItem retorna vazio para ambas, cada uma receberá o seed isolado.
     vi.mocked(StorageHelper.getItem).mockReturnValue([]);

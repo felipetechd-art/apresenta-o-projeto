@@ -23,7 +23,10 @@ export default function ClientGovernanceCenter({
   
   // Integração Nova Arquitetura SaaS
   const [useNewVersion, setUseNewVersion] = useState(false);
-  const newDashboardData = useGovernanceDashboard({ clientName });
+  // O sistema ainda não possui um auth central para definir o companyId real.
+  // Usamos "demo-company" como limitação do MVP.
+  const companyId = 'demo-company'; 
+  const newDashboardData = useGovernanceDashboard({ clientName, companyId });
 
   // Strategic Roadmap tasks state
   const [roadmapTasks, setRoadmapTasks] = useState([
@@ -777,9 +780,9 @@ export default function ClientGovernanceCenter({
                 
                 {/* Columns Definition */}
                 {[
-                  { phase: 1, name: 'FASE 1: Fundação & Controle', desc: 'Meses 1 ao 3 (Estabilizar a base)' },
-                  { phase: 2, name: 'FASE 2: Padronização & Delegação', desc: 'Meses 4 ao 6 (Criar alçadas e processos)' },
-                  { phase: 3, name: 'FASE 3: Autonomia & Escala', desc: 'Meses 7 ao 12 (Crescimento sem gargalos)' }
+                  { phase: 1, name: 'FASE 1 — FUNDAÇÃO E CONTROLE', desc: 'Meses 1 ao 3 (Estabilizar a base)' },
+                  { phase: 2, name: 'FASE 2 — PADRONIZAÇÃO E DELEGAÇÃO', desc: 'Meses 4 ao 6 (Criar alçadas e processos)' },
+                  { phase: 3, name: 'FASE 3 — AUTONOMIA E ESCALA', desc: 'Meses 7 ao 12 (Crescimento sem gargalos)' }
                 ].map((col) => {
                   const tasksInPhase = roadmapTasks.filter(t => t.phase === col.phase);
 

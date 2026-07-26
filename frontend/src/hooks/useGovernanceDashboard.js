@@ -12,8 +12,8 @@ export function useGovernanceDashboard(initialProps = {}) {
     role: ROLES.MENTORADO
   });
 
-  const roadmap = useRoadmap();
-  const closing = useMonthlyClosing();
+  const roadmap = useRoadmap(initialProps.companyId);
+  const closing = useMonthlyClosing(initialProps.companyId);
   
   // Pegamos o snapshot mais recente para os cards principais
   const snapshots = closing.snapshots;

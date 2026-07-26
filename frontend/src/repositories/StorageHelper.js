@@ -20,7 +20,7 @@ export class StorageHelper {
 
   /**
    * Realiza a migração de dados globais antigos para o formato isolado por empresa.
-   * Só roda se existir o dado global e a empresa atual for demo-company.
+   * Executa de forma segura: grava na nova, faz backup da velha, apaga a velha.
    */
   static _migrateFromGlobal(companyId, key) {
     if (companyId !== 'demo-company') return;
@@ -29,19 +29,36 @@ export class StorageHelper {
     const oldItem = localStorage.getItem(oldKey);
     
     if (oldItem) {
-      const parsedOld = JSON.parse(oldItem);
-      const newKey = this._buildKey(companyId, key);
-      
-      // Salva no novo formato com o companyId
-      const payload = {
-        schemaVersion: CURRENT_SCHEMA_VERSION,
-        timestamp: new Date().toISOString(),
-        data: parsedOld.data || parsedOld // fallback in case old format didn't have wrapper
-      };
-      localStorage.setItem(newKey, JSON.stringify(payload));
-      
-      // Remove o antigo (Idempotente e seguro, movimenta e apaga origem)
-      localStorage.removeItem(oldKey);
+      try {
+        const parsedOld = JSON.parse(oldItem);
+        const newKey = this._buildKey(companyId, key);
+        
+        // Se já existe dado na nova chave, não migra por cima
+        if (localStorage.getItem(newKey)) return;
+        
+        // Salva no novo formato com o companyId
+        const payload = {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          timestamp: new Date().toISOString(),
+          data: parsedOld.data || parsedOld
+        };
+        
+        localStorage.setItem(newKey, JSON.stringify(payload));
+        
+        // Valida se a gravação foi bem-sucedida antes de deletar
+        const verify = localStorage.getItem(newKey);
+        if (verify) {
+          // Cópia de segurança temporária da chave antiga
+          const backupKey = `${oldKey}:backup`;
+          localStorage.setItem(backupKey, oldItem);
+          
+          // Somente após validar a nova chave e criar o backup, a chave original é removida
+          localStorage.removeItem(oldKey);
+        }
+      } catch (error) {
+        console.error(`[PGE] Erro na migração segura da chave ${key}`, error);
+        // Se houver erro de parse ou quota, a chave original `oldKey` é integralmente preservada
+      }
     }
   }
 
