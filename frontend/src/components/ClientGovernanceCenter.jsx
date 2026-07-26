@@ -1,28 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, TrendingUp, Users, Target, ShieldAlert, Award, Calendar, CheckCircle2, Play, RefreshCw, BarChart2 } from 'lucide-react';
+import { X, Save, TrendingUp, Users, Target, ShieldAlert, Award, Calendar, CheckCircle2, Play, RefreshCw, BarChart2, ArrowLeft, Maximize, Minimize } from 'lucide-react';
+import { useGovernanceDashboard } from '../hooks/useGovernanceDashboard.js';
+import { GovernanceAppShell } from './dashboard/GovernanceAppShell.jsx';
 
 export default function ClientGovernanceCenter({ 
   onClose, 
+  onBackToContract,
   clientName = 'Empresário PGE',
   totalInvestment = 'R$ 80.000,00',
   hourlyRate = '150',
   hoursPerWeek = '44',
   strategicPercent = '20',
   calculatedOpportunityCost = 0,
-  calculatedLostGrowth = 0
+  calculatedLostGrowth = 0,
+  initialAutonomy = 12
 }) {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'entry'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'entry' | 'roadmap'
   const [selectedMonth, setSelectedMonth] = useState(1); // 1 to 12
   const [activeMonthForDashboard, setActiveMonthForDashboard] = useState(1);
   const [strategicPriority, setStrategicPriority] = useState('Liderança & Processos');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Integração Nova Arquitetura SaaS
+  const [useNewVersion, setUseNewVersion] = useState(false);
+  const newDashboardData = useGovernanceDashboard({ clientName });
+
+  // Strategic Roadmap tasks state
+  const [roadmapTasks, setRoadmapTasks] = useState([
+    { id: 1, area: 'LIDERANÇA', title: 'Formar gestor para o setor de atendimento', owner: 'Felipe (Consultor)', phase: 1, monthTarget: 1, status: 'Pendente' },
+    { id: 2, area: 'COMERCIAL', title: 'Migrar proposta comercial para o CRM e automatizar alçada', owner: 'Líder Comercial', phase: 1, monthTarget: 2, status: 'Pendente' },
+    { id: 3, area: 'PROCESSOS', title: 'Documentação dos POPs operacionais de vendas e finanças', owner: 'Felipe (Consultor)', phase: 2, monthTarget: 4, status: 'Pendente' },
+    { id: 4, area: 'DELEGAÇÃO', title: 'Aplicar Matriz RACI nas decisões de faturamento', owner: 'Fundador PGE', phase: 2, monthTarget: 5, status: 'Pendente' },
+    { id: 5, area: 'AUTOMAÇÃO', title: 'Integrar agentes de IA para triagem de leads no digital', owner: 'Felipe (Consultor)', phase: 3, monthTarget: 8, status: 'Pendente' },
+    { id: 6, area: 'INDICADORES', title: 'Implantar dashboard executivo para tomada de decisões', owner: 'Fundador PGE', phase: 3, monthTarget: 10, status: 'Pendente' }
+  ]);
+
+  // Synchronize roadmap task status with simulated timeline month
+  useEffect(() => {
+    setRoadmapTasks(prev => prev.map(task => {
+      let status = 'Pendente';
+      if (activeMonthForDashboard > task.monthTarget) {
+        status = 'Concluído';
+      } else if (activeMonthForDashboard === task.monthTarget) {
+        status = 'Em Andamento';
+      }
+      return { ...task, status };
+    }));
+  }, [activeMonthForDashboard]);
+
+  const handleToggleTaskStatus = (taskId) => {
+    setRoadmapTasks(prev => prev.map(task => {
+      if (task.id === taskId) {
+        const nextStatus = task.status === 'Pendente' ? 'Em Andamento' : task.status === 'Em Andamento' ? 'Concluído' : 'Pendente';
+        return { ...task, status: nextStatus };
+      }
+      return task;
+    }));
+  };
 
   // Initial mockup progression data
   const [monthlyData, setMonthlyData] = useState(() => {
     const data = [];
-    const baseIde = 85;
-    const baseAutonomia = 12;
+    const baseIde = 100 - initialAutonomy;
+    const baseAutonomia = initialAutonomy;
     const baseProcessos = 0;
-    const baseDecisões = 35;
+    const baseDecisões = baseIde;
     const baseGovernanca = 0;
 
     for (let m = 1; m <= 12; m++) {
@@ -130,29 +172,54 @@ export default function ClientGovernanceCenter({
     }, '');
   };
 
+  if (useNewVersion) {
+    return <GovernanceAppShell dashboardData={newDashboardData} onClose={onClose} />;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#02060c]/95 flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
-      <div className="bg-[#080f1e] border border-[#d4af37]/35 rounded-2xl w-full max-w-6xl shadow-[0_0_50px_rgba(212,175,55,0.15)] flex flex-col my-4">
+    <div className={`fixed inset-0 z-50 bg-[#02060c]/95 flex items-center justify-center backdrop-blur-md transition-all ${isFullscreen ? 'p-0' : 'p-2 sm:p-4 md:p-6'}`}>
+      <div className={`bg-[#080f1e] flex flex-col transition-all overflow-hidden ${isFullscreen ? 'w-full h-full max-w-none max-h-none rounded-none border-0' : 'w-full max-w-6xl max-h-[92vh] rounded-2xl border border-[#d4af37]/35 shadow-[0_0_50px_rgba(212,175,55,0.15)] my-2'}`}>
         
         {/* Header */}
-        <div className="border-b border-gray-800 p-4 sm:p-5 flex items-center justify-between bg-black/30 rounded-t-2xl">
+        <div className={`border-b border-gray-800 p-4 sm:p-5 flex items-center justify-between bg-black/30 ${isFullscreen ? '' : 'rounded-t-2xl'}`}>
           <div className="text-left">
             <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-widest block">Programa Governo Empresarial</span>
             <h2 className="text-lg sm:text-xl font-heading font-extrabold text-white uppercase flex items-center gap-2">
               Centro de Governança PGE <span className="text-gray-500 font-normal">|</span> <span className="text-[#ffd700]">{clientName}</span>
             </h2>
+            <span className="text-[9px] text-gray-400 font-mono mt-1 block">
+              DATA DE INÍCIO: {new Intl.DateTimeFormat('pt-BR').format(new Date())}
+            </span>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 hover:bg-white/5 text-gray-400 hover:text-white rounded-lg transition-all"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setUseNewVersion(true)} 
+              className="px-3 py-1.5 bg-[#0a0a0a] hover:bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 hover:border-[#d4af37] rounded-lg transition-all duration-300 text-[10px] font-bold uppercase tracking-wider mr-2 flex items-center gap-2 shadow-[0_0_10px_rgba(212,175,55,0.05)] hover:shadow-[0_0_15px_rgba(212,175,55,0.15)]"
+              title="Acessar Nova Versão (SaaS)"
+            >
+              🚀 Experimentar Novo Painel
+            </button>
+            <button 
+              onClick={() => setIsFullscreen(!isFullscreen)} 
+              className="p-1.5 hover:bg-white/5 text-gray-400 hover:text-white rounded-lg transition-all"
+              title="Tela Cheia"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
+            <div className="w-[1px] h-4 bg-gray-800"></div>
+            <button 
+              onClick={onClose} 
+              className="p-1.5 hover:bg-white/5 text-gray-400 hover:text-white rounded-lg transition-all"
+              title="Fechar Painel"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-gray-800 bg-[#050a14] px-4 py-2 gap-3">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => setActiveTab('dashboard')}
               className={`px-4 py-2 rounded-lg text-xs uppercase font-bold tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
@@ -174,6 +241,17 @@ export default function ClientGovernanceCenter({
             >
               <Calendar className="w-3.5 h-3.5" />
               Lançamento Mensal
+            </button>
+            <button 
+              onClick={() => setActiveTab('roadmap')}
+              className={`px-4 py-2 rounded-lg text-xs uppercase font-bold tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                activeTab === 'roadmap' 
+                  ? 'bg-[#d4af37] text-black shadow-[0_0_10px_rgba(212,175,55,0.25)]' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              Roadmap de Transição
             </button>
           </div>
 
@@ -209,8 +287,8 @@ export default function ClientGovernanceCenter({
         </div>
 
         {/* Dashboard Tab Content */}
-        {activeTab === 'dashboard' ? (
-          <div className="p-4 sm:p-6 space-y-6">
+        {activeTab === 'dashboard' && (
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-grow">
             
             {/* Top Metrics Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -325,41 +403,64 @@ export default function ClientGovernanceCenter({
                   </div>
                 </div>
 
-                {/* 4 Levels of Maturity */}
-                <div className="premium-card p-4 rounded-xl border border-gray-800/80 bg-black/20">
-                  <h3 className="text-xs font-heading font-extrabold text-white uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
-                    Escala de Maturidade de Governança
-                  </h3>
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    {[
-                      { name: 'Operação', level: 1, desc: 'Centralizador' },
-                      { name: 'Gestão', level: 2, desc: 'Supervisão' },
-                      { name: 'Liderança', level: 3, desc: 'Delegação' },
-                      { name: 'Governo', level: 4, desc: 'Conselho' }
-                    ].map((lvl) => {
-                      const isActive = lvl.level === activeLevelIdx;
+                {/* Roadmap Widget Summary */}
+                <div className="premium-card p-4 rounded-xl border border-gray-800/80 bg-black/20 text-left">
+                  <div className="flex items-center justify-between border-b border-gray-800 pb-2 mb-3">
+                    <h3 className="text-xs font-heading font-extrabold text-white uppercase tracking-wider">
+                      Status do Plano de Ação (Roadmap)
+                    </h3>
+                    {(() => {
+                      const completedCount = roadmapTasks.filter(t => t.status === 'Concluído').length;
+                      const pct = Math.round((completedCount / roadmapTasks.length) * 100);
                       return (
-                        <div 
-                          key={lvl.level} 
-                          className={`p-2 rounded-lg border transition-all duration-300 ${
-                            isActive 
-                              ? 'bg-[#d4af37]/15 border-[#d4af37] text-white shadow-[0_0_12px_rgba(212,175,55,0.25)]' 
-                              : 'bg-black/30 border-gray-900 text-gray-500'
-                          }`}
-                        >
-                          <span className="text-[10px] font-bold uppercase block">{lvl.name}</span>
-                          <span className="text-[8px] font-mono block mt-1 opacity-70">{lvl.desc}</span>
-                          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#d4af37] mx-auto mt-1.5 animate-pulse"></div>}
+                        <span className="text-[10px] text-[#ffd700] font-mono font-bold">{pct}% Concluído</span>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Tiny Progress Bar */}
+                    {(() => {
+                      const completedCount = roadmapTasks.filter(t => t.status === 'Concluído').length;
+                      const pct = Math.round((completedCount / roadmapTasks.length) * 100);
+                      return (
+                        <div className="w-full bg-black/40 h-1.5 rounded-full border border-gray-800 overflow-hidden">
+                          <div className="bg-[#d4af37] h-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
                         </div>
                       );
-                    })}
+                    })()}
+
+                    {/* Active next priorities */}
+                    <div className="space-y-2">
+                      <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider block">Prioridades Ativas no Mês:</span>
+                      {(() => {
+                        const activeTasks = roadmapTasks.filter(t => t.status === 'Em Andamento' || t.status === 'Pendente').slice(0, 2);
+                        if (activeTasks.length === 0) {
+                          return <span className="text-[10px] text-green-400 font-medium block">🎉 Todas as ações concluídas!</span>;
+                        }
+                        return activeTasks.map((t) => (
+                          <div key={t.id} className="flex items-center justify-between p-2 bg-black/40 rounded-lg border border-gray-850 text-[10px]">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-1.5 h-1.5 rounded-full ${t.status === 'Em Andamento' ? 'bg-[#ffd700] animate-pulse' : 'bg-gray-650'}`} />
+                              <span className="text-gray-300 font-light truncate max-w-[190px]">{t.title}</span>
+                            </div>
+                            <span className={`text-[8px] px-1 py-0.5 rounded font-mono ${t.status === 'Em Andamento' ? 'bg-[#d4af37]/15 text-[#ffd700]' : 'bg-gray-800/10 text-gray-500'}`}>
+                              {t.status}
+                            </span>
+                          </div>
+                        ));
+                      })()}
+                    </div>
                   </div>
                 </div>
 
               </div>
 
               {/* Right Column: Dynamic evolution chart */}
-              <div className="lg:col-span-6 flex flex-col justify-between premium-card p-4 rounded-xl border border-gray-800/80 bg-black/20 text-left">
+              <div className="lg:col-span-6 flex flex-col gap-6 text-left">
+                
+                {/* Chart Card */}
+                <div className="premium-card p-4 rounded-xl border border-gray-800/80 bg-black/20 text-left flex flex-col justify-between">
                 
                 <div>
                   <div className="flex items-center justify-between border-b border-gray-800 pb-2 mb-3">
@@ -434,7 +535,40 @@ export default function ClientGovernanceCenter({
 
               </div>
 
-            </div>
+                </div>
+
+                {/* 4 Levels of Maturity */}
+                <div className="premium-card p-4 rounded-xl border border-gray-800/80 bg-black/20">
+                  <h3 className="text-xs font-heading font-extrabold text-white uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
+                    Escala de Maturidade de Governança
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    {[
+                      { name: 'Operação', level: 1, desc: 'Centralizador' },
+                      { name: 'Gestão', level: 2, desc: 'Supervisão' },
+                      { name: 'Liderança', level: 3, desc: 'Delegação' },
+                      { name: 'Governo', level: 4, desc: 'Conselho' }
+                    ].map((lvl) => {
+                      const isActive = lvl.level === activeLevelIdx;
+                      return (
+                        <div 
+                          key={lvl.level} 
+                          className={`p-2 rounded-lg border transition-all duration-300 ${
+                            isActive 
+                              ? 'bg-[#d4af37]/15 border-[#d4af37] text-white shadow-[0_0_12px_rgba(212,175,55,0.25)]' 
+                              : 'bg-black/30 border-gray-900 text-gray-500'
+                          }`}
+                        >
+                          <span className="text-[10px] font-bold uppercase block">{lvl.name}</span>
+                          <span className="text-[8px] font-mono block mt-1 opacity-70">{lvl.desc}</span>
+                          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#d4af37] mx-auto mt-1.5 animate-pulse"></div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
 
             {/* Bottom Row: Unique Mechanism Status (DODAG Tracker) */}
             <div className="premium-card p-4 rounded-xl border border-gray-800/80 bg-black/20 text-left">
@@ -485,9 +619,11 @@ export default function ClientGovernanceCenter({
             </div>
 
           </div>
-        ) : (
-          /* Monthly Entry Tab Content */
-          <div className="p-4 sm:p-6 max-w-2xl mx-auto text-left">
+        )}
+
+        {/* Monthly Entry Tab Content */}
+        {activeTab === 'entry' && (
+          <div className="p-4 sm:p-6 max-w-2xl mx-auto text-left overflow-y-auto flex-grow w-full">
             <div className="premium-card p-5 rounded-xl border border-gray-800/80 bg-black/20">
               <h3 className="text-sm font-heading font-extrabold text-white uppercase tracking-wider mb-4 border-b border-gray-800 pb-2.5 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#d4af37]" />
@@ -605,6 +741,115 @@ export default function ClientGovernanceCenter({
             </div>
           </div>
         )}
+
+        {/* Roadmap Tab Content */}
+        {activeTab === 'roadmap' && (() => {
+          const completedTasksCount = roadmapTasks.filter(t => t.status === 'Concluído').length;
+          const progressPercent = Math.round((completedTasksCount / roadmapTasks.length) * 100);
+
+          return (
+            <div className="p-4 sm:p-6 space-y-6 text-left overflow-y-auto flex-grow">
+              {/* Progress Summary Card */}
+              <div className="premium-card p-4 rounded-xl border border-gray-800 bg-black/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-heading font-extrabold text-white uppercase tracking-wider mb-1">
+                    Progresso Geral do Roadmap de Transição
+                  </h3>
+                  <p className="text-xs text-gray-400 font-light">
+                    Esta barra reflete as entregas necessárias para retirar o fundador do gargalo operacional.
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 w-full sm:w-1/2">
+                  <div className="flex-grow bg-black/40 h-3 rounded-full border border-gray-800 overflow-hidden relative">
+                    <div 
+                      className="bg-gradient-to-r from-[#d4af37] to-[#ffd700] h-full transition-all duration-500 shadow-[0_0_10px_rgba(212,175,55,0.3)]" 
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-heading font-extrabold text-[#ffd700] whitespace-nowrap">
+                    {progressPercent}% ({completedTasksCount} de 6)
+                  </span>
+                </div>
+              </div>
+
+              {/* Columns Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* Columns Definition */}
+                {[
+                  { phase: 1, name: 'FASE 1: Fundação & Controle', desc: 'Meses 1 ao 3 (Estabilizar a base)' },
+                  { phase: 2, name: 'FASE 2: Padronização & Delegação', desc: 'Meses 4 ao 6 (Criar alçadas e processos)' },
+                  { phase: 3, name: 'FASE 3: Autonomia & Escala', desc: 'Meses 7 ao 12 (Crescimento sem gargalos)' }
+                ].map((col) => {
+                  const tasksInPhase = roadmapTasks.filter(t => t.phase === col.phase);
+
+                  return (
+                    <div key={col.phase} className="bg-[#050a14] border border-gray-800 rounded-xl p-4 flex flex-col gap-4">
+                      {/* Column Header */}
+                      <div className="border-b border-gray-800 pb-2">
+                        <span className="text-[10px] text-[#d4af37] font-mono font-bold uppercase tracking-wider block">Fase {col.phase}</span>
+                        <h4 className="text-xs font-heading font-extrabold text-white uppercase tracking-wide mt-0.5">{col.name}</h4>
+                        <span className="text-[9px] text-gray-500 font-light block mt-0.5">{col.desc}</span>
+                      </div>
+
+                      {/* Column Cards */}
+                      <div className="flex flex-col gap-3">
+                        {tasksInPhase.map((task) => {
+                          const isCompleted = task.status === 'Concluído';
+                          const isDoing = task.status === 'Em Andamento';
+
+                          return (
+                            <div 
+                              key={task.id} 
+                              className={`premium-card p-4 rounded-xl border flex flex-col justify-between min-h-[140px] text-left transition-all ${
+                                isCompleted 
+                                  ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                  : isDoing 
+                                    ? 'bg-[#d4af37]/5 border-[#d4af37]/35 shadow-[0_0_10px_rgba(212,175,55,0.05)]'
+                                    : 'bg-black/20 border-gray-850'
+                              }`}
+                            >
+                              <div>
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                  <span className="text-[8px] font-mono bg-black/40 text-gray-400 border border-gray-800 px-1.5 py-0.5 rounded tracking-wider font-bold">
+                                    {task.area}
+                                  </span>
+                                  <span className="text-[8px] text-gray-500 font-mono">Dono: {task.owner}</span>
+                                </div>
+                                <p className="text-[10.5px] text-white font-medium leading-relaxed mb-3">
+                                  {task.title}
+                                </p>
+                              </div>
+
+                              {/* Interactive Status Indicator Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleTaskStatus(task.id)}
+                                className={`w-full py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border cursor-pointer ${
+                                  isCompleted
+                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                                    : isDoing
+                                      ? 'bg-[#d4af37]/10 border-[#d4af37]/40 text-[#ffd700] hover:bg-[#d4af37]/20 animate-pulse'
+                                      : 'bg-black/30 border-gray-800 text-gray-500 hover:text-gray-300 hover:border-gray-700'
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  isCompleted ? 'bg-emerald-400' : isDoing ? 'bg-[#ffd700]' : 'bg-gray-650'
+                                }`} />
+                                {task.status}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>

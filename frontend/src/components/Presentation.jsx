@@ -78,6 +78,10 @@ export default function Presentation() {
 
   // Slide 10 sequential path state
   const [potenciaStep, setPotenciaStep] = useState(0);
+  const [pyramidActiveLevel, setPyramidActiveLevel] = useState(3); // 3=Operação, 2=Gestão, 1=Liderança, 0=Governo (bottom-to-top)
+  const [roadmapBlinkIdx, setRoadmapBlinkIdx] = useState(-1); // which roadmap item is currently highlighted
+  const roadmapShuffleRef = useRef([]); // shuffle order for roadmap blink
+  const roadmapShufflePos = useRef(0);
 
   // Contract Modal States
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
@@ -92,11 +96,14 @@ export default function Presentation() {
   const [installments, setInstallments] = useState('1');
   const [paymentMethod, setPaymentMethod] = useState('credit'); // 'credit' | 'pix'
   const [clientAddress, setClientAddress] = useState('');
+  const [employeeCount, setEmployeeCount] = useState('');
+  const [leaderCount, setLeaderCount] = useState('');
   const [contractForo, setContractForo] = useState('Barueri/SP');
   const [consultantEmail, setConsultantEmail] = useState('');
   const [d4signStatus, setD4signStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [d4signMessage, setD4signMessage] = useState('');
   const [isClientDashboardOpen, setIsClientDashboardOpen] = useState(false);
+  const [contractStep, setContractStep] = useState(1); // 1 = dados cadastrais, 2 = pagamento
   
   const [activeLogoIdx, setActiveLogoIdx] = useState(0);
 
@@ -217,6 +224,47 @@ export default function Presentation() {
     }
   }, [currentSlide, potenciaStep]);
 
+  // Loop pyramid highlight bottom-to-top for Slide 9
+  useEffect(() => {
+    if (currentSlide === 8) {
+      const interval = setInterval(() => {
+        setPyramidActiveLevel((prev) => (prev === 0 ? 3 : prev - 1));
+      }, 1800);
+      return () => clearInterval(interval);
+    }
+  }, [currentSlide]);
+
+  // Shuffle-based random blink for Slide 11 roadmap priorities
+  useEffect(() => {
+    if (currentSlide === 10) {
+      const shuffle = (arr) => {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      };
+      if (roadmapShuffleRef.current.length === 0) {
+        roadmapShuffleRef.current = shuffle([0, 1, 2, 3, 4, 5]);
+        roadmapShufflePos.current = 0;
+      }
+      const interval = setInterval(() => {
+        const order = roadmapShuffleRef.current;
+        const pos = roadmapShufflePos.current;
+        setRoadmapBlinkIdx(order[pos]);
+        roadmapShufflePos.current = pos + 1;
+        if (roadmapShufflePos.current >= 6) {
+          roadmapShuffleRef.current = shuffle([0, 1, 2, 3, 4, 5]);
+          roadmapShufflePos.current = 0;
+        }
+      }, 2000);
+      return () => clearInterval(interval);
+    } else {
+      setRoadmapBlinkIdx(-1);
+    }
+  }, [currentSlide]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -325,6 +373,9 @@ export default function Presentation() {
       const monthlyLoss = hoursLost * rate * 4.33;
       const autonomyPercent = delegated > 0 ? (1 - (returning / delegated)) * 100 : 0;
       
+      setSlide6HoursLost(hoursLost);
+      setSlide6TimeDrainPercent(drainPercent);
+      setSlide6MonthlyLoss(monthlyLoss);
       setSlide6AutonomyPercent(autonomyPercent);
       setSlide6CalcState('done');
     }, 1500);
@@ -989,12 +1040,14 @@ export default function Presentation() {
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />}
           </button>
-          <a 
-            href="/"
-            className="text-[8px] md:text-[10px] font-accent uppercase tracking-wider md:tracking-widest text-gray-400 hover:text-white border border-gray-800 px-2 md:px-3 py-1 rounded-md bg-white/5 transition-all hover:bg-white/10"
-          >
-            Voltar
-          </a>
+          {window.location.search.includes('axion') && (
+            <a 
+              href="/?axion=true"
+              className="text-[8px] md:text-[10px] font-accent uppercase tracking-wider md:tracking-widest text-gray-400 hover:text-white border border-gray-800 px-2 md:px-3 py-1 rounded-md bg-white/5 transition-all hover:bg-white/10"
+            >
+              Voltar
+            </a>
+          )}
         </div>
       </header>
 
@@ -1094,7 +1147,7 @@ export default function Presentation() {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-center h-full text-center md:text-left py-4 md:py-0">
               <div className="col-span-12 md:col-span-5 flex justify-center">
                 <div className="relative w-full max-w-[240px] md:max-w-[340px] aspect-[4/5] rounded-xl overflow-hidden border border-gray-800 bg-gradient-to-b from-gray-900 to-black flex flex-col justify-end p-6 group shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
-                  <img src={felipeImg} className="absolute inset-0 w-full h-full object-cover object-top filter grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500" alt="Felipe Damasceno" />
+                  <img src={felipeImg} className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-all duration-500" alt="Felipe Damasceno" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#060b13] via-[#060b13]/10 to-transparent z-10 pointer-events-none" />
                   <div className="relative z-20 border-t border-gray-800/80 pt-3">
                     <span className="text-xs text-[#d4af37] font-semibold uppercase tracking-wider block">Felipe Damasceno</span>
@@ -1540,8 +1593,8 @@ export default function Presentation() {
                           </div>
 
                           <div className="mt-2 border-t border-gray-800/80 pt-1.5 text-left">
-                            <span className="text-[8px] text-[#d4af37] font-bold uppercase tracking-wider block">🎯 Como recuperar esse faturamento não-alavancado:</span>
-                            <p className="text-[8px] text-gray-400 leading-normal font-light">
+                            <span className="text-[11px] text-[#d4af37] font-bold uppercase tracking-wider block">🎯 Como recuperar esse faturamento não-alavancado:</span>
+                            <p className="text-[10px] text-gray-400 leading-normal font-light">
                               Ao invés de gastar tempo na operação, direcione suas horas para preço/margens, estratégias de vendas, automação e atração de líderes.
                             </p>
                           </div>
@@ -1913,21 +1966,30 @@ export default function Presentation() {
                 {/* Visual Pyramid Levels */}
                 <div className="w-full max-w-[420px] flex flex-col gap-3">
                   {[
-                    { lvl: 'Nível 4', name: 'GOVERNO', desc: 'Conselho Estratégico, Visão, Parcerias, Expansão e Legado', bg: 'bg-[#d4af37]/15 border-[#d4af37]/40 text-[#d4af37]' },
-                    { lvl: 'Nível 3', name: 'LIDERANÇA', desc: 'Gestores autônomos, alçadas e responsabilidades táticas', bg: 'bg-white/5 border-gray-800 text-slate-300' },
-                    { lvl: 'Nível 2', name: 'GESTÃO', desc: 'Métricas, CRMs, Processos Críticos e Cadências estruturadas', bg: 'bg-white/5 border-gray-800 text-slate-400' },
-                    { lvl: 'Nível 1', name: 'OPERAÇÃO', desc: 'Agentes de IA, Automações de dados, Rotinas e POPs operacionais', bg: 'bg-white/5 border-gray-800 text-slate-500' }
-                  ].map((level, idx) => (
-                    <div key={idx} className={`p-3.5 rounded-xl border flex items-center gap-4 transition-all hover:-translate-y-0.5 ${level.bg}`}>
-                      <div className="w-12 text-center border-r border-gray-800 pr-3 font-mono text-[9px] uppercase tracking-wider font-bold shrink-0">
+                    { lvl: 'Nível 4', name: 'GOVERNO', desc: 'Conselho Estratégico, Visão, Parcerias, Expansão e Legado' },
+                    { lvl: 'Nível 3', name: 'LIDERANÇA', desc: 'Gestores autônomos, alçadas e responsabilidades táticas' },
+                    { lvl: 'Nível 2', name: 'GESTÃO', desc: 'Métricas, CRMs, Processos Críticos e Cadências estruturadas' },
+                    { lvl: 'Nível 1', name: 'OPERAÇÃO', desc: 'Agentes de IA, Automações de dados, Rotinas e POPs operacionais' }
+                  ].map((level, idx) => {
+                    const isActive = pyramidActiveLevel === idx;
+                    return (
+                    <div key={idx} className={`p-3.5 rounded-xl border flex items-center gap-4 transition-all duration-500 hover:-translate-y-0.5 ${
+                      isActive 
+                        ? 'bg-[#d4af37]/15 border-[#d4af37]/50 shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-[1.02]' 
+                        : 'bg-white/3 border-gray-800/60'
+                    }`}>
+                      <div className={`w-12 text-center border-r pr-3 font-mono text-[9px] uppercase tracking-wider font-bold shrink-0 transition-colors duration-500 ${
+                        isActive ? 'border-[#d4af37]/30 text-[#d4af37]' : 'border-gray-800 text-slate-600'
+                      }`}>
                         {level.lvl}
                       </div>
                       <div className="flex-grow">
-                        <span className="block text-xs font-bold uppercase tracking-wider">{level.name}</span>
-                        <span className="block text-[10px] opacity-75 font-light mt-0.5 leading-relaxed">{level.desc}</span>
+                        <span className={`block text-xs font-bold uppercase tracking-wider transition-colors duration-500 ${isActive ? 'text-[#d4af37]' : 'text-slate-500'}`}>{level.name}</span>
+                        <span className={`block text-[10px] font-light mt-0.5 leading-relaxed transition-colors duration-500 ${isActive ? 'text-gray-300' : 'text-gray-600'}`}>{level.desc}</span>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1966,8 +2028,12 @@ export default function Presentation() {
                 </div>
 
                 <div className="col-span-12 md:col-span-7 flex flex-col gap-6 w-full mt-6 md:mt-0">
-                  <div className="text-center p-3 bg-white/3 border border-gray-800 rounded-lg">
-                    <span className="font-heading font-bold text-xs text-white">IDE + CLO = MAPA DA DEPENDÊNCIA CORPORATIVA</span>
+                  <div className={`text-center p-3 bg-white/3 border transition-all duration-500 rounded-lg ${potenciaStep === 8 ? 'border-[#d4af37]/50 shadow-[0_0_15px_rgba(212,175,55,0.15)]' : 'border-gray-800'}`}>
+                    <span className={`font-heading font-bold text-xs transition-colors duration-500 ${
+                      potenciaStep === 8 ? 'text-[#ffd700] font-extrabold drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]' : 'text-white'
+                    }`}>
+                      IDE + CLO = MAPA DA DEPENDÊNCIA CORPORATIVA
+                    </span>
                   </div>
 
                   <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 md:gap-1 relative pt-2 md:pt-4">
@@ -2067,20 +2133,27 @@ export default function Presentation() {
                       { area: 'DELEGAÇÃO', act: 'Aplicar Matriz RACI nas decisões de faturamento', status: 'Fase 2' },
                       { area: 'AUTOMAÇÃO', act: 'Integrar agentes de IA para triagem de leads no digital', status: 'Fase 3' },
                       { area: 'INDICADORES', act: 'Implantar dashboard executivo para tomada de decisões', status: 'Fase 3' }
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2.5 bg-white/2 border border-gray-900 rounded-lg hover:bg-white/5 transition-colors">
+                    ].map((item, idx) => {
+                      const isBlinking = roadmapBlinkIdx === idx;
+                      return (
+                      <div key={idx} className={`flex items-center justify-between p-2.5 border rounded-lg transition-all duration-700 ${
+                        isBlinking 
+                          ? 'bg-[#d4af37]/8 border-[#d4af37]/30 shadow-[0_0_12px_rgba(212,175,55,0.1)]' 
+                          : 'bg-white/2 border-gray-900 hover:bg-white/5'
+                      }`}>
                         <div className="flex items-center gap-3">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
+                          <span className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${isBlinking ? 'bg-[#ffd700] shadow-[0_0_6px_rgba(212,175,55,0.5)]' : 'bg-[#d4af37]'}`} />
                           <div>
                             <span className="block text-[8px] font-mono text-[#d4af37] font-bold uppercase tracking-wider">{item.area}</span>
-                            <span className="block text-[10px] text-slate-300 font-light mt-0.5">{item.act}</span>
+                            <span className={`block text-[10px] font-light mt-0.5 transition-colors duration-700 ${isBlinking ? 'text-white' : 'text-slate-300'}`}>{item.act}</span>
                           </div>
                         </div>
                         <span className="text-[8px] font-mono bg-white/5 text-gray-500 border border-gray-800 px-1.5 py-0.5 rounded">
                           {item.status}
                         </span>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -2533,297 +2606,366 @@ export default function Presentation() {
               <div className="flex items-center justify-between border-b border-gray-800 p-4">
                 <div className="text-left">
                   <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-wider block">FECHAMENTO COMERCIAL</span>
-                  <h3 className="text-base font-heading font-extrabold text-white uppercase">Dados do Programa de Governo Empresarial</h3>
+                  <h3 className="text-base font-heading font-extrabold text-white uppercase">
+                    {contractStep === 1 ? 'Dados do Cliente' : 'Dados de Pagamento'}
+                  </h3>
                 </div>
-                <button 
-                  onClick={() => setIsContractModalOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors cursor-pointer text-xl font-bold p-1"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Step indicator */}
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ${contractStep === 1 ? 'bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.5)]' : 'bg-gray-700'}`} />
+                    <div className="w-3 h-[1px] bg-gray-700" />
+                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ${contractStep === 2 ? 'bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.5)]' : 'bg-gray-700'}`} />
+                  </div>
+                  <button 
+                    onClick={() => { setIsContractModalOpen(false); setContractStep(1); }}
+                    className="text-gray-400 hover:text-white transition-colors cursor-pointer text-xl font-bold p-1"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {/* Scrollable Content */}
               <div className="p-6 overflow-y-auto space-y-4 text-left custom-scrollbar">
                 
-                {/* Pessoa Selection Toggle */}
-                <div className="flex gap-4 items-center justify-start bg-black/40 border border-gray-800 p-2.5 rounded-lg">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Contratação:</span>
-                  <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
-                    <input 
-                      type="radio" 
-                      name="personType" 
-                      value="PJ" 
-                      checked={personType === 'PJ'} 
-                      onChange={() => { setPersonType('PJ'); setDocNumber(''); setClientName(''); }}
-                      className="accent-[#d4af37]"
-                    />
-                    Pessoa Jurídica (CNPJ)
-                  </label>
-                  <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
-                    <input 
-                      type="radio" 
-                      name="personType" 
-                      value="PF" 
-                      checked={personType === 'PF'} 
-                      onChange={() => { setPersonType('PF'); setDocNumber(''); setClientName(''); }}
-                      className="accent-[#d4af37]"
-                    />
-                    Pessoa Física (CPF)
-                  </label>
-                </div>
-
-                {/* Form Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* CPF or CNPJ */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                      {personType === 'PJ' ? 'CNPJ' : 'CPF'}
-                    </label>
-                    <input 
-                      type="text" 
-                      placeholder={personType === 'PJ' ? '00.000.000/0001-00' : '000.000.000-00'} 
-                      value={docNumber}
-                      onChange={(e) => setDocNumber(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
-                      required
-                    />
-                  </div>
-
-                  {/* Client Name or Company Name */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                      {personType === 'PJ' ? 'Razão Social / Nome da Empresa' : 'Nome Completo'}
-                    </label>
-                    <input 
-                      type="text" 
-                      placeholder={personType === 'PJ' ? 'Ex: Empresa LTDA' : 'Ex: João da Silva'} 
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  {/* Representative Name (PJ Only) */}
-                  {personType === 'PJ' && (
-                    <div className="flex flex-col md:col-span-2">
-                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                        Nome do Representante Legal (Signatário)
+                {/* ========== STEP 1: DADOS CADASTRAIS ========== */}
+                {contractStep === 1 && (
+                  <>
+                    {/* Pessoa Selection Toggle */}
+                    <div className="flex gap-4 items-center justify-start bg-black/40 border border-gray-800 p-2.5 rounded-lg">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Contratação:</span>
+                      <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
+                        <input 
+                          type="radio" 
+                          name="personType" 
+                          value="PJ" 
+                          checked={personType === 'PJ'} 
+                          onChange={() => { setPersonType('PJ'); setDocNumber(''); setClientName(''); }}
+                          className="accent-[#d4af37]"
+                        />
+                        Pessoa Jurídica (CNPJ)
                       </label>
-                      <input 
-                        type="text" 
-                        placeholder="Ex: Felipe Damasceno (Representante que assina)" 
-                        value={repName}
-                        onChange={(e) => setRepName(e.target.value)}
-                        className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                      />
-                    </div>
-                  )}
-
-                  {/* Email */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">E-mail do Cliente</label>
-                    <input 
-                      type="email" 
-                      placeholder="email@cliente.com" 
-                      value={clientEmail}
-                      onChange={(e) => setClientEmail(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  {/* E-mail do Consultor */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">E-mail do Consultor (Seu E-mail)</label>
-                    <input 
-                      type="email" 
-                      placeholder="seu-email@empresa.com" 
-                      value={consultantEmail}
-                      onChange={(e) => setConsultantEmail(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  {/* Phone & Criar Grupo */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Telefone</label>
-                    <div className="flex gap-2">
-                      <input 
-                        type="tel" 
-                        placeholder="(11) 99999-9999" 
-                        value={clientPhone}
-                        onChange={(e) => setClientPhone(e.target.value)}
-                        className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none flex-grow transition-all duration-300 font-mono"
-                        required
-                      />
-                      <a 
-                        href={`https://wa.me/5581994691175?text=Oi%2C%20vamos%20criar%20o%20grupo.%20Nome%3A%20${encodeURIComponent(clientName)}%20-%20Tel%3A%20${encodeURIComponent(clientPhone)}`}
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="px-3 bg-[#25d366]/10 border border-[#25d366]/30 hover:bg-[#25d366]/25 text-[#25d366] font-bold text-[10px] rounded-lg uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        Criar Grupo
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Address */}
-                  <div className="flex flex-col md:col-span-2">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Endereço Completo</label>
-                    <input 
-                      type="text" 
-                      placeholder="Rua, Número, Bairro, CEP, Cidade/UF" 
-                      value={clientAddress}
-                      onChange={(e) => setClientAddress(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  {/* Investimento Total */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Investimento Total (R$)</label>
-                    <input 
-                      type="text" 
-                      placeholder="R$ 0,00" 
-                      value={totalInvestment}
-                      onChange={(e) => setTotalInvestment(formatBRLInput(e.target.value))}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
-                      required
-                    />
-                  </div>
-
-                  {/* Valor Sinal de Entrada */}
-                  <div className="flex flex-col">
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                        Valor Sinal de Entrada (R$)
+                      <label className="flex items-center gap-1.5 text-xs text-white cursor-pointer font-medium">
+                        <input 
+                          type="radio" 
+                          name="personType" 
+                          value="PF" 
+                          checked={personType === 'PF'} 
+                          onChange={() => { setPersonType('PF'); setDocNumber(''); setClientName(''); }}
+                          className="accent-[#d4af37]"
+                        />
+                        Pessoa Física (CPF)
                       </label>
-                      {isEntranceTooLow && (
-                        <span className="text-[10px] text-red-500 font-bold uppercase animate-pulse">
-                          Valor calculado não disponível
-                        </span>
+                    </div>
+
+                    {/* Form Grid - Personal Data */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      
+                      {/* CPF or CNPJ */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                          {personType === 'PJ' ? 'CNPJ' : 'CPF'}
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder={personType === 'PJ' ? '00.000.000/0001-00' : '000.000.000-00'} 
+                          value={docNumber}
+                          onChange={(e) => setDocNumber(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                          required
+                        />
+                      </div>
+
+                      {/* Client Name or Company Name */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                          {personType === 'PJ' ? 'Razão Social / Nome da Empresa' : 'Nome Completo'}
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder={personType === 'PJ' ? 'Ex: Empresa LTDA' : 'Ex: João da Silva'} 
+                          value={clientName}
+                          onChange={(e) => setClientName(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                          required
+                        />
+                      </div>
+
+                      {/* Representative Name (PJ Only) */}
+                      {personType === 'PJ' && (
+                        <div className="flex flex-col md:col-span-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                            Nome do Representante Legal (Signatário)
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="Ex: Felipe Damasceno (Representante que assina)" 
+                            value={repName}
+                            onChange={(e) => setRepName(e.target.value)}
+                            className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                          />
+                        </div>
+                      )}
+
+                      {/* Email */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">E-mail do Cliente</label>
+                        <input 
+                          type="email" 
+                          placeholder="email@cliente.com" 
+                          value={clientEmail}
+                          onChange={(e) => setClientEmail(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                          required
+                        />
+                      </div>
+
+                      {/* E-mail do Consultor */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">E-mail do Consultor (Seu E-mail)</label>
+                        <input 
+                          type="email" 
+                          placeholder="seu-email@empresa.com" 
+                          value={consultantEmail}
+                          onChange={(e) => setConsultantEmail(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                          required
+                        />
+                      </div>
+
+                      {/* Phone & Criar Grupo */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Telefone</label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="tel" 
+                            placeholder="(11) 99999-9999" 
+                            value={clientPhone}
+                            onChange={(e) => setClientPhone(e.target.value)}
+                            className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none flex-grow transition-all duration-300 font-mono"
+                            required
+                          />
+                          <a 
+                            href={`https://wa.me/5581994691175?text=Oi%2C%20vamos%20criar%20o%20grupo.%20Nome%3A%20${encodeURIComponent(clientName)}%20-%20Tel%3A%20${encodeURIComponent(clientPhone)}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-3 bg-[#25d366]/10 border border-[#25d366]/30 hover:bg-[#25d366]/25 text-[#25d366] font-bold text-[10px] rounded-lg uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                          >
+                            Criar Grupo
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Address */}
+                      <div className="flex flex-col md:col-span-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Endereço Completo</label>
+                        <input 
+                          type="text" 
+                          placeholder="Rua, Número, Bairro, CEP, Cidade/UF" 
+                          value={clientAddress}
+                          onChange={(e) => setClientAddress(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                          required
+                        />
+                      </div>
+
+                      {/* Company Structure */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Nº Colaboradores</label>
+                        <input 
+                          type="number" 
+                          placeholder="Ex: 15" 
+                          value={employeeCount}
+                          onChange={(e) => setEmployeeCount(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Líderes Atuais</label>
+                        <input 
+                          type="number" 
+                          placeholder="Ex: 3" 
+                          value={leaderCount}
+                          onChange={(e) => setLeaderCount(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* ========== STEP 2: DADOS DE PAGAMENTO ========== */}
+                {contractStep === 2 && (
+                  <>
+                    {/* Client summary card */}
+                    <div className="flex items-center gap-3 bg-black/40 border border-gray-800 p-3 rounded-lg">
+                      <div className="w-8 h-8 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/30 flex items-center justify-center">
+                        <span className="text-[#d4af37] font-bold text-xs">{(clientName || '?')[0]?.toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block">{clientName || 'Cliente não informado'}</span>
+                        <span className="text-[10px] text-gray-500">{docNumber || 'Documento não informado'} • {clientEmail || 'Email não informado'}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                      {/* Investimento Total */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Investimento Total (R$)</label>
+                        <input 
+                          type="text" 
+                          placeholder="R$ 0,00" 
+                          value={totalInvestment}
+                          onChange={(e) => setTotalInvestment(formatBRLInput(e.target.value))}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
+                          required
+                        />
+                      </div>
+
+                      {/* Valor Sinal de Entrada */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            Valor Sinal de Entrada (R$)
+                          </label>
+                          {isEntranceTooLow && (
+                            <span className="text-[10px] text-red-500 font-bold uppercase animate-pulse">
+                              Valor calculado não disponível
+                            </span>
+                          )}
+                        </div>
+                        <input 
+                          type="text" 
+                          placeholder="Ex: R$ 24.000,00" 
+                          value={entranceValue}
+                          onChange={(e) => setEntranceValue(formatBRLInput(e.target.value))}
+                          className={`bg-black/40 border text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono ${isEntranceTooLow ? 'border-red-500/50 focus:border-red-500' : 'border-gray-800 focus:border-[#d4af37]'}`}
+                        />
+                      </div>
+
+                      {/* Forma de Pagamento */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Forma de Pagamento (Saldo)</label>
+                        <select 
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
+                        >
+                          <option value="credit">Cartão de Crédito</option>
+                          <option value="pix">PIX</option>
+                        </select>
+                      </div>
+
+                      {/* Simulador de Parcela */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Parcelamento do Saldo</label>
+                        <select 
+                          value={installments}
+                          onChange={(e) => setInstallments(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
+                        >
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i+1} value={i+1}>{i+1}x parcelas</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Foro da comarca */}
+                      <div className="flex flex-col md:col-span-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Foro / Comarca Eleita</label>
+                        <input 
+                          type="text" 
+                          placeholder="Ex: Barueri/SP" 
+                          value={contractForo}
+                          onChange={(e) => setContractForo(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Dynamic Calculation preview box */}
+                    <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 rounded-xl p-3.5 mt-2">
+                      <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">RESUMO DO FLUXO FINANCEIRO</span>
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Entrada (Hoje)</span>
+                          <span className="text-white font-mono font-bold">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entranceVal)}
+                          </span>
+                        </div>
+                        <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Saldo Financiado</span>
+                          <span className="text-white font-mono font-bold">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balanceVal)}
+                          </span>
+                        </div>
+                        <div className="p-2 bg-[#d4af37]/10 rounded-lg border border-[#d4af37]/20">
+                          <span className="text-[8px] text-[#d4af37] block uppercase font-mono">Parcelamento do Saldo</span>
+                          <span className="text-[#ffd700] font-mono font-bold">
+                            {installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(instValue)}
+                          </span>
+                        </div>
+                      </div>
+                      {paymentMethod === 'credit' && (
+                        <div className="text-[9px] text-[#d4af37]/80 text-right mt-2 font-sans italic">
+                          *Valores sujeitos a acréscimo de juros da operadora do cartão conforme o número de parcelas.
+                        </div>
                       )}
                     </div>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: R$ 24.000,00" 
-                      value={entranceValue}
-                      onChange={(e) => setEntranceValue(formatBRLInput(e.target.value))}
-                      className={`bg-black/40 border text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono ${isEntranceTooLow ? 'border-red-500/50 focus:border-red-500' : 'border-gray-800 focus:border-[#d4af37]'}`}
-                    />
-                  </div>
-
-                  {/* Forma de Pagamento */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Forma de Pagamento (Saldo)</label>
-                    <select 
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
-                    >
-                      <option value="credit">Cartão de Crédito</option>
-                      <option value="pix">PIX</option>
-                    </select>
-                  </div>
-
-                  {/* Simulador de Parcela */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Parcelamento do Saldo</label>
-                    <select 
-                      value={installments}
-                      onChange={(e) => setInstallments(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
-                    >
-                      {[...Array(12)].map((_, i) => (
-                        <option key={i+1} value={i+1}>{i+1}x parcelas</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Foro da comarca */}
-                  <div className="flex flex-col md:col-span-2">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Foro / Comarca Eleita</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Barueri/SP" 
-                      value={contractForo}
-                      onChange={(e) => setContractForo(e.target.value)}
-                      className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                </div>
-
-                {/* Dynamic Calculation preview box */}
-                <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 rounded-xl p-3.5 mt-2">
-                  <span className="text-[9px] text-[#d4af37] font-mono font-bold block mb-1">RESUMO DO FLUXO FINANCEIRO</span>
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
-                      <span className="text-[8px] text-gray-500 block uppercase font-mono">Entrada (Hoje)</span>
-                      <span className="text-white font-mono font-bold">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entranceVal)}
-                      </span>
-                    </div>
-                    <div className="p-2 bg-black/40 rounded-lg border border-gray-900">
-                      <span className="text-[8px] text-gray-500 block uppercase font-mono">Saldo Financiado</span>
-                      <span className="text-white font-mono font-bold">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balanceVal)}
-                      </span>
-                    </div>
-                    <div className="p-2 bg-[#d4af37]/10 rounded-lg border border-[#d4af37]/20">
-                      <span className="text-[8px] text-[#d4af37] block uppercase font-mono">Parcelamento do Saldo</span>
-                      <span className="text-[#ffd700] font-mono font-bold">
-                        {installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(instValue)}
-                      </span>
-                    </div>
-                  </div>
-                  {paymentMethod === 'credit' && (
-                    <div className="text-[9px] text-[#d4af37]/80 text-right mt-2 font-sans italic">
-                      *Valores sujeitos a acréscimo de juros da operadora do cartão conforme o número de parcelas.
-                    </div>
-                  )}
-                </div>
+                  </>
+                )}
 
               </div>
 
               {/* Footer Buttons */}
               <div className="border-t border-gray-800 p-4 flex justify-end gap-3 bg-black/20">
-                <button 
-                  type="button" 
-                  onClick={() => setIsContractModalOpen(false)}
-                  className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setIsClientDashboardOpen(true)}
-                  className="px-4 py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15"
-                >
-                  Painel do Cliente
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleDownloadContract}
-                  disabled={isEntranceTooLow}
-                  className="px-4 py-2 border border-gray-800 hover:border-[#d4af37]/50 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
-                >
-                  Gerar Rascunho (.DOC)
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleSendD4Sign}
-                  disabled={isEntranceTooLow || d4signStatus === 'sending'}
-                  className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)]"
-                >
-                  {d4signStatus === 'sending' ? 'Enviando para D4Sign...' : 'Enviar p/ Assinatura (D4Sign)'}
-                </button>
+                {contractStep === 1 ? (
+                  <>
+                    <button 
+                      type="button" 
+                      onClick={() => { setIsContractModalOpen(false); setContractStep(1); }}
+                      className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setContractStep(2)}
+                      className="px-8 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)] flex items-center gap-2"
+                    >
+                      Próximo
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      type="button" 
+                      onClick={() => setContractStep(1)}
+                      className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      ← Voltar
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setIsClientDashboardOpen(true)}
+                      className="px-4 py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15"
+                    >
+                      Painel do Cliente
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleDownloadContract}
+                      disabled={isEntranceTooLow}
+                      className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+                    >
+                      Gerar Contrato (.DOC)
+                    </button>
+                  </>
+                )}
               </div>
 
             </div>
@@ -2840,7 +2982,12 @@ export default function Presentation() {
           strategicPercent={strategicPercent}
           calculatedOpportunityCost={calculatedOpportunityCost}
           calculatedLostGrowth={calculatedLostGrowth}
+          initialAutonomy={slide6AutonomyPercent || 15}
           onClose={() => setIsClientDashboardOpen(false)}
+          onBackToContract={() => {
+            setIsClientDashboardOpen(false);
+            setIsContractModalOpen(true);
+          }}
         />
       )}
 

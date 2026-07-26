@@ -4,16 +4,13 @@ import './index.css'
 import App from './App.jsx'
 import Presentation from './components/Presentation.jsx'
 
-const isPresentation = 
-  window.location.pathname.includes('apresentacao') || 
-  window.location.pathname.includes('presentation') || 
-  window.location.search.includes('presentation') || 
-  window.location.search.includes('apresentacao') ||
-  window.location.hash.includes('presentation') ||
-  window.location.hash.includes('apresentacao');
+// Show Axion screens only if explicitly requested via URL parameter or hash
+const showAxion = 
+  window.location.search.includes('axion') || 
+  window.location.hash.includes('axion');
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {isPresentation ? <Presentation /> : <App />}
+    {showAxion ? <App /> : <Presentation />}
   </StrictMode>,
 )

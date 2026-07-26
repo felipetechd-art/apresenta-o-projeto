@@ -4,28 +4,30 @@
 @theme {
   --font-sans: 'Inter', sans-serif;
   --font-heading: 'Outfit', sans-serif;
+
+  /* Premium Corporate Palette */
+  --color-background-main: #050A13;
+  --color-background-secondary: #09111F;
+  --color-card-background: #0D1626;
+  --color-card-background-hover: #111D30;
+  --color-border-color: #223047;
   
-  --color-brand-gold-start: #d4af37;
-  --color-brand-gold-end: #ffd700;
+  --color-primary-yellow: #F1C62B;
+  --color-primary-yellow-dark: #A98312;
   
-  --color-dark-bg: #060b13;
-  --color-dark-card: rgba(16, 29, 48, 0.45);
-  --color-dark-card-hover: rgba(22, 39, 64, 0.6);
-  --color-dark-border: rgba(27, 42, 63, 0.5);
-  --color-dark-border-hover: rgba(43, 67, 99, 0.7);
+  --color-success-green: #17C99A;
+  --color-danger-red: #FF4058;
+  --color-warning-orange: #FF9F1C;
   
-  --color-status-green: #10b981;
-  --color-status-red: #ef4444;
-  --color-status-blue: #3b82f6;
-  --color-status-cyan: #06b6d4;
-  --color-status-purple: #8b5cf6;
-  --color-status-yellow: #f59e0b;
+  --color-text-primary: #F5F7FA;
+  --color-text-secondary: #97A1B2;
+  --color-text-muted: #667085;
 }
 
 @layer base {
   body {
-    background-color: var(--color-dark-bg);
-    color: #f3f4f6;
+    background-color: var(--color-background-main);
+    color: var(--color-text-primary);
     font-family: var(--font-sans);
     overflow-x: hidden;
   }
@@ -37,38 +39,38 @@
   }
   
   ::-webkit-scrollbar-track {
-    background: #060b13;
+    background: var(--color-background-main);
   }
   
   ::-webkit-scrollbar-thumb {
-    background: #1b2a3f;
+    background: var(--color-background-secondary);
     border-radius: 3px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: #d4af37;
+    background: var(--color-primary-yellow);
   }
 }
 
 /* Custom Glassmorphism Card Style */
 .glass-card {
-  background: rgba(16, 29, 48, 0.45);
+  background: var(--color-card-background);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(27, 42, 63, 0.5);
+  border: 1px solid var(--color-border-color);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(22, 39, 64, 0.55);
-  border-color: rgba(43, 67, 99, 0.7);
+  background: var(--color-card-background-hover);
+  border-color: var(--color-primary-yellow);
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* Gold Gradient Text */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #ffd700 100%);
+  background: linear-gradient(135deg, var(--color-primary-yellow) 0%, var(--color-primary-yellow-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -76,8 +78,8 @@
 
 /* Gold Button Style */
 .btn-gold {
-  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-  color: #060b13;
+  background: linear-gradient(135deg, var(--color-primary-yellow) 0%, var(--color-primary-yellow-dark) 100%);
+  color: var(--color-background-main);
   font-weight: 600;
   transition: all 0.2s ease-in-out;
 }
@@ -96,3 +98,4 @@
 .pulse-dot {
   animation: status-pulse 2s infinite ease-in-out;
 }
+
