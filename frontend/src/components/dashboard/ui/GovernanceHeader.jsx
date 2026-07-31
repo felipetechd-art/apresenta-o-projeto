@@ -3,12 +3,17 @@ import { X, Maximize2, Minimize2, ShieldAlert } from 'lucide-react';
 
 export function GovernanceHeader({ 
   clientName, 
+  leaders = [],
+  personType = 'PF',
   startDate, 
   mode, 
   onClose, 
   isFullscreen,
-  onToggleFullscreen 
+  onToggleFullscreen,
+  onActivate,
+  isActivating
 }) {
+  const [selectedLeader, setSelectedLeader] = React.useState('all');
   const isPreview = mode === 'preview';
   const isAdmin = mode === 'administrative';
 
@@ -20,9 +25,33 @@ export function GovernanceHeader({
         <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-widest block">
           Programa Governo Empresarial
         </span>
-        <h2 className="text-lg sm:text-xl font-heading font-extrabold text-white uppercase flex items-center gap-2 flex-wrap">
-          Centro de Governança PGE <span className="text-gray-500 font-normal hidden sm:inline">|</span> <span className="text-[#ffd700]">{clientName}</span>
-        </h2>
+        <div className="flex flex-col mt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <h2 className="text-lg sm:text-xl font-heading font-extrabold text-white uppercase flex items-center gap-2">
+              Centro de Governança PGE <span className="text-gray-500 font-normal hidden sm:inline">|</span>
+            </h2>
+            {personType === 'PJ' && leaders && leaders.length > 0 && (
+              <select 
+                value={selectedLeader} 
+                onChange={(e) => setSelectedLeader(e.target.value)}
+                className="bg-[#121c2e] border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-1 rounded-md outline-none transition-all cursor-pointer font-accent tracking-wider font-bold shadow-md w-fit"
+              >
+                <option value="all">Visão Geral da Empresa</option>
+                {leaders.map((leader, idx) => {
+                  if (!leader.name) return null;
+                  return (
+                    <option key={leader.id || idx} value={leader.name}>
+                      Visão do Líder: {leader.name}
+                    </option>
+                  );
+                })}
+              </select>
+            )}
+          </div>
+          <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#ffd700] uppercase mt-1">
+            {clientName}
+          </h2>
+        </div>
         <span className="text-[9px] text-gray-400 font-mono mt-1 block uppercase">
           DATA DE INÍCIO: {startDate || 'A DEFINIR'}
         </span>
@@ -39,8 +68,22 @@ export function GovernanceHeader({
               Prévia Administrativa
             </span>
             <span className="text-[9px] text-gray-400 font-medium mt-1 text-left sm:text-right">
-              Ambiente ainda não ativado para o mentorado
+              Ambiente ainda não ativado para o cliente
             </span>
+            <button 
+              onClick={onActivate}
+              disabled={isActivating}
+              className={`mt-2 px-3 py-1 bg-[#d4af37] text-black text-[10px] font-bold uppercase tracking-wider rounded flex items-center gap-2 hover:bg-[#ffd700] transition-colors shadow-md ${isActivating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              {isActivating ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                  Enviando Acessos...
+                </>
+              ) : (
+                'Ativar Painel'
+              )}
+            </button>
           </div>
         )}
         {isAdmin && (

@@ -3,14 +3,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { RoadmapRepository } from '../repositories/RoadmapRepository.js';
 import { calculateRoadmapProgress } from '../domain/governance/calculations.js';
 
-export function useRoadmap(companyId = 'demo-company') {
+export function useRoadmap(companyId = null) {
   const [tasks, setTasks] = useState(/** @type {import("../domain/governance/types.js").RoadmapTask[]} */ ([]));
   const [loading, setLoading] = useState(true);
 
   const loadTasks = useCallback(() => {
     setLoading(true);
-    const loadedTasks = RoadmapRepository.getTasks(companyId);
-    setTasks(loadedTasks);
+    if (companyId === null) {
+      setTasks([]);
+    } else {
+      const loadedTasks = RoadmapRepository.getTasks(companyId);
+      setTasks(loadedTasks);
+    }
     setLoading(false);
   }, [companyId]);
 

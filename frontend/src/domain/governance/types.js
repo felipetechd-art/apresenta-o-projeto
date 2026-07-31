@@ -116,7 +116,7 @@
  * @property {string} [updatedAt]
  * @property {string} [submittedAt]
  * @property {string} [validatedAt]
- * @property {string} [validatedBy] - ID ou Nome do Mentor
+ * @property {string} [validatedBy] - ID ou Nome do Conselheiro
  * @property {string} [returnedAt]
  * @property {string} [returnReason]
  * @property {string} [supersedesId] - Referência ao snapshot anterior que este substituiu

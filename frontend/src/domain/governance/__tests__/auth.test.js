@@ -9,45 +9,45 @@ import {
 } from '../auth.js';
 
 describe('Auth Domain Rules', () => {
-  const mentor = { id: 'mentor1', role: ROLES.MENTOR };
-  const mentorado = { id: 'mentorado1', role: ROLES.MENTORADO };
+  const advisor = { id: 'advisor1', role: ROLES.ADVISOR };
+  const client = { id: 'client1', role: ROLES.CLIENT };
 
-  it('Mentor pode validar fechamento mensal', () => {
-    expect(canValidateMonthlyClosing(mentor)).toBe(true);
+  it('Conselheiro pode validar fechamento mensal', () => {
+    expect(canValidateMonthlyClosing(advisor)).toBe(true);
   });
 
-  it('Mentorado não pode validar fechamento mensal', () => {
-    expect(canValidateMonthlyClosing(mentorado)).toBe(false);
+  it('Cliente não pode validar fechamento mensal', () => {
+    expect(canValidateMonthlyClosing(client)).toBe(false);
   });
 
-  it('Mentor pode devolver fechamento mensal', () => {
-    expect(canReturnMonthlyClosing(mentor)).toBe(true);
+  it('Conselheiro pode devolver fechamento mensal', () => {
+    expect(canReturnMonthlyClosing(advisor)).toBe(true);
   });
 
-  it('Mentorado não pode devolver fechamento mensal', () => {
-    expect(canReturnMonthlyClosing(mentorado)).toBe(false);
+  it('Cliente não pode devolver fechamento mensal', () => {
+    expect(canReturnMonthlyClosing(client)).toBe(false);
   });
 
-  it('Mentor pode criar revisão', () => {
-    expect(canCreateRevision(mentor)).toBe(true);
+  it('Conselheiro pode criar revisão', () => {
+    expect(canCreateRevision(advisor)).toBe(true);
   });
 
-  it('Mentorado não pode criar revisão', () => {
-    expect(canCreateRevision(mentorado)).toBe(false);
+  it('Cliente não pode criar revisão', () => {
+    expect(canCreateRevision(client)).toBe(false);
   });
 
-  it('Mentor pode validar tarefa do roadmap', () => {
-    expect(canValidateRoadmapTask(mentor)).toBe(true);
+  it('Conselheiro pode validar tarefa do roadmap', () => {
+    expect(canValidateRoadmapTask(advisor)).toBe(true);
   });
 
-  it('Mentorado não pode validar tarefa do roadmap', () => {
-    expect(canValidateRoadmapTask(mentorado)).toBe(false);
+  it('Cliente não pode validar tarefa do roadmap', () => {
+    expect(canValidateRoadmapTask(client)).toBe(false);
   });
 
   it('Ninguém pode editar tarefa validada diretamente', () => {
     // Essa é uma regra de negócio que assumimos em auth.js: 
     // "false - se estiver validada, requer fluxo de revisão especial (que será implementado no futuro)"
-    expect(canEditValidatedTask(mentor, {})).toBe(false);
-    expect(canEditValidatedTask(mentorado, {})).toBe(false);
+    expect(canEditValidatedTask(advisor, {})).toBe(false);
+    expect(canEditValidatedTask(client, {})).toBe(false);
   });
 });

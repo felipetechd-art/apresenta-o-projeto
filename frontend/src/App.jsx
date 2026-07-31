@@ -48,6 +48,7 @@ import FinanceiroTab from './components/FinanceiroTab';
 import OperacaoTab from './components/OperacaoTab';
 import ClientesTab from './components/ClientesTab';
 import ConfiguracoesTab from './components/ConfiguracoesTab';
+import ApresentacoesTab from './components/ApresentacoesTab';
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -94,6 +95,8 @@ function App() {
 
   // Menu items (as per user request: "Visão Geral" removed)
   const menuItems = [
+    { id: 'dashboard-ceo', label: 'Dashboard CEO', icon: Crown },
+    { id: 'apresentacoes', label: 'Apresentações', icon: PlayCircle },
     { id: 'comercial', label: 'Comercial', icon: Award },
     { id: 'marketing', label: 'Marketing', icon: Target },
     { id: 'pre-vendas', label: 'Pré-vendas (SDR)', icon: Headphones },
@@ -502,25 +505,7 @@ function App() {
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1 overflow-y-auto max-h-[42vh] pr-1">
-            {/* Dashboard CEO Link */}
-            <button
-              onClick={() => {
-                setActiveMenu('dashboard-ceo');
-                setIsSidebarOpen(false);
-              }}
-              className={`flex items-center gap-3 py-2 px-3 rounded-lg text-sm text-left transition-all duration-200 group ${
-                activeMenu === 'dashboard-ceo'
-                  ? 'bg-gradient-to-r from-brand-gold-start/15 to-transparent text-brand-gold-end border-l-2 border-brand-gold-start font-semibold'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Crown className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
-                activeMenu === 'dashboard-ceo' ? 'text-brand-gold-start' : 'text-gray-400 group-hover:text-gray-300'
-              }`} />
-              <span>Dashboard CEO</span>
-            </button>
-
-            {/* Other Menus */}
+            {/* Menus */}
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (

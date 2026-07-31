@@ -1,4 +1,5 @@
 // @ts-check
+import { FirestoreSyncService } from './FirestoreSyncService';
 
 const STORAGE_PREFIX = "@PGE_GovCenter:";
 const CURRENT_SCHEMA_VERSION = 2; // Incremented for companyId isolation migration
@@ -23,7 +24,7 @@ export class StorageHelper {
    * Executa de forma segura: grava na nova, faz backup da velha, apaga a velha.
    */
   static _migrateFromGlobal(companyId, key) {
-    if (companyId !== 'demo-company') return;
+    if (!companyId || companyId === 'demo-company') return;
 
     const oldKey = `${STORAGE_PREFIX}${key}`;
     const oldItem = localStorage.getItem(oldKey);
@@ -69,7 +70,7 @@ export class StorageHelper {
    * @param {string} companyId
    * @returns {T}
    */
-  static getItem(key, defaultValue, companyId = 'demo-company') {
+  static getItem(key, defaultValue, companyId = null) {
     try {
       this._migrateFromGlobal(companyId, key);
 
@@ -91,8 +92,9 @@ export class StorageHelper {
    * @param {string} key 
    * @param {T} data 
    * @param {string} companyId
+   * @param {boolean} shouldSync
    */
-  static setItem(key, data, companyId = 'demo-company') {
+  static setItem(key, data, companyId = null, shouldSync = true) {
     try {
       const fullKey = this._buildKey(companyId, key);
       const payload = {
@@ -101,6 +103,10 @@ export class StorageHelper {
         data: data
       };
       localStorage.setItem(fullKey, JSON.stringify(payload));
+      
+      if (shouldSync && companyId.startsWith('client-')) {
+        FirestoreSyncService.syncToCloud(companyId).catch(console.error);
+      }
     } catch (error) {
       console.error(`[PGE] Erro ao salvar ${key} no localStorage`, error);
     }
@@ -111,7 +117,7 @@ export class StorageHelper {
    * @param {string} key 
    * @param {string} companyId
    */
-  static removeItem(key, companyId = 'demo-company') {
+  static removeItem(key, companyId = null) {
     const fullKey = this._buildKey(companyId, key);
     localStorage.removeItem(fullKey);
   }

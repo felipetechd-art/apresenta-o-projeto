@@ -13,8 +13,8 @@ vi.mock('../../../repositories/StorageHelper.js', () => ({
 
 describe('RoadmapRepository', () => {
   let mockStorage = [];
-  const mentor = { id: 'm1', role: ROLES.MENTOR };
-  const mentorado = { id: 'u1', role: ROLES.MENTORADO };
+  const advisor = { id: 'm1', role: ROLES.ADVISOR };
+  const client = { id: 'u1', role: ROLES.CLIENT };
 
   beforeEach(() => {
     mockStorage = [];
@@ -73,7 +73,7 @@ describe('RoadmapRepository', () => {
 
   it('tarefas validadas são preservadas integralmente', () => {
     const defaultTasks = getDefaultRoadmapTasks();
-    const task = { ...defaultTasks[0], status: 'validated', validatedBy: 'Mentor', evidences: [{ url: 'http://test' }] };
+    const task = { ...defaultTasks[0], status: 'validated', validatedBy: 'Conselheiro', evidences: [{ url: 'http://test' }] };
     mockStorage = [task]; // Storage só tem essa tarefa
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
     
@@ -101,7 +101,7 @@ describe('RoadmapRepository', () => {
     const task = RoadmapRepository.getTasks().find(t => t.id === 'seed-m1-t1');
     
     task.status = 'in_progress';
-    RoadmapRepository.updateTask(task, mentorado, 'edited', 'Comentário');
+    RoadmapRepository.updateTask(task, client, 'edited', 'Comentário');
     
     // As in test environment storage is mocked, we check the function side effect
     expect(StorageHelper.setItem).toHaveBeenCalled();
@@ -114,27 +114,27 @@ describe('RoadmapRepository', () => {
     expect(savedTask.auditLog[0].comment).toBe('Comentário');
   });
 
-  it('mentorado é impedido de validar uma tarefa', () => {
+  it('cliente é impedido de validar uma tarefa', () => {
     mockStorage = [{ id: 'seed-m1-t1', type: 'mandatory', status: 'not_started' }];
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
     
-    expect(() => RoadmapRepository.validateTask('seed-m1-t1', mentorado))
-      .toThrow('Apenas o mentor pode validar');
+    expect(() => RoadmapRepository.validateTask('seed-m1-t1', client))
+      .toThrow('Apenas o conselheiro pode validar');
   });
 
-  it('mentor pode validar uma tarefa, mas exige evidência se for obrigatória', () => {
+  it('conselheiro pode validar uma tarefa, mas exige evidência se for obrigatória', () => {
     mockStorage = [{ id: 'seed-m1-t1', type: 'mandatory', status: 'not_started' }];
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
     
     // Sem evidência falha
-    expect(() => RoadmapRepository.validateTask('seed-m1-t1', mentor))
+    expect(() => RoadmapRepository.validateTask('seed-m1-t1', advisor))
       .toThrow('exigem ao menos uma evidência');
       
     // Com evidência passa
     mockStorage = [{ id: 'seed-m1-t1', type: 'mandatory', status: 'not_started', evidences: [{ url: 'test.jpg' }] }];
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
     
-    RoadmapRepository.validateTask('seed-m1-t1', mentor);
+    RoadmapRepository.validateTask('seed-m1-t1', advisor);
     expect(StorageHelper.setItem).toHaveBeenCalled();
   });
 
@@ -143,7 +143,7 @@ describe('RoadmapRepository', () => {
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
     const newTask = { id: 'custom1', type: 'custom', status: 'not_started' };
     
-    RoadmapRepository.addTask(newTask, mentorado);
+    RoadmapRepository.addTask(newTask, client);
     expect(mockStorage.length).toBe(getDefaultRoadmapTasks().length + 1);
     const added = mockStorage.find(t => t.id === 'custom1');
     expect(added).toBeDefined();
@@ -211,7 +211,7 @@ describe('RoadmapRepository', () => {
       month: 1, 
       type: 'mandatory',
       status: 'validated',
-      auditLog: [{ action: 'validated', actor: { id: 'mentor' } }]
+      auditLog: [{ action: 'validated', actor: { id: 'advisor' } }]
     };
     mockStorage = [oldTask];
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);

@@ -8,6 +8,8 @@ export default function ClientGovernanceCenter({
   onBackToContract,
   presentationSessionId,
   clientName = 'Empresário PGE',
+  leaders = [],
+  personType = 'PF',
   totalInvestment = 'R$ 80.000,00',
   hourlyRate = '150',
   hoursPerWeek = '44',
@@ -21,6 +23,7 @@ export default function ClientGovernanceCenter({
   const [activeMonthForDashboard, setActiveMonthForDashboard] = useState(1);
   const [strategicPriority, setStrategicPriority] = useState('Liderança & Processos');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedLeader, setSelectedLeader] = useState('all');
   
   // Suporte legado para o botão "Experimentar Novo Painel" caso a flag principal esteja falsa
   const [useNewVersion, setUseNewVersion] = useState(false);
@@ -186,10 +189,32 @@ export default function ClientGovernanceCenter({
         <div className={`border-b border-gray-800 p-4 sm:p-5 flex items-center justify-between bg-black/30 ${isFullscreen ? '' : 'rounded-t-2xl'}`}>
           <div className="text-left">
             <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-widest block">Programa Governo Empresarial</span>
-            <h2 className="text-lg sm:text-xl font-heading font-extrabold text-white uppercase flex items-center gap-2">
-              Centro de Governança PGE <span className="text-gray-500 font-normal">|</span> <span className="text-[#ffd700]">{clientName}</span>
-            </h2>
-            <span className="text-[9px] text-gray-400 font-mono mt-1 block">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+              <h2 className="text-lg sm:text-xl font-heading font-extrabold text-white uppercase flex items-center gap-2">
+                Centro de Governança PGE <span className="text-gray-500 font-normal">|</span> <span className="text-[#ffd700]">{clientName}</span>
+              </h2>
+              {personType === 'PJ' && leaders && leaders.length > 0 && (
+                <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                  <span className="text-gray-500 font-normal hidden sm:inline">-</span>
+                  <select 
+                    value={selectedLeader} 
+                    onChange={(e) => setSelectedLeader(e.target.value)}
+                    className="bg-[#121c2e] border border-gray-800 focus:border-[#d4af37] text-white text-xs px-2 py-1.5 rounded-md outline-none transition-all cursor-pointer font-accent tracking-wider font-bold shadow-md"
+                  >
+                    <option value="all">Visão Geral da Empresa</option>
+                    {leaders.map((leader, idx) => {
+                      if (!leader.name) return null;
+                      return (
+                        <option key={leader.id || idx} value={leader.name}>
+                          Visão do Líder: {leader.name}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+            </div>
+            <span className="text-[9px] text-gray-400 font-mono mt-2 block">
               DATA DE INÍCIO: {new Intl.DateTimeFormat('pt-BR').format(new Date())}
             </span>
           </div>

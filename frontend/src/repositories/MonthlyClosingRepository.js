@@ -14,7 +14,7 @@ export class MonthlyClosingRepository {
    * @param {string} companyId
    * @returns {import("../domain/governance/types.js").MonthlySnapshot[]}
    */
-  static getSnapshots(companyId = 'demo-company') {
+  static getSnapshots(companyId = null) {
     const all = StorageHelper.getItem(KEY, [], companyId);
     // Para cada mês, retorna a revisão mais alta.
     const latestByMonth = new Map();
@@ -31,7 +31,7 @@ export class MonthlyClosingRepository {
    * Obtém o histórico bruto total (incluindo revisões antigas).
    * @param {string} companyId
    */
-  static getAllRevisions(companyId = 'demo-company') {
+  static getAllRevisions(companyId = null) {
     return StorageHelper.getItem(KEY, [], companyId);
   }
 
@@ -41,7 +41,7 @@ export class MonthlyClosingRepository {
    * @param {string} companyId
    * @returns {import("../domain/governance/types.js").MonthlySnapshot | undefined}
    */
-  static getSnapshotByMonth(month, companyId = 'demo-company') {
+  static getSnapshotByMonth(month, companyId = null) {
     return this.getSnapshots(companyId).find(s => s.month === month);
   }
 
@@ -52,7 +52,7 @@ export class MonthlyClosingRepository {
    * @param {import("../domain/governance/auth.js").Actor} actor
    * @param {string} companyId
    */
-  static saveSnapshot(snapshot, actor, companyId = 'demo-company') {
+  static saveSnapshot(snapshot, actor, companyId = null) {
     const all = this.getAllRevisions(companyId);
     const existingIndex = all.findIndex(s => s.id === snapshot.id);
     const existing = existingIndex !== -1 ? all[existingIndex] : null;
@@ -73,14 +73,14 @@ export class MonthlyClosingRepository {
   }
 
   /**
-   * Valida um snapshot. Somente mentores podem realizar esta ação.
+   * Valida um snapshot. Somente conselheiros podem realizar esta ação.
    * @param {string} snapshotId 
    * @param {import("../domain/governance/auth.js").Actor} actor 
    * @param {string} companyId
    */
-  static validateSnapshot(snapshotId, actor, companyId = 'demo-company') {
+  static validateSnapshot(snapshotId, actor, companyId = null) {
     if (!canValidateMonthlyClosing(actor)) {
-      throw new Error("Acesso Negado: Apenas o mentor pode validar um fechamento.");
+      throw new Error("Acesso Negado: Apenas o conselheiro pode validar um fechamento.");
     }
 
     const all = this.getAllRevisions(companyId);
@@ -103,9 +103,9 @@ export class MonthlyClosingRepository {
    * @param {string} reason
    * @param {string} companyId
    */
-  static returnSnapshot(snapshotId, actor, reason, companyId = 'demo-company') {
+  static returnSnapshot(snapshotId, actor, reason, companyId = null) {
     if (!canReturnMonthlyClosing(actor)) {
-      throw new Error("Acesso Negado: Apenas o mentor pode devolver um fechamento.");
+      throw new Error("Acesso Negado: Apenas o conselheiro pode devolver um fechamento.");
     }
     
     const all = this.getAllRevisions(companyId);
@@ -122,14 +122,14 @@ export class MonthlyClosingRepository {
 
   /**
    * Cria uma nova revisão a partir de um snapshot validado.
-   * Útil quando o mentor autoriza uma correção retroativa.
+   * Útil quando o conselheiro autoriza uma correção retroativa.
    * @param {number} month
    * @param {import("../domain/governance/auth.js").Actor} actor
    * @param {string} companyId
    */
-  static createRevision(month, actor, companyId = 'demo-company') {
+  static createRevision(month, actor, companyId = null) {
     if (!canCreateRevision(actor)) {
-      throw new Error("Acesso Negado: Apenas o mentor pode autorizar a criação de uma nova revisão.");
+      throw new Error("Acesso Negado: Apenas o conselheiro pode autorizar a criação de uma nova revisão.");
     }
 
     const latest = this.getSnapshotByMonth(month, companyId);

@@ -9,12 +9,16 @@ import {
   calculateProvisionalIDE 
 } from '../domain/governance/calculations.js';
 
-export function useMonthlyClosing() {
+export function useMonthlyClosing(companyId = null) {
   const [snapshots, setSnapshots] = useState(/** @type {import("../domain/governance/types.js").MonthlySnapshot[]} */ ([]));
 
   const loadSnapshots = useCallback(() => {
-    setSnapshots(MonthlyClosingRepository.getSnapshots());
-  }, []);
+    if (companyId === null) {
+      setSnapshots([]);
+    } else {
+      setSnapshots(MonthlyClosingRepository.getSnapshots(companyId));
+    }
+  }, [companyId]);
 
   useEffect(() => {
     loadSnapshots();
@@ -62,24 +66,24 @@ export function useMonthlyClosing() {
       supersedesId: existingSnap ? existingSnap.supersedesId : undefined
     };
 
-    MonthlyClosingRepository.saveSnapshot(snapshot, actor);
+    MonthlyClosingRepository.saveSnapshot(snapshot, actor, companyId);
     loadSnapshots();
-  }, [loadSnapshots]);
+  }, [loadSnapshots, companyId]);
 
   const validateClosing = useCallback((snapshotId, actor) => {
-    MonthlyClosingRepository.validateSnapshot(snapshotId, actor);
+    MonthlyClosingRepository.validateSnapshot(snapshotId, actor, companyId);
     loadSnapshots();
-  }, [loadSnapshots]);
+  }, [loadSnapshots, companyId]);
 
   const returnClosing = useCallback((snapshotId, actor, reason) => {
-    MonthlyClosingRepository.returnSnapshot(snapshotId, actor, reason);
+    MonthlyClosingRepository.returnSnapshot(snapshotId, actor, reason, companyId);
     loadSnapshots();
-  }, [loadSnapshots]);
+  }, [loadSnapshots, companyId]);
 
   const createRevision = useCallback((month, actor) => {
-    MonthlyClosingRepository.createRevision(month, actor);
+    MonthlyClosingRepository.createRevision(month, actor, companyId);
     loadSnapshots();
-  }, [loadSnapshots]);
+  }, [loadSnapshots, companyId]);
 
   return {
     snapshots,

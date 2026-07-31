@@ -12,7 +12,7 @@ export class RoadmapRepository {
    * @param {string} companyId
    * @returns {import("../domain/governance/types.js").RoadmapTask[]}
    */
-  static getTasks(companyId = 'demo-company') {
+  static getTasks(companyId = null) {
     const storedTasks = StorageHelper.getItem(KEY, [], companyId);
     const seedTasks = getDefaultRoadmapTasks();
     
@@ -78,7 +78,7 @@ export class RoadmapRepository {
    * @param {import("../domain/governance/types.js").RoadmapTask[]} tasks 
    * @param {string} companyId
    */
-  static saveTasks(tasks, companyId = 'demo-company') {
+  static saveTasks(tasks, companyId = null) {
     StorageHelper.setItem(KEY, tasks, companyId);
   }
 
@@ -90,7 +90,7 @@ export class RoadmapRepository {
    * @param {string} [comment]
    * @param {string} companyId
    */
-  static updateTask(updatedTask, actor, action = 'edited', comment = '', companyId = 'demo-company') {
+  static updateTask(updatedTask, actor, action = 'edited', comment = '', companyId = null) {
     const tasks = this.getTasks(companyId);
     const index = tasks.findIndex(t => t.id === updatedTask.id);
     
@@ -122,14 +122,14 @@ export class RoadmapRepository {
   }
 
   /**
-   * Valida uma tarefa. Apenas mentores podem validar e ela exige checklist e evidência.
+   * Valida uma tarefa. Apenas conselheiros podem validar e ela exige checklist e evidência.
    * @param {string} taskId 
    * @param {import("../domain/governance/auth.js").Actor} actor 
    * @param {string} companyId
    */
-  static validateTask(taskId, actor, companyId = 'demo-company') {
+  static validateTask(taskId, actor, companyId = null) {
     if (!canValidateRoadmapTask(actor)) {
-      throw new Error("Acesso Negado: Apenas o mentor pode validar uma tarefa do Roadmap.");
+      throw new Error("Acesso Negado: Apenas o conselheiro pode validar uma tarefa do Roadmap.");
     }
 
     const tasks = this.getTasks(companyId);
@@ -170,7 +170,7 @@ export class RoadmapRepository {
    * @param {import("../domain/governance/auth.js").Actor} actor
    * @param {string} companyId
    */
-  static addTask(newTask, actor, companyId = 'demo-company') {
+  static addTask(newTask, actor, companyId = null) {
     const tasks = this.getTasks(companyId);
     
     newTask.createdAt = new Date().toISOString();

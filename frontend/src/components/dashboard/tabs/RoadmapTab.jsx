@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Target, Filter, ChevronDown, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Target, Filter, ChevronDown, CheckCircle2, Clock, AlertCircle, LayoutGrid, List, Columns } from 'lucide-react';
 import { TaskDrawer } from './TaskDrawer';
+import { RoadmapList } from './RoadmapList';
+import { RoadmapKanban } from './RoadmapKanban';
+import { TaskCreateModal } from './TaskCreateModal';
 
 export function RoadmapTab({ dashboardData }) {
   const { tasks, roadmapProgress } = dashboardData;
@@ -13,6 +16,8 @@ export function RoadmapTab({ dashboardData }) {
   const [monthFilter, setMonthFilter] = useState('all');
   const [responsibleFilter, setResponsibleFilter] = useState('all');
   const [selectedTask, setSelectedTask] = useState(null);
+  const [viewMode, setViewMode] = useState('kanban');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Nomes Oficiais das Fases
   const phaseNames = {
@@ -67,10 +72,10 @@ export function RoadmapTab({ dashboardData }) {
   };
 
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
       
       {/* Coluna Esquerda: Filtros e Estrutura */}
-      <div className="w-64 border-r border-gray-800 bg-black/20 p-4 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
+      <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-gray-800 bg-black/20 p-4 flex flex-col gap-6 overflow-y-auto scrollbar-hide shrink-0 z-10 max-h-[35vh] md:max-h-full">
         <div>
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Progresso Total</h3>
           <div className="flex items-center gap-3">
@@ -122,11 +127,11 @@ export function RoadmapTab({ dashboardData }) {
             className="w-full bg-black/40 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-gray-300 outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
           >
             <option value="all">Status (Todos)</option>
-            <option value="not_started">Não Iniciadas</option>
-            <option value="in_execution">Em Execução</option>
-            <option value="awaiting_validation">Aguardando Validação</option>
-            <option value="validated">Validadas</option>
-            <option value="blocked">Bloqueadas</option>
+            <option value="not_started">Não iniciado</option>
+            <option value="in_execution">Em execução</option>
+            <option value="awaiting_validation">Em validação</option>
+            <option value="validated">Concluido</option>
+            <option value="blocked">Bloqueado</option>
           </select>
 
           <select 
@@ -192,18 +197,49 @@ export function RoadmapTab({ dashboardData }) {
       </div>
 
       {/* Coluna Direita: Lista de Tarefas */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="flex justify-between items-end mb-6 border-b border-gray-800 pb-4">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+        <div className="flex flex-col xl:flex-row xl:justify-between xl:items-end mb-6 border-b border-gray-800 pb-4 gap-4">
           <div>
-            <h2 className="text-2xl font-heading font-bold text-white">Tarefas da Fase {selectedPhase}</h2>
-            <p className="text-sm text-gray-400 mt-1">Concluídas: {phaseCompleted} de {phaseTotal} ({phaseProgress}%)</p>
+            <h2 className="text-xl md:text-2xl font-heading font-bold text-white">Tarefas da Fase {selectedPhase}</h2>
+            <p className="text-xs md:text-sm text-gray-400 mt-1">Concluídas: {phaseCompleted} de {phaseTotal} ({phaseProgress}%)</p>
           </div>
-          <button className="px-4 py-2 bg-black/40 border border-gray-700 rounded-lg text-xs font-bold text-gray-300 hover:text-white transition-colors cursor-pointer">
-            + Adicionar Tarefa Personalizada
-          </button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+            <div className="flex bg-black/40 rounded-lg border border-gray-800 overflow-hidden shrink-0">
+              <button 
+                onClick={() => setViewMode('grid')} 
+                className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-[var(--color-primary-yellow)] text-black' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                title="Visualização em Grade"
+              ><LayoutGrid className="w-4 h-4" /></button>
+              <button 
+                onClick={() => setViewMode('list')} 
+                className={`p-2 transition-colors border-l border-gray-800 ${viewMode === 'list' ? 'bg-[var(--color-primary-yellow)] text-black' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                title="Visualização em Lista"
+              ><List className="w-4 h-4" /></button>
+              <button 
+                onClick={() => setViewMode('kanban')} 
+                className={`p-2 transition-colors border-l border-gray-800 ${viewMode === 'kanban' ? 'bg-[var(--color-primary-yellow)] text-black' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                title="Visualização em Kanban"
+              ><Columns className="w-4 h-4" /></button>
+            </div>
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-black/40 border border-gray-700 rounded-lg text-xs font-bold text-gray-300 hover:text-white transition-colors cursor-pointer text-center"
+            >
+              + Adicionar Tarefa Personalizada
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {viewMode === 'list' && (
+          <RoadmapList filteredTasks={filteredTasks} setSelectedTask={setSelectedTask} />
+        )}
+        
+        {viewMode === 'kanban' && (
+          <RoadmapKanban filteredTasks={filteredTasks} setSelectedTask={setSelectedTask} />
+        )}
+
+        {viewMode === 'grid' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredTasks.map(task => (
             <div 
               key={task.id}
@@ -213,7 +249,11 @@ export function RoadmapTab({ dashboardData }) {
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getStatusColor(task.status)}`}>
-                    {task.status.replace('_', ' ')}
+                    {task.status === 'not_started' ? 'Não iniciado' :
+                     task.status === 'in_execution' ? 'Em execução' :
+                     task.status === 'blocked' ? 'Bloqueado' :
+                     task.status === 'awaiting_validation' ? 'Em validação' :
+                     task.status === 'validated' ? 'Concluido' : task.status}
                   </span>
                   {getStatusIcon(task.status)}
                 </div>
@@ -238,14 +278,27 @@ export function RoadmapTab({ dashboardData }) {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Drawer da Tarefa */}
       {selectedTask && (
         <TaskDrawer 
-          task={selectedTask} 
+          task={tasks.find(t => t.id === selectedTask.id) || selectedTask} 
           dashboardData={dashboardData}
           onClose={() => setSelectedTask(null)} 
+        />
+      )}
+
+      {/* Modal de Nova Tarefa */}
+      {isCreateModalOpen && (
+        <TaskCreateModal 
+          phase={selectedPhase}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={(newTask) => {
+            dashboardData.addTask(newTask);
+            setIsCreateModalOpen(false);
+          }}
         />
       )}
     </div>

@@ -13,8 +13,8 @@ vi.mock('../../../repositories/StorageHelper.js', () => ({
 
 describe('MonthlyClosingRepository', () => {
   let mockStorage = [];
-  const mentor = { id: 'm1', role: ROLES.MENTOR };
-  const mentorado = { id: 'u1', role: ROLES.MENTORADO };
+  const advisor = { id: 'm1', role: ROLES.ADVISOR };
+  const client = { id: 'u1', role: ROLES.CLIENT };
 
   beforeEach(() => {
     mockStorage = [];
@@ -24,62 +24,62 @@ describe('MonthlyClosingRepository', () => {
 
   it('cria um rascunho', () => {
     const snap = { id: 'snap-1', month: 1, status: 'draft', metrics: { clo: 10 } };
-    MonthlyClosingRepository.saveSnapshot(snap, mentorado);
+    MonthlyClosingRepository.saveSnapshot(snap, client);
     expect(mockStorage.length).toBe(1);
     expect(mockStorage[0].status).toBe('draft');
   });
 
   it('atualiza o mesmo rascunho (sem duplicar)', () => {
     const snap = { id: 'snap-1', month: 1, status: 'draft', metrics: { clo: 10 } };
-    MonthlyClosingRepository.saveSnapshot(snap, mentorado);
+    MonthlyClosingRepository.saveSnapshot(snap, client);
     
     const snapUpdated = { id: 'snap-1', month: 1, status: 'submitted', metrics: { clo: 20 } };
-    MonthlyClosingRepository.saveSnapshot(snapUpdated, mentorado);
+    MonthlyClosingRepository.saveSnapshot(snapUpdated, client);
     
     expect(mockStorage.length).toBe(1);
     expect(mockStorage[0].status).toBe('submitted');
     expect(mockStorage[0].metrics.clo).toBe(20);
   });
 
-  it('valida o fechamento apenas se for mentor', () => {
+  it('valida o fechamento apenas se for Conselheiro', () => {
     const snap = { id: 'snap-1', month: 1, status: 'submitted' };
-    MonthlyClosingRepository.saveSnapshot(snap, mentorado);
+    MonthlyClosingRepository.saveSnapshot(snap, client);
     
-    expect(() => MonthlyClosingRepository.validateSnapshot('snap-1', mentorado)).toThrow('Acesso Negado');
-    MonthlyClosingRepository.validateSnapshot('snap-1', mentor);
+    expect(() => MonthlyClosingRepository.validateSnapshot('snap-1', client)).toThrow('Acesso Negado');
+    MonthlyClosingRepository.validateSnapshot('snap-1', advisor);
     
     expect(mockStorage[0].status).toBe('validated');
   });
 
-  it('bloqueia sobrescrita de fechamento validado pelo mentorado', () => {
+  it('bloqueia sobrescrita de fechamento validado pelo cliente', () => {
     const snap = { id: 'snap-1', month: 1, status: 'submitted' };
-    MonthlyClosingRepository.saveSnapshot(snap, mentorado);
-    MonthlyClosingRepository.validateSnapshot('snap-1', mentor);
+    MonthlyClosingRepository.saveSnapshot(snap, client);
+    MonthlyClosingRepository.validateSnapshot('snap-1', advisor);
 
     const snapUpdated = { id: 'snap-1', month: 1, status: 'submitted', metrics: { clo: 50 } };
-    expect(() => MonthlyClosingRepository.saveSnapshot(snapUpdated, mentorado))
+    expect(() => MonthlyClosingRepository.saveSnapshot(snapUpdated, client))
       .toThrow('Não é possível alterar um fechamento validado sem criar uma nova revisão autorizada.');
   });
 
-  it('devolve o fechamento (mentor)', () => {
+  it('devolve o fechamento (advisor)', () => {
     const snap = { id: 'snap-1', month: 1, status: 'submitted' };
-    MonthlyClosingRepository.saveSnapshot(snap, mentorado);
+    MonthlyClosingRepository.saveSnapshot(snap, client);
     
-    MonthlyClosingRepository.returnSnapshot('snap-1', mentor, 'Falta documentar horas');
+    MonthlyClosingRepository.returnSnapshot('snap-1', advisor, 'Falta documentar horas');
     expect(mockStorage[0].status).toBe('returned');
     expect(mockStorage[0].returnReason).toBe('Falta documentar horas');
   });
 
   it('cria nova revisão e preserva o histórico', () => {
     const snap = { id: 'snap-1', month: 1, status: 'submitted', revision: 1 };
-    MonthlyClosingRepository.saveSnapshot(snap, mentorado);
-    MonthlyClosingRepository.validateSnapshot('snap-1', mentor);
+    MonthlyClosingRepository.saveSnapshot(snap, client);
+    MonthlyClosingRepository.validateSnapshot('snap-1', advisor);
 
-    // Mentorado não pode criar revisão
-    expect(() => MonthlyClosingRepository.createRevision(1, mentorado)).toThrow('Acesso Negado');
+    // client não pode criar revisão
+    expect(() => MonthlyClosingRepository.createRevision(1, client)).toThrow('Acesso Negado');
 
-    // Mentor cria nova revisão
-    const rev2 = MonthlyClosingRepository.createRevision(1, mentor);
+    // advisor cria nova revisão
+    const rev2 = MonthlyClosingRepository.createRevision(1, advisor);
     
     expect(mockStorage.length).toBe(2);
     expect(rev2.supersedesId).toBe('snap-1');
@@ -95,8 +95,8 @@ describe('MonthlyClosingRepository', () => {
   it('preserva meses anteriores', () => {
     const snap1 = { id: 'snap-1', month: 1, status: 'validated', revision: 1 };
     const snap2 = { id: 'snap-2', month: 2, status: 'draft', revision: 1 };
-    MonthlyClosingRepository.saveSnapshot(snap1, mentorado);
-    MonthlyClosingRepository.saveSnapshot(snap2, mentorado);
+    MonthlyClosingRepository.saveSnapshot(snap1, client);
+    MonthlyClosingRepository.saveSnapshot(snap2, client);
     
     expect(mockStorage.length).toBe(2);
     expect(MonthlyClosingRepository.getSnapshots().length).toBe(2);
@@ -106,10 +106,10 @@ describe('MonthlyClosingRepository', () => {
     vi.mocked(StorageHelper.getItem).mockReturnValue([]);
     
     const snap1 = { id: 'snap-1', month: 1, status: 'draft', revision: 1 };
-    MonthlyClosingRepository.saveSnapshot(snap1, mentorado, 'company-A');
+    MonthlyClosingRepository.saveSnapshot(snap1, client, 'company-A');
     
     const snap2 = { id: 'snap-2', month: 1, status: 'draft', revision: 1 };
-    MonthlyClosingRepository.saveSnapshot(snap2, mentorado, 'company-B');
+    MonthlyClosingRepository.saveSnapshot(snap2, client, 'company-B');
     
     const setItemCalls = vi.mocked(StorageHelper.setItem).mock.calls;
     const callsForA = setItemCalls.filter(call => call[2] === 'company-A');
@@ -119,3 +119,4 @@ describe('MonthlyClosingRepository', () => {
     expect(callsForB.length).toBeGreaterThan(0);
   });
 });
+

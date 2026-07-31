@@ -10,12 +10,15 @@ export function useGovernanceDashboard(initialProps = {}) {
   const [actor, setActor] = useState({
     id: 'user-demo-1',
     name: 'Usuário Demonstração',
-    role: ROLES.MENTORADO
+    role: ROLES.CLIENT
   });
 
-  const roadmap = useRoadmap(initialProps.companyId);
-  const closing = useMonthlyClosing(initialProps.companyId);
-  const { companyId, presentationSessionId } = initialProps;
+  const { companyId, presentationSessionId, isMagicLink } = initialProps;
+  
+  const repositoryScopeId = companyId || (presentationSessionId ? `draft-${presentationSessionId}` : 'demo-company');
+
+  const roadmap = useRoadmap(repositoryScopeId);
+  const closing = useMonthlyClosing(repositoryScopeId);
   
   // Draft integration for Prévia Administrativa
   const draftData = (!companyId && presentationSessionId) 
@@ -34,7 +37,7 @@ export function useGovernanceDashboard(initialProps = {}) {
   const currentAutomation = null; // Aguardando medição
   const currentGovernance = null; // Aguardando medição
 
-  const isPreviewMode = !companyId && !!presentationSessionId;
+  const isPreviewMode = !companyId && !!presentationSessionId && !isMagicLink;
 
   // IGE should be null in preview mode because we don't have all pillars measured
   const ige = isPreviewMode ? null : calculateIGE({
@@ -90,6 +93,10 @@ export function useGovernanceDashboard(initialProps = {}) {
 
   return {
     clientName: draftData?.clientInfo?.name || initialProps.clientName || 'Empresa Demonstração',
+    personType: draftData?.contractData?.personType || null,
+    leaders: draftData?.clientInfo?.leaders || [],
+    presentationSessionId: initialProps.presentationSessionId,
+    isMagicLink: initialProps.isMagicLink,
     month: latestSnapshot ? latestSnapshot.month : 1,
     isPreviewMode,
     actor,

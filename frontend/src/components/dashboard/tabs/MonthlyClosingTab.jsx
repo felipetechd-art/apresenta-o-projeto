@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Eye, AlertTriangle, ArrowRight, Calendar, CheckCircle } from 'lucide-react';
+import { Save, Eye, AlertTriangle, ArrowRight, Calendar, CheckCircle, X } from 'lucide-react';
 import { calculateProvisionalIDE, calculateCLO, calculateAutonomy, calculateRecentralization, calculateProcessMaturity } from '../../../domain/governance/calculations';
 
-export function MonthlyClosingTab({ dashboardData }) {
+export function MonthlyClosingTab({ dashboardData, onNavigate }) {
   const { snapshots, saveClosing, roadmapProgress, month: currentSystemMonth } = dashboardData;
   
   // O mês ativo que o usuário está fechando (default para o próximo mês a ser fechado)
@@ -11,7 +11,7 @@ export function MonthlyClosingTab({ dashboardData }) {
   // Pegar snapshot existente para este mês, se houver
   const existingSnapshot = snapshots.find(s => s.month === selectedMonth);
   const isReadOnly = existingSnapshot?.status === 'validated';
-  const isMentor = dashboardData.actor?.role === 'mentor';
+  const isAdvisor = dashboardData.actor?.role === 'advisor';
   
   // Pegar mês anterior para comparação
   const previousSnapshot = snapshots.find(s => s.month === selectedMonth - 1);
@@ -118,6 +118,10 @@ export function MonthlyClosingTab({ dashboardData }) {
         notes
       );
       setShowPreview(false);
+      
+      if ((targetStatus === 'submitted' || targetStatus === 'validated') && onNavigate) {
+        onNavigate('dashboard');
+      }
     }
   };
 
@@ -128,6 +132,7 @@ export function MonthlyClosingTab({ dashboardData }) {
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider" title={tooltip}>
           {label}
         </label>
+        {tooltip && <span className="text-[10px] text-gray-500 mb-1 leading-tight">{tooltip}</span>}
         <div className="relative">
           <input 
             type="number" 
@@ -208,8 +213,8 @@ export function MonthlyClosingTab({ dashboardData }) {
             Pilar: Tempo & Liberdade
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            {renderField('Horas Trabalhadas', 'totalHours', 'Jornada total dedicada à empresa (semanal)', 'h')}
-            {renderField('Horas Operacionais', 'operationalHours', 'Quantas dessas horas foram em execução operacional', 'h')}
+            {renderField('Horas Trabalhadas', 'totalHours', 'O total de horas brutas que o dono trabalhou no mês.', 'h')}
+            {renderField('Horas Operacionais', 'operationalHours', 'Daquelas horas totais, quantas foram gastas apagando incêndio ou no operacional.', 'h')}
           </div>
         </div>
 
@@ -219,10 +224,10 @@ export function MonthlyClosingTab({ dashboardData }) {
             Pilar: Delegação & Alçadas
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            {renderField('Decisões p/ Dono', 'decisionsToOwner', 'Nº de decisões que chegaram até você na semana')}
-            {renderField('Decisões p/ Líderes', 'decisionsByLeaders', 'Nº de decisões resolvidas pelas lideranças')}
-            {renderField('Responsabilidades Delegadas', 'delegatedResponsibilities', 'Total de responsabilidades formalmente passadas')}
-            {renderField('Responsabilidades Devolvidas', 'recentralizedResponsibilities', 'Quantas dessas voltaram para a mesa do dono')}
+            {renderField('Decisões p/ Dono', 'decisionsToOwner', 'Quantas vezes a equipe precisou acionar o dono no mês para perguntar o que fazer.')}
+            {renderField('Decisões p/ Líderes', 'decisionsByLeaders', 'Quantas decisões foram tomadas diretamente pela equipe, sem incomodar o dono.')}
+            {renderField('Responsabilidades Delegadas', 'delegatedResponsibilities', 'Quantas tarefas ou projetos o dono transferiu para a equipe no mês.')}
+            {renderField('Responsabilidades Devolvidas', 'recentralizedResponsibilities', 'Dessas tarefas delegadas, quantas o dono teve que puxar de volta.')}
           </div>
         </div>
 
@@ -232,10 +237,10 @@ export function MonthlyClosingTab({ dashboardData }) {
             Pilar: Processos
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            {renderField('Processos Prioritários', 'priorityProcesses', 'Total de processos core da empresa')}
-            {renderField('Processos Documentados', 'documentedProcesses', 'Quantos já possuem POPs atualizados')}
+            {renderField('Processos Prioritários', 'priorityProcesses', 'A quantidade de processos \\"core\\" (principais) que a empresa precisa ter rodando.')}
+            {renderField('Processos Documentados', 'documentedProcesses', 'Desses processos prioritários, quantos já estão mapeados/documentados (POP).')}
             <div className="col-span-2">
-              {renderField('Aderência aos Processos', 'processAdherence', 'Qual a nota da equipe executando o processo (0 a 100)', '%')}
+              {renderField('Aderência aos Processos', 'processAdherence', 'A porcentagem (0 a 100%) que representa o quanto a equipe de fato usa e segue o processo documentado no dia a dia.', '%')}
             </div>
           </div>
         </div>
@@ -265,34 +270,34 @@ export function MonthlyClosingTab({ dashboardData }) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 mt-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
             {!isReadOnly && (
               <>
                 <button 
                   onClick={() => handleSave('draft')}
-                  className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors border border-gray-800 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg text-xs uppercase font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors border border-gray-800 cursor-pointer flex items-center justify-center text-center"
                 >
-                  <Save className="w-4 h-4 inline-block mr-2" />
+                  <Save className="w-4 h-4 mr-2" />
                   Salvar Rascunho
                 </button>
                 <button 
                   onClick={handlePreview}
-                  className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-black bg-[var(--color-primary-yellow)] hover:bg-[var(--color-primary-yellow-dark)] transition-colors shadow-[0_0_15px_rgba(212,175,55,0.3)] cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg text-xs uppercase font-bold text-black bg-[var(--color-primary-yellow)] hover:bg-[var(--color-primary-yellow-dark)] transition-colors shadow-[0_0_15px_rgba(212,175,55,0.3)] cursor-pointer flex items-center justify-center text-center"
                 >
-                  <Eye className="w-4 h-4 inline-block mr-2" />
+                  <Eye className="w-4 h-4 mr-2" />
                   Visualizar Impacto
                 </button>
               </>
             )}
 
-            {status === 'submitted' && isMentor && (
+            {status === 'submitted' && isAdvisor && (
                <>
                  <button 
                    onClick={() => {
                      const reason = prompt("Motivo da devolução:");
                      if (reason) dashboardData.returnClosing(existingSnapshot.id, reason);
                    }}
-                   className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer"
+                   className="w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg text-xs uppercase font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer flex justify-center text-center"
                  >
                    Devolver p/ Correção
                  </button>
@@ -305,7 +310,7 @@ export function MonthlyClosingTab({ dashboardData }) {
                </>
             )}
 
-            {isReadOnly && isMentor && (
+            {isReadOnly && isAdvisor && (
                <button 
                  onClick={() => {
                    if (window.confirm("Isso criará uma nova revisão em Rascunho para este mês. Deseja continuar?")) {
@@ -353,16 +358,16 @@ export function MonthlyClosingTab({ dashboardData }) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button 
                 onClick={() => setShowPreview(false)}
-                className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer border border-gray-800"
+                className="w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg text-xs uppercase font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer border border-gray-800 flex justify-center text-center"
               >
                 Voltar e Editar
               </button>
               <button 
                 onClick={() => handleSave('submitted')}
-                className="px-4 py-2 rounded-lg text-xs uppercase font-bold text-black bg-[var(--color-primary-yellow)] transition-colors cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg text-xs uppercase font-bold text-black bg-[var(--color-primary-yellow)] hover:bg-[#b8860b] transition-colors cursor-pointer flex items-center justify-center text-center gap-2"
               >
                 Confirmar Fechamento <ArrowRight className="w-4 h-4" />
               </button>

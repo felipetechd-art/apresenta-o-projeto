@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PresentationSessionService } from '../domain/governance/presentationSession';
 import { mapPresentationToGovernanceDraft } from '../domain/governance/presentationMapper';
+import { downloadContract } from '../domain/commercial/contractGenerator.js';
 import { PresentationGovernanceDraftRepository } from '../repositories/PresentationGovernanceDraftRepository';
+import { getCommercialOffer, COMMERCIAL_OFFERS } from '../domain/commercial/commercialOffer';
+import { validateContractData } from '../domain/commercial/contractSnapshot';
+import 'react-phone-number-input/style.css';
+import PhoneInput from 'react-phone-number-input';
 import {
   ChevronLeft,
   ChevronRight,
@@ -30,6 +35,7 @@ import {
   Layout
 } from 'lucide-react';
 import felipeImg from '../assets/felipe.jpg';
+import roadmapImg from '../assets/roadmap_dashboard.jpg';
 import ClientGovernanceCenter from './ClientGovernanceCenter.jsx';
 import { NewGovernancePanelWrapper } from './NewGovernancePanelWrapper.jsx';
 
@@ -49,6 +55,8 @@ const getNumericValue = (formattedValue) => {
   const cleanValue = String(formattedValue).replace(/\D/g, '');
   return parseFloat(cleanValue) / 100;
 };
+
+
 
 export default function Presentation() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -89,24 +97,40 @@ export default function Presentation() {
 
   // Contract Modal States
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
-  const [personType, setPersonType] = useState('PJ'); // 'PF' | 'PJ'
+  const [showDeliverablesModal, setShowDeliverablesModal] = useState(false);
+  const [personType, setPersonType] = useState(''); // 'PF' | 'PJ'
   const [docNumber, setDocNumber] = useState('');
   const [clientName, setClientName] = useState('');
   const [repName, setRepName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
-  const [totalInvestment, setTotalInvestment] = useState(formatBRLInput('8000000'));
-  const [entranceValue, setEntranceValue] = useState('');
+  const [totalInvestment, setTotalInvestment] = useState(formatBRLInput('4500000'));
+  const [entranceValue, setEntranceValue] = useState(formatBRLInput('1500000'));
   const [installments, setInstallments] = useState('1');
-  const [paymentMethod, setPaymentMethod] = useState('credit'); // 'credit' | 'pix'
+  const [paymentMethod, setPaymentMethod] = useState(''); // 'credit' | 'pix'
   const [clientAddress, setClientAddress] = useState('');
-  const [employeeCount, setEmployeeCount] = useState('');
-  const [leaderCount, setLeaderCount] = useState('');
-  const [contractForo, setContractForo] = useState('Barueri/SP');
+  const [leaders, setLeaders] = useState([{ id: 1, name: '', email: '', collaborators: '', directLeaders: '' }]);
+  const [contractForo, setContractForo] = useState('');
   const [consultantEmail, setConsultantEmail] = useState('');
   const [d4signStatus, setD4signStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [d4signMessage, setD4signMessage] = useState('');
-  const [isClientDashboardOpen, setIsClientDashboardOpen] = useState(false);
+  const [salesStatus, setSalesStatus] = useState('aguardando');
+  const [leadStatus, setLeadStatus] = useState('qualificado');
+  const [notes, setNotes] = useState('');
+  const [contractGenerated, setContractGenerated] = useState(false);
+  const [isClientDashboardOpen, setIsClientDashboardOpen] = useState(() => {
+    return new URLSearchParams(window.location.search).get('view') === 'dashboard';
+  });
+
+  const handleCloseDashboard = () => {
+    const isDashboardView = new URLSearchParams(window.location.search).get('view') === 'dashboard';
+    if (isDashboardView) {
+      window.location.href = '/admin';
+    } else {
+      setIsClientDashboardOpen(false);
+    }
+  };
+
   const [contractStep, setContractStep] = useState(1); // 1 = dados cadastrais, 2 = pagamento
   
   const [activeLogoIdx, setActiveLogoIdx] = useState(0);
@@ -115,10 +139,99 @@ export default function Presentation() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let session = params.get('session');
+    
+    const loadSessionData = (sessionId) => {
+      const draft = PresentationGovernanceDraftRepository.findBySessionId(sessionId);
+      if (draft) {
+        if (draft.clientInfo) {
+          if (draft.clientInfo.name) setClientName(draft.clientInfo.name);
+          if (draft.clientInfo.email) setClientEmail(draft.clientInfo.email);
+          if (draft.clientInfo.phone) setClientPhone(draft.clientInfo.phone);
+          if (draft.clientInfo.docNumber) setDocNumber(draft.clientInfo.docNumber);
+          if (draft.clientInfo.repName) setRepName(draft.clientInfo.repName);
+          if (draft.clientInfo.clientAddress) setClientAddress(draft.clientInfo.clientAddress);
+
+          if (draft.clientInfo.leaders && Array.isArray(draft.clientInfo.leaders)) {
+            setLeaders(draft.clientInfo.leaders);
+          } else if (draft.clientInfo.employeeCount || draft.clientInfo.leaderName) {
+            setLeaders([{ id: 1, name: draft.clientInfo.leaderName || '', email: '', collaborators: draft.clientInfo.employeeCount || '', directLeaders: draft.clientInfo.leaderCount || '' }]);
+          }
+        }
+        if (draft.contractData) {
+          if (draft.contractData.totalInvestment) setTotalInvestment(draft.contractData.totalInvestment);
+          if (draft.contractData.entranceValue) setEntranceValue(draft.contractData.entranceValue);
+          if (draft.contractData.installments) setInstallments(draft.contractData.installments);
+          if (draft.contractData.paymentMethod) setPaymentMethod(draft.contractData.paymentMethod);
+          if (draft.contractData.personType) setPersonType(draft.contractData.personType);
+          if (draft.contractData.contractForo) setContractForo(draft.contractData.contractForo);
+          if (draft.contractData.contractGenerated) setContractGenerated(draft.contractData.contractGenerated);
+          if (draft.contractData.consultant) setConsultantEmail(draft.contractData.consultant);
+        }
+        if (draft.diagnosticData) {
+          if (draft.diagnosticData.hourlyRate != null) setHourlyRate(String(draft.diagnosticData.hourlyRate));
+          if (draft.diagnosticData.hoursPerWeek != null) setHoursPerWeek(String(draft.diagnosticData.hoursPerWeek));
+          if (draft.diagnosticData.strategicPercent != null) setStrategicPercent(String(draft.diagnosticData.strategicPercent));
+          if (draft.diagnosticData.annualGrowth != null) setAnnualGrowth(String(draft.diagnosticData.annualGrowth));
+          if (draft.diagnosticData.growthFromStrategy != null) setGrowthFromStrategy(String(draft.diagnosticData.growthFromStrategy));
+          
+          if (draft.diagnosticData.calculatedOpportunityCost != null) {
+            const rate = Number(draft.diagnosticData.hourlyRate || 150);
+            const hours = Number(draft.diagnosticData.hoursPerWeek || 40);
+            const percent = Number(draft.diagnosticData.strategicPercent || 20);
+            const growth = Number(draft.diagnosticData.annualGrowth || 80);
+            const strategyFactor = Number(draft.diagnosticData.growthFromStrategy || 50);
+            
+            const opportunity = rate * hours * 52 * (1 - (percent / 100));
+            const strategic = rate * hours * 52 * (percent / 100);
+            const strategicGrowthPortion = growth * (strategyFactor / 100);
+            const actualReturn = strategicGrowthPortion;
+            const lostGrowth = percent > 0 ? strategicGrowthPortion * ((100 - percent) / percent) : 0;
+            
+            setCalculatedOpportunityCost(opportunity);
+            setCalculatedStrategicInvestment(strategic);
+            setCalculatedActualReturn(actualReturn);
+            setCalculatedLostGrowth(lostGrowth);
+            setCalcState('done');
+          }
+          
+          if (draft.diagnosticData.delegatedTasks != null) {
+            setDelegatedTasks(String(draft.diagnosticData.delegatedTasks));
+            if (draft.diagnosticData.returningTasks != null) setReturningTasks(String(draft.diagnosticData.returningTasks));
+            if (draft.diagnosticData.reworkHours != null) setReworkHours(String(draft.diagnosticData.reworkHours));
+            
+            const del = Number(draft.diagnosticData.delegatedTasks);
+            const ret = Number(draft.diagnosticData.returningTasks || 0);
+            const rwk = Number(draft.diagnosticData.reworkHours || 0);
+            const hRate = Number(draft.diagnosticData.hourlyRate || 150);
+            const hpw = Number(draft.diagnosticData.hoursPerWeek || 40);
+            const sPercent = Number(draft.diagnosticData.strategicPercent || 20);
+            
+            const hoursLost = ret * rwk;
+            const opHours = hpw * (1 - (sPercent / 100));
+            const drain = opHours > 0 ? (hoursLost / opHours) * 100 : 0;
+            const moLoss = hoursLost * hRate * 4.33;
+            const autoPercent = del > 0 ? (1 - (ret / del)) * 100 : 0;
+            
+            setSlide6HoursLost(hoursLost);
+            setSlide6TimeDrainPercent(drain);
+            setSlide6MonthlyLoss(moLoss);
+            setSlide6AutonomyPercent(autoPercent);
+            setSlide6CalcState('done');
+          }
+          
+          if (draft.diagnosticData.salesStatus) setSalesStatus(draft.diagnosticData.salesStatus);
+          if (draft.diagnosticData.leadStatus) setLeadStatus(draft.diagnosticData.leadStatus);
+          if (draft.diagnosticData.notes) setNotes(draft.diagnosticData.notes);
+        }
+      }
+    };
+
     if (!session) {
       session = crypto.randomUUID();
       const newUrl = window.location.pathname + '?session=' + session;
       window.history.replaceState({ path: newUrl }, '', newUrl);
+    } else {
+      loadSessionData(session);
     }
     setPresentationSessionId(session);
   }, []);
@@ -137,7 +250,7 @@ export default function Presentation() {
     return () => clearInterval(interval);
   }, []);
 
-  const totalSlides = 15;
+  const totalSlides = 16;
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
@@ -398,170 +511,26 @@ export default function Presentation() {
   };
 
   const handleDownloadContract = () => {
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('pt-BR');
-    
-    const investmentVal = getNumericValue(totalInvestment);
-    const entranceVal = getNumericValue(entranceValue);
-    const balanceVal = Math.max(0, investmentVal - entranceVal);
-    const instCount = parseInt(installments) || 1;
-    const instValue = instCount > 0 ? (balanceVal / instCount) : 0;
-    
-    const fmtTotal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(investmentVal);
-    const fmtEntrance = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entranceVal);
-    const fmtBalance = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balanceVal);
-    const fmtInst = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(instValue);
-    
-    const cardSuffix = paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito (mais juros da plataforma)';
-    const paymentLine = entranceVal > 0 
-      ? `[ ] Integral [X] Entrada de ${fmtEntrance} + saldo de ${fmtBalance} em ${instCount} parcelas de ${fmtInst} no ${cardSuffix}`
-      : `[X] Integral de ${fmtTotal} no ${cardSuffix} [ ] Entrada + Saldo`;
-
-    const contratanteLabel = personType === 'PF' 
-      ? `${clientName} - CPF: ${docNumber}`
-      : `${clientName} - CNPJ: ${docNumber}`;
-
-    const contratanteQualif = personType === 'PF'
-      ? `${clientName.toUpperCase()}, inscrito(a) no CPF sob nº ${docNumber}, com endereço em ${clientAddress || '[PREENCHER]'}, doravante denominada "CONTRATANTE".`
-      : `${clientName.toUpperCase()}, inscrita no CNPJ sob nº ${docNumber}, com sede em ${clientAddress || '[PREENCHER]'}, representada por ${repName || '[NOME DO REPRESENTANTE]'}, doravante denominada "CONTRATANTE".`;
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Contrato PGE - ${clientName}</title>
-<style>
-  body { font-family: Arial, sans-serif; line-height: 1.6; color: #000; padding: 20px; }
-  h1, h2, h3 { text-align: center; }
-  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-  th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
-  th { background-color: #f2f2f2; }
-  .signature-table td { border: none; height: 80px; vertical-align: bottom; }
-</style>
-</head>
-<body>
-
-<h3>CONTRATO GERAL DE PRESTAÇÃO DE SERVIÇOS</h3>
-<h4>CONSULTORIA + IMPLEMENTAÇÃO</h4>
-
-<h2>QUADRO DA CONTRATAÇÃO</h2>
-<table>
-  <tr>
-    <th>CAMPO</th>
-    <th>INFORMACAO</th>
-  </tr>
-  <tr>
-    <td><strong>Contratante</strong></td>
-    <td>${contratanteLabel}</td>
-  </tr>
-  <tr>
-    <td><strong>Projeto / referência</strong></td>
-    <td>Consultoria e Implementação PGE (Programa Governo Empresarial)</td>
-  </tr>
-  <tr>
-    <td><strong>Reunião de definição</strong></td>
-    <td>${dateStr}, ambiente de alinhamento estratégico PGE</td>
-  </tr>
-  <tr>
-    <td><strong>Investimento total</strong></td>
-    <td>${fmtTotal}</td>
-  </tr>
-  <tr>
-    <td><strong>Pagamento</strong></td>
-    <td>${paymentLine}</td>
-  </tr>
-  <tr>
-    <td><strong>Vencimentos</strong></td>
-    <td>Entrada em ${dateStr} e saldo subsequente conforme faturamento do método escolhido.</td>
-  </tr>
-  <tr>
-    <td><strong>Foro</strong></td>
-    <td>${contractForo || 'Barueri/SP'}</td>
-  </tr>
-</table>
-
-<p><strong>1. PARTES E ACEITE</strong></p>
-<p><strong>CONTRATANTE:</strong> ${contratanteQualif}</p>
-<p><strong>CONTRATADA:</strong> PEO CONSULTING PRESTACAO DE SERVICOS LTDA, inscrita no CNPJ sob nº 54.765.988/0001-09, com sede em Rua Marte, 429, Cruz Preta, CEP 06414-000, Barueri, São Paulo, representada por Felipe Rodrigues Damasceno, inscrito no CPF sob o nº 309.750.998-41, doravante denominada "CONTRATADA".</p>
-<p>A assinatura deste instrumento ou o pagamento do valor integral ou da entrada indicada no Quadro da Contratação, o que ocorrer primeiro, representa aceite expresso de todas as condições e torna este Contrato válido e eficaz entre as Partes.</p>
-
-<p><strong>2. OBJETO E ESCOPO</strong></p>
-<p>A CONTRATADA prestará serviços de consultoria combinados com implementação, execução e acompanhamento das ações acordadas para o projeto.</p>
-<p>O escopo específico é aquele definido pelas Partes na reunião virtual indicada no Quadro da Contratação. A gravação, o resumo da reunião, propostas, mensagens e confirmações escritas relacionadas ao projeto poderão ser reunidos posteriormente no Anexo I e passam a integrar este Contrato como prova do que foi combinado.</p>
-<p>Solicitações que não estejam claramente compreendidas no escopo acordado serão consideradas serviços adicionais e dependerão de nova aprovação comercial.</p>
-
-<p><strong>3. VIGÊNCIA E EXECUÇÃO</strong></p>
-<p>Este Contrato não possui prazo global fixo. Ele permanecerá vigente até a conclusão dos serviços acordados ou até seu encerramento na forma da Cláusula 7. Datas e previsões informadas durante o projeto são estimativas e podem ser ajustadas conforme complexidade, aprovações, informações, acessos e dependências da CONTRATANTE ou de terceiros.</p>
-
-<p><strong>4. RESPONSABILIDADES DAS PARTES</strong></p>
-<p>A CONTRATADA deverá executar o escopo com diligência profissional, manter comunicação sobre o andamento e preservar a confidencialidade das informações recebidas.</p>
-<p>A CONTRATANTE deverá fornecer informações, conteúdos, acessos e aprovações necessários; indicar um responsável pelas decisões; e realizar os pagamentos nas condições combinadas. Atrasos ou omissões da CONTRATANTE poderão suspender ou reprogramar a execução sem caracterizar falha da CONTRATADA.</p>
-
-<p><strong>5. PAGAMENTO E INADIMPLÊNCIA</strong></p>
-<p>O investimento, a entrada, o saldo e os vencimentos são os definidos no Quadro da Contratação. O pagamento da entrada autoriza o início da mobilização, da consultoria e da implementação.</p>
-<p>Em caso de atraso, poderão incidir multa de 2% sobre a parcela vencida e juros de 1% ao mês, calculados proporcionalmente. A CONTRATADA poderá suspender os serviços enquanto houver valor vencido, retomando-os após a regularização conforme disponibilidade operacional.</p>
-
-<p><strong>6. SERVIÇOS ENTREGUES, APROVAÇÕES E RESULTADOS</strong></p>
-<p>Reuniões realizadas, diagnósticos, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
-<p>A prestação constitui obrigação de meio. A CONTRATADA não garante faturamento, vendas, audiência, aprovação de plataformas, desempenho comercial ou qualquer resultado que dependa de decisões da CONTRATANTE, mercado, mídia, tecnologia ou terceiros.</p>
-
-<p><strong>7. CANCELAMENTO, QUEBRA CONTRATUAL E MULTA</strong></p>
-<p>O Contrato poderá ser encerrado por acordo escrito, conclusão do escopo, desistência ou descumprimento contratual. Quando houver descumprimento corrigível, a Parte inadimplente deverá ser notificada e terá 5 (cinco) dias úteis para regularização.</p>
-<p>A Parte que causar o encerramento injustificado do Contrato, por desistência ou quebra contratual, pagará à outra multa equivalente a 30% (trinta por cento) do valor restante do contrato, entendido como o valor correspondente aos serviços que ainda não tiverem sido entregues na data do encerramento, observados os limites legais.</p>
-<p>Os valores correspondentes aos serviços já entregues não serão reembolsados. Valores pagos antecipadamente relativos a serviços ainda não entregues serão devolvidos de forma proporcional, após a compensação de valores vencidos, custos já autorizados e da multa aplicável.</p>
-<p>Se o encerramento injustificado for causado pela CONTRATADA, ela devolverá os valores recebidos pelos serviços não entregues e pagará à CONTRATANTE a multa prevista nesta cláusula. Se for causado pela CONTRATANTE, a multa poderá ser descontada de eventual valor a devolver ou cobrada separadamente.</p>
-
-<p><strong>8. CONFIDENCIALIDADE, LGPD E PROPRIEDADE INTELECTUAL</strong></p>
-<p>As Partes manterão sigilo sobre estratégias, documentos, dados, credenciais, gravações e demais informações não públicas recebidas durante o projeto, utilizando-as somente para executar este Contrato.</p>
-<p>Cada Parte tratará dados pessoais conforme a Lei Geral de Proteção de Dados - LGPD, adotando medidas razoáveis de segurança e comunicando incidentes relevantes. A gravação das reuniões poderá ser utilizada para registrar o escopo, acompanhar o projeto e comprovar alinhamentos contratuais.</p>
-<p>Após a quitação integral, a CONTRATANTE poderá utilizar os materiais personalizados produzidos especificamente para o projeto. Permanecem de titularidade da CONTRATADA seus métodos, modelos, processos, ferramentas, códigos, bibliotecas, estruturas e conhecimentos preexistentes, bem como ativos sujeitos a licenças de terceiros.</p>
-
-<p><strong>9. TERCEIROS E DESPESAS EXTERNAS</strong></p>
-<p>Custos de plataformas, licenças, hospedagem, mídia, tráfego, APIs, inteligência artificial, domínios, gateways e outros fornecedores não estão incluídos, salvo indicação expressa no escopo ou no Quadro da Contratação. A CONTRATADA não responde por falhas, alterações, bloqueios ou indisponibilidades causadas por terceiros.</p>
-
-<p><strong>10. COMUNICAÇÕES, ASSINATURA E FORO</strong></p>
-<p>E-mails, mensagens em canais oficiais, gravações, comprovantes de pagamento, documentos e assinaturas eletrônicas poderão comprovar aprovações, entregas, alterações e demais comunicações entre as Partes.</p>
-<p>Este Contrato não cria sociedade, representação comercial, vínculo trabalhista ou exclusividade entre as Partes. Alterações relevantes deverão ser registradas por escrito.</p>
-<p>Fica eleito o foro indicado no Quadro da Contratação, ressalvadas as regras legais obrigatórias. As Partes reconhecem a validade da assinatura eletrônica e do aceite por pagamento previsto neste instrumento.</p>
-
-<p>E, por estarem de acordo, as Partes assinam este instrumento.</p>
-
-<p>${contractForo || 'Barueri/SP'}, ${dateStr}.</p>
-
-<table class="signature-table">
-  <tr>
-    <td style="width: 50%;">
-      ________________________________________<br/>
-      <strong>CONTRATANTE</strong><br/>
-      Nome/Razão Social: ${clientName}<br/>
-      Representante: ${personType === 'PJ' ? repName : clientName}<br/>
-      CPF/CNPJ: ${docNumber}
-    </td>
-    <td style="width: 50%;">
-      ________________________________________<br/>
-      <strong>CONTRATADA</strong><br/>
-      PEO CONSULTING PRESTACAO DE SERVICOS LTDA<br/>
-      Representante: Felipe Rodrigues Damasceno<br/>
-      CPF/CNPJ: 309.750.998-41 / 54.765.988/0001-09
-    </td>
-  </tr>
-</table>
-
-</body>
-</html>
-`;
-
-    const blob = new Blob([htmlContent], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `contrato_pge_${clientName.replace(/\s+/g, '_').toLowerCase()}.doc`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const cData = {
+      clientName, docNumber, personType, repName, clientAddress,
+      totalInvestment, entranceValue, installments, paymentMethod,
+      contractForo, consultantEmail,
+    };
+    const validation = validateContractData(cData);
+    if (!validation.valid) {
+      alert(validation.errors.join('\\n'));
+      return;
+    }
+    downloadContract(cData);
   };
+
+
+
+
+
+
+
+
 
   const handleSendD4Sign = async () => {
     if (!clientEmail || !clientName || !consultantEmail) {
@@ -581,6 +550,8 @@ export default function Presentation() {
       const balanceVal = Math.max(0, investmentVal - entranceVal);
       const instCount = parseInt(installments) || 1;
       const instValue = instCount > 0 ? (balanceVal / instCount) : 0;
+      
+      const offerConfig = getCommercialOffer(Math.round(investmentVal * 100));
       
       const fmtTotal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(investmentVal);
       const fmtEntrance = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entranceVal);
@@ -632,7 +603,7 @@ export default function Presentation() {
   </tr>
   <tr>
     <td><strong>Projeto / referência</strong></td>
-    <td>Consultoria e Implementação PGE (Programa Governo Empresarial)</td>
+    <td>${offerConfig.contractDescription}</td>
   </tr>
   <tr>
     <td><strong>Reunião de definição</strong></td>
@@ -665,6 +636,10 @@ export default function Presentation() {
 <p>A CONTRATADA prestará serviços de consultoria combinados com implementação, execução e acompanhamento das ações acordadas para o projeto.</p>
 <p>O escopo específico é aquele definido pelas Partes na reunião virtual indicada no Quadro da Contratação. A gravação, o resumo da reunião, propostas, mensagens e confirmações escritas relacionadas ao projeto poderão ser reunidos posteriormente no Anexo I e passam a integrar este Contrato como prova do que foi combinado.</p>
 <p>Solicitações que não estejam claramente compreendidas no escopo acordado serão consideradas serviços adicionais e dependerão de nova aprovação comercial.</p>
+
+<p><strong>ENTREGÁVEIS DO PROJETO</strong></p>
+${(offerConfig.deliverableGroups || COMMERCIAL_OFFERS[offerConfig.baseProgram].deliverableGroups).map(g => `<p><strong>${g.title}:</strong> ${g.description}</p><ul>${g.items.map(item => `<li>${item}</li>`).join('')}</ul>`).join('')}
+${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g => `<p><strong>${g.title}:</strong> ${g.description}</p><ul>${g.items.map(item => `<li>${item}</li>`).join('')}</ul>`).join('') : ''}
 
 <p><strong>3. VIGÊNCIA E EXECUÇÃO</strong></p>
 <p>Este Contrato não possui prazo global fixo. Ele permanecerá vigente até a conclusão dos serviços acordados ou até seu encerramento na forma da Cláusula 7. Datas e previsões informadas durante o projeto são estimativas e podem ser ajustadas conforme complexidade, aprovações, informações, acessos e dependências da CONTRATANTE ou de terceiros.</p>
@@ -2515,11 +2490,63 @@ export default function Presentation() {
           );
         })()}
 
-          {/* SLIDE 15: FECHAMENTO */}
+          {/* SLIDE 15: COMO VAMOS RESOLVER */}
           {(isMobile || currentSlide === 14) && (
             <div id="slide-14" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
-              <div className="col-span-12 md:col-span-7 flex flex-col justify-center text-left">
+              <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
+                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">Plano de Ação</span>
+                <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
+                  COMO VAMOS <span className="text-gold-premium">RESOLVER</span>
+                </h2>
+                <p className="text-xs text-gray-400 leading-relaxed font-light mb-6">
+                  Nosso modelo de implementação é dividido em três fases executivas claras, projetadas para remover você da operação de forma segura.
+                </p>
+                <div className="space-y-4">
+                  <div className="p-3 bg-white/2 border border-gray-800 rounded-lg flex items-start gap-3">
+                    <div className="w-6 h-6 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#d4af37] font-bold text-xs">1</span>
+                    </div>
+                    <div>
+                      <h4 className="text-white text-xs font-bold uppercase mb-1">Diagnóstico e Planejamento</h4>
+                      <p className="text-[10px] text-gray-400 font-light">Mapeamento de gargalos, definição do IDE/CLO baseline e planejamento do roadmap customizado.</p>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-white/2 border border-gray-800 rounded-lg flex items-start gap-3">
+                    <div className="w-6 h-6 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#d4af37] font-bold text-xs">2</span>
+                    </div>
+                    <div>
+                      <h4 className="text-white text-xs font-bold uppercase mb-1">Processos e Automação</h4>
+                      <p className="text-[10px] text-gray-400 font-light">Documentação das rotinas (POPs), implementação de CRM e integrações de IA para triagem operacional.</p>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-white/2 border border-gray-800 rounded-lg flex items-start gap-3">
+                    <div className="w-6 h-6 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#d4af37] font-bold text-xs">3</span>
+                    </div>
+                    <div>
+                      <h4 className="text-white text-xs font-bold uppercase mb-1">Gestão e Governança</h4>
+                      <p className="text-[10px] text-gray-400 font-light">Cadência estratégica com líderes, painel de indicadores ao vivo e autonomia executiva completa.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0">
+                <div className="w-full max-w-lg premium-card p-1 rounded-xl border border-gray-800/80 shadow-2xl relative group">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#d4af37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-xl pointer-events-none" />
+                  <img src={roadmapImg} alt="Roadmap Dashboard" className="w-full h-auto rounded-lg" />
+                </div>
+              </div>
+            </div>
+          </div>
+          )}
+
+          {/* SLIDE 16: FECHAMENTO */}
+          {(isMobile || currentSlide === 15) && (
+            <div id="slide-15" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center xl:text-left py-4 xl:py-0 max-w-7xl mx-auto">
+              <div className="col-span-1 xl:col-span-4 flex flex-col justify-center text-left">
                 <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.35em] mb-3">O Chamado</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
                   SUA EMPRESA JÁ CRESCEU.<br/>
@@ -2532,7 +2559,7 @@ export default function Presentation() {
                 <div className="space-y-4 mb-6">
                   <div className="flex flex-col gap-2">
                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                      SUA EMPRESA VAI CONTINUAR DEPENDENDO DE VOCÊ PARA CRESER?
+                      SUA EMPRESA VAI CONTINUAR DEPENDENDO DE VOCÊ PARA CRESCER?
                     </span>
                     <span className="text-xs font-bold text-[#d4af37] uppercase tracking-wider">
                       OU ESTÁ NA HORA DE VOCÊ ASSUMIR O GOVERNO?
@@ -2545,57 +2572,95 @@ export default function Presentation() {
                     onClick={() => setIsContractModalOpen(true)}
                     className="px-8 py-3.5 btn-gold rounded-lg flex items-center gap-3 text-xs uppercase tracking-wider font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:scale-105 transition-all cursor-pointer"
                   >
-                    Iniciar Programa de Governo Empresarial
+                    Iniciar
                     <ArrowRight className="w-4 h-4 text-black" />
                   </button>
                 </div>
               </div>
 
-              <div className="col-span-12 md:col-span-5 flex justify-center mt-6 md:mt-0">
-                <div className="w-full max-w-[340px] premium-card p-6 rounded-2xl border-2 border-[#d4af37] flex flex-col gap-4 relative overflow-hidden">
+              <div className="col-span-1 xl:col-span-8 flex flex-col sm:flex-row gap-6 justify-center items-center mt-8 xl:mt-0">
+                
+                {/* Card 1: Programa (45k) */}
+                <div className="w-full max-w-[320px] bg-[#0a101a] p-6 rounded-2xl border border-gray-700 flex flex-col gap-4 relative overflow-hidden transition-all hover:border-[#d4af37]/50 shadow-xl">
+                  <div className="border-b border-gray-800 pb-3 text-left">
+                    <span className="text-[9px] uppercase font-mono tracking-widest text-gray-400 font-bold">Aceleração</span>
+                    <h3 className="text-sm font-heading font-extrabold text-white uppercase mt-0.5">Programa Governo Empresarial</h3>
+                    <p className="text-[9px] text-[#d4af37] font-mono mt-1">4 MESES DE IMPLEMENTAÇÃO</p>
+                  </div>
+
+                  <div className="space-y-3 text-[10px] text-gray-300 flex-1 text-left">
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
+                      <span>Diagnósticos Iniciais IDE + CLO</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
+                      <span>Roadmap Estratégico Personalizado</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
+                      <span>1 Mês de Sprint de Implementação Semanal</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
+                      <span>3 Meses de Acompanhamento Mensal</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
+                      <span>Reuniões em Grupo por 12 meses</span>
+                    </p>
+                  </div>
+
+                  <div className="border-t border-gray-800 pt-3 mt-2 text-left">
+                    <span className="block text-[9px] text-gray-500 uppercase tracking-widest">Investimento Base</span>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="text-xl font-heading font-extrabold text-white">R$ 45.000</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 2: Conselho (80k) */}
+                <div className="w-full max-w-[340px] premium-card p-6 rounded-2xl border-2 border-[#d4af37] flex flex-col gap-4 relative overflow-hidden transform xl:scale-105 z-10 shadow-[0_0_40px_rgba(212,175,55,0.15)]">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[#d4af37]/5 rounded-bl-full pointer-events-none" />
                   
-                  <div className="border-b border-gray-800 pb-3">
-                    <span className="text-[9px] uppercase font-mono tracking-widest text-[#d4af37] font-bold">Programa High Ticket</span>
-                    <h3 className="text-base font-heading font-extrabold text-white uppercase mt-0.5">GOVERNO EMPRESARIAL</h3>
-                    <p className="text-[9px] text-gray-500 font-mono mt-1">12 MESES DE TRANSIÇÃO</p>
+                  <div className="border-b border-gray-800 pb-3 text-left">
+                    <span className="text-[9px] uppercase font-mono tracking-widest text-[#d4af37] font-bold">Mastermind</span>
+                    <h3 className="text-base font-heading font-extrabold text-white uppercase mt-0.5">Conselho Governo Empresarial</h3>
+                    <p className="text-[9px] text-gray-400 font-mono mt-1">10 MESES ESTRATÉGICOS</p>
                   </div>
 
-                  <div className="space-y-2 text-[10px] text-gray-400">
-                    <p className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                      Método Potência Empresarial
+                  <div className="space-y-3 text-[10px] text-gray-300 flex-1 text-left">
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] mt-1" />
+                      <strong className="text-white">Tudo do Programa (4 meses) +</strong>
                     </p>
-                    <p className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                      Diagnósticos Iniciais IDE + CLO
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] mt-1" />
+                      <span>6 Meses Adicionais de Conselho Estratégico</span>
                     </p>
-                    <p className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                      Roadmap Estratégico Personalizado
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] mt-1" />
+                      <span>Apoio contínuo à tomada de decisão</span>
                     </p>
-                    <p className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                      Acompanhamento da Implementação
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                      Conselho Estratégico de Escala
+                    <p className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] mt-1" />
+                      <span>1 Encontro Individual por Mês de longo prazo</span>
                     </p>
                   </div>
 
-                  <div className="border-t border-gray-800 pt-3 mt-2">
+                  <div className="border-t border-gray-800 pt-3 mt-2 text-left">
                     <span className="block text-[9px] text-gray-500 uppercase tracking-widest">Investimento Anual</span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-2xl font-heading font-extrabold text-white">R$ 80.000</span>
-                      <span className="text-[10px] text-gray-500 font-medium">À vista</span>
+                      <span className="text-2xl font-heading font-extrabold text-[#ffd700]">R$ 80.000</span>
+                      <span className="text-[10px] text-gray-400 font-medium">À vista</span>
                     </div>
                   </div>
 
-                  <span className="text-[9px] text-gray-500 block leading-relaxed italic border-t border-gray-850 pt-3 text-center">
-                    "O investimento não é para ter mais informação. É para mudar a estrutura que ainda faz sua empresa depender de você."
+                  <span className="text-[9px] text-[#d4af37] block leading-relaxed italic border-t border-[#d4af37]/20 pt-3 text-center opacity-80">
+                    "O investimento não é para ter mais informação. É para mudar a estrutura."
                   </span>
                 </div>
+
               </div>
             </div>
           </div>
@@ -2687,7 +2752,24 @@ export default function Presentation() {
                           type="text" 
                           placeholder={personType === 'PJ' ? '00.000.000/0001-00' : '000.000.000-00'} 
                           value={docNumber}
-                          onChange={(e) => setDocNumber(e.target.value)}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (personType === 'PJ') {
+                              value = value
+                                .replace(/^(\d{2})(\d)/, '$1.$2')
+                                .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                                .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                                .replace(/(\d{4})(\d)/, '$1-$2')
+                                .slice(0, 18);
+                            } else {
+                              value = value
+                                .replace(/^(\d{3})(\d)/, '$1.$2')
+                                .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                                .replace(/\.(\d{3})(\d)/, '.$1-$2')
+                                .slice(0, 14);
+                            }
+                            setDocNumber(value);
+                          }}
                           className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 font-mono"
                           required
                         />
@@ -2754,13 +2836,16 @@ export default function Presentation() {
                       <div className="flex flex-col">
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Telefone</label>
                         <div className="flex gap-2">
-                          <input 
-                            type="tel" 
-                            placeholder="(11) 99999-9999" 
+                          <PhoneInput
+                            international
+                            defaultCountry="BR"
                             value={clientPhone}
-                            onChange={(e) => setClientPhone(e.target.value)}
-                            className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none flex-grow transition-all duration-300 font-mono"
-                            required
+                            onChange={setClientPhone}
+                            className="bg-black/40 border border-gray-800 focus-within:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg flex-grow transition-all duration-300 font-mono"
+                            numberInputProps={{
+                              className: "bg-transparent outline-none w-full border-none text-white",
+                              required: true
+                            }}
                           />
                           <a 
                             href={`https://wa.me/5581994691175?text=Oi%2C%20vamos%20criar%20o%20grupo.%20Nome%3A%20${encodeURIComponent(clientName)}%20-%20Tel%3A%20${encodeURIComponent(clientPhone)}`}
@@ -2787,26 +2872,75 @@ export default function Presentation() {
                       </div>
 
                       {/* Company Structure */}
-                      <div className="flex flex-col">
-                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Nº Colaboradores</label>
-                        <input 
-                          type="number" 
-                          placeholder="Ex: 15" 
-                          value={employeeCount}
-                          onChange={(e) => setEmployeeCount(e.target.value)}
-                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Líderes Atuais</label>
-                        <input 
-                          type="number" 
-                          placeholder="Ex: 3" 
-                          value={leaderCount}
-                          onChange={(e) => setLeaderCount(e.target.value)}
-                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300"
-                        />
-                      </div>
+                      {personType === 'PJ' && (
+                        <div className="md:col-span-2 flex flex-col gap-3">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Equipe de Liderança</label>
+                          {leaders.map((leader, index) => (
+                            <div key={leader.id} className="flex flex-col md:flex-row gap-2 items-start md:items-center bg-white/5 p-2 rounded-lg border border-gray-800 relative">
+                              <input 
+                                type="text" 
+                                placeholder="Nome do Líder" 
+                                value={leader.name}
+                                onChange={(e) => {
+                                  const newLeaders = [...leaders];
+                                  newLeaders[index].name = e.target.value;
+                                  setLeaders(newLeaders);
+                                }}
+                                className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-[11px] px-2 py-1.5 rounded outline-none w-full md:w-1/3"
+                              />
+                              <input 
+                                type="email" 
+                                placeholder="E-mail" 
+                                value={leader.email}
+                                onChange={(e) => {
+                                  const newLeaders = [...leaders];
+                                  newLeaders[index].email = e.target.value;
+                                  setLeaders(newLeaders);
+                                }}
+                                className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-[11px] px-2 py-1.5 rounded outline-none w-full md:w-1/3"
+                              />
+                              <input 
+                                type="number" 
+                                placeholder="Nº Colab." 
+                                value={leader.collaborators}
+                                onChange={(e) => {
+                                  const newLeaders = [...leaders];
+                                  newLeaders[index].collaborators = e.target.value;
+                                  setLeaders(newLeaders);
+                                }}
+                                className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-[11px] px-2 py-1.5 rounded outline-none w-full md:w-1/6"
+                              />
+                              <input 
+                                type="number" 
+                                placeholder="Sub-líderes" 
+                                value={leader.directLeaders}
+                                onChange={(e) => {
+                                  const newLeaders = [...leaders];
+                                  newLeaders[index].directLeaders = e.target.value;
+                                  setLeaders(newLeaders);
+                                }}
+                                className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-[11px] px-2 py-1.5 rounded outline-none w-full md:w-1/6"
+                              />
+                              {leaders.length > 1 && (
+                                <button 
+                                  type="button"
+                                  onClick={() => setLeaders(leaders.filter(l => l.id !== leader.id))}
+                                  className="text-red-500 hover:text-red-400 font-bold w-5 h-5 flex items-center justify-center absolute -right-2 -top-2 bg-black border border-gray-800 rounded-full text-xs"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button 
+                            type="button" 
+                            onClick={() => setLeaders([...leaders, { id: Date.now(), name: '', email: '', collaborators: '', directLeaders: '' }])}
+                            className="text-[10px] text-[#d4af37] font-bold uppercase tracking-wider self-start hover:underline mt-1 flex items-center gap-1"
+                          >
+                            + Adicionar Líder
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -2874,6 +3008,33 @@ export default function Presentation() {
                         </select>
                       </div>
 
+                      {/* Status da Venda */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Status da Venda</label>
+                        <select 
+                          value={salesStatus}
+                          onChange={(e) => setSalesStatus(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
+                        >
+                          <option value="aguardando">Aguardando Proposta</option>
+                          <option value="fechado">Fechado</option>
+                          <option value="cancelado">Cancelado</option>
+                        </select>
+                      </div>
+
+                      {/* Status do Lead */}
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Status do Lead</label>
+                        <select 
+                          value={leadStatus}
+                          onChange={(e) => setLeadStatus(e.target.value)}
+                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
+                        >
+                          <option value="qualificado">Qualificado</option>
+                          <option value="nao-qualificado">Não Qualificado</option>
+                        </select>
+                      </div>
+
                       {/* Simulador de Parcela */}
                       <div className="flex flex-col">
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Parcelamento do Saldo</label>
@@ -2937,20 +3098,20 @@ export default function Presentation() {
               </div>
 
               {/* Footer Buttons */}
-              <div className="border-t border-gray-800 p-4 flex justify-end gap-3 bg-black/20">
+              <div className="border-t border-gray-800 p-4 flex flex-col sm:flex-row sm:flex-wrap justify-end gap-3 bg-black/20">
                 {contractStep === 1 ? (
                   <>
                     <button 
                       type="button" 
                       onClick={() => { setIsContractModalOpen(false); setContractStep(1); }}
-                      className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer text-center justify-center"
                     >
                       Cancelar
                     </button>
                     <button 
                       type="button" 
                       onClick={() => setContractStep(2)}
-                      className="px-8 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)] flex items-center gap-2"
+                      className="w-full sm:w-auto px-8 py-3 sm:py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)] flex items-center justify-center gap-2"
                     >
                       Próximo
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -2961,7 +3122,7 @@ export default function Presentation() {
                     <button 
                       type="button" 
                       onClick={() => setContractStep(1)}
-                      className="px-4 py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-gray-800 text-gray-400 hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer justify-center text-center order-last sm:order-first"
                     >
                       ← Voltar
                     </button>
@@ -2971,29 +3132,77 @@ export default function Presentation() {
                         const sessionId = presentationSessionId;
                         if (import.meta.env.VITE_ENABLE_NEW_GOVERNANCE_PANEL === 'true' && sessionId) {
                           const pData = {
-                            clientName, clientEmail, clientPhone, docNumber, repName, clientAddress, employeeCount, leaderCount,
+                            clientName, clientEmail, clientPhone, docNumber, repName, clientAddress, leaders,
                             hourlyRate, hoursPerWeek, strategicPercent, annualGrowth, growthFromStrategy,
                             delegatedTasks, returningTasks, reworkHours, 
                             ideDependency: 100 - (slide6AutonomyPercent || 15),
                             cloOperationalFreedom: slide6AutonomyPercent || 15,
-                            totalInvestment, entranceValue, installments, paymentMethod, consultantEmail
+                            totalInvestment, entranceValue, installments, paymentMethod, consultantEmail,
+                            personType, contractForo, salesStatus, leadStatus, notes, contractGenerated
                           };
                           const draft = mapPresentationToGovernanceDraft(pData);
                           PresentationGovernanceDraftRepository.save(sessionId, draft);
                         }
                         setIsClientDashboardOpen(true);
                       }}
-                      className="px-4 py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15"
+                      className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15 justify-center text-center"
                     >
                       Painel do Cliente
                     </button>
                     <button 
                       type="button" 
-                      onClick={handleDownloadContract}
+                      onClick={() => setShowDeliverablesModal(true)}
+                      className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-[#d4af37]/35 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition-all cursor-pointer bg-[#d4af37]/5 hover:bg-[#d4af37]/15 justify-center text-center"
+                    >
+                      Entregáveis
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        const sessionId = presentationSessionId;
+                        if (import.meta.env.VITE_ENABLE_NEW_GOVERNANCE_PANEL === 'true' && sessionId) {
+                          const pData = {
+                            clientName, clientEmail, clientPhone, docNumber, repName, clientAddress, leaders,
+                            hourlyRate, hoursPerWeek, strategicPercent, annualGrowth, growthFromStrategy,
+                            delegatedTasks, returningTasks, reworkHours, 
+                            ideDependency: 100 - (slide6AutonomyPercent || 15),
+                            cloOperationalFreedom: slide6AutonomyPercent || 15,
+                            totalInvestment, entranceValue, installments, paymentMethod, consultantEmail,
+                            personType, contractForo, salesStatus, leadStatus, notes, contractGenerated: true
+                          };
+                          setContractGenerated(true);
+                          const draft = mapPresentationToGovernanceDraft(pData);
+                          PresentationGovernanceDraftRepository.save(sessionId, draft);
+                        }
+                        handleDownloadContract();
+                      }}
                       disabled={isEntranceTooLow}
-                      className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+                      className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-black font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 transition-all cursor-pointer shadow-[0_0_12px_rgba(212,175,55,0.2)] justify-center text-center"
                     >
                       Gerar Contrato (.DOC)
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        const sessionId = presentationSessionId;
+                        if (import.meta.env.VITE_ENABLE_NEW_GOVERNANCE_PANEL === 'true' && sessionId) {
+                          const pData = {
+                            clientName, clientEmail, clientPhone, docNumber, repName, clientAddress, leaders,
+                            hourlyRate, hoursPerWeek, strategicPercent, annualGrowth, growthFromStrategy,
+                            delegatedTasks, returningTasks, reworkHours, 
+                            ideDependency: 100 - (slide6AutonomyPercent || 15),
+                            cloOperationalFreedom: slide6AutonomyPercent || 15,
+                            totalInvestment, entranceValue, installments, paymentMethod, consultantEmail,
+                            personType, contractForo, salesStatus, leadStatus, notes, contractGenerated
+                          };
+                          const draft = mapPresentationToGovernanceDraft(pData);
+                          PresentationGovernanceDraftRepository.save(sessionId, draft);
+                        }
+                        window.location.href = '/admin';
+                      }}
+                      className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-green-600 text-white font-heading font-extrabold text-[10px] rounded-lg uppercase tracking-wider hover:bg-green-500 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(22,163,74,0.3)] sm:ml-2 justify-center text-center"
+                    >
+                      Salvar & Voltar ao Admin
                     </button>
                   </>
                 )}
@@ -3004,17 +3213,74 @@ export default function Presentation() {
         );
       })()}
 
+      {showDeliverablesModal && (() => {
+        const investmentVal = getNumericValue(totalInvestment);
+        const offerConfig = getCommercialOffer(Math.round(investmentVal * 100));
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-4">
+            <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[85vh] flex flex-col">
+              <div className="flex items-center justify-between border-b border-gray-800 p-4">
+                <div className="text-left">
+                  <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-wider block">ESCOPO</span>
+                  <h3 className="text-base font-heading font-extrabold text-white uppercase">
+                    Entregáveis do {offerConfig.programName}
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => setShowDeliverablesModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors cursor-pointer text-xl font-bold p-1"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto space-y-6 text-left custom-scrollbar">
+                {(offerConfig.deliverableGroups || COMMERCIAL_OFFERS[offerConfig.baseProgram].deliverableGroups).map((group, idx) => (
+                  <div key={idx} className="bg-black/40 border border-gray-800 p-4 rounded-xl">
+                    <h4 className="text-[#d4af37] font-bold text-sm mb-1">{group.title}</h4>
+                    <p className="text-gray-400 text-xs mb-3">{group.description}</p>
+                    <ul className="space-y-2">
+                      {group.items.map((item, i) => (
+                        <li key={i} className="text-white text-sm flex items-start gap-2">
+                          <span className="text-[#d4af37] mt-1">●</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                {offerConfig.additionalDeliverables && offerConfig.additionalDeliverables.map((group, idx) => (
+                  <div key={idx} className="bg-[#d4af37]/10 border border-[#d4af37]/30 p-4 rounded-xl">
+                    <h4 className="text-[#ffd700] font-bold text-sm mb-1">{group.title}</h4>
+                    <p className="text-gray-300 text-xs mb-3">{group.description}</p>
+                    <ul className="space-y-2">
+                      {group.items.map((item, i) => (
+                        <li key={i} className="text-white text-sm flex items-start gap-2">
+                          <span className="text-[#ffd700] mt-1">●</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {isClientDashboardOpen && (
         import.meta.env.VITE_ENABLE_NEW_GOVERNANCE_PANEL === 'true' ? (
           <NewGovernancePanelWrapper
             presentationSessionId={presentationSessionId}
             clientName={clientName}
-            onClose={() => setIsClientDashboardOpen(false)}
+            onClose={handleCloseDashboard}
           />
         ) : (
           <ClientGovernanceCenter
             presentationSessionId={presentationSessionId}
             clientName={clientName}
+            leaders={leaders}
+            personType={personType}
             totalInvestment={totalInvestment}
             hourlyRate={hourlyRate}
             hoursPerWeek={hoursPerWeek}
@@ -3022,7 +3288,7 @@ export default function Presentation() {
             calculatedOpportunityCost={calculatedOpportunityCost}
             calculatedLostGrowth={calculatedLostGrowth}
             initialAutonomy={slide6AutonomyPercent || 15}
-            onClose={() => setIsClientDashboardOpen(false)}
+            onClose={handleCloseDashboard}
             onBackToContract={() => {
               setIsClientDashboardOpen(false);
               setIsContractModalOpen(true);

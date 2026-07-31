@@ -1,4 +1,14 @@
+import { getCommercialOffer } from '../commercial/commercialOffer';
+import { buildContractSnapshot } from '../commercial/contractSnapshot';
+
 export function mapPresentationToGovernanceDraft(presentationData) {
+  // Converte o valor de investimento de string (ex: "R$ 45.000,00") para centavos numéricos (ex: 4500000)
+  const rawInvestment = String(presentationData.totalInvestment || '0');
+  const numericString = rawInvestment.replace(/[R$\s.]/g, '').replace(',', '.');
+  const investmentInCents = Math.round(Number(numericString) * 100);
+
+  const offerConfig = getCommercialOffer(investmentInCents);
+
   return {
     clientInfo: {
       name: presentationData.clientName || null,
@@ -7,22 +17,30 @@ export function mapPresentationToGovernanceDraft(presentationData) {
       company: presentationData.companyName || null,
       segment: presentationData.segment || null,
       revenue: presentationData.revenue || null,
-      employeeCount: presentationData.employeeCount || null,
-      leaderCount: presentationData.leaderCount || null,
+      leaders: presentationData.leaders || null,
       docNumber: presentationData.docNumber || null,
       repName: presentationData.repName || null,
       clientAddress: presentationData.clientAddress || null,
     },
     contractData: {
       totalInvestment: presentationData.totalInvestment || null,
+      investmentInCents: investmentInCents,
       entranceValue: presentationData.entranceValue || null,
       installments: presentationData.installments || null,
       paymentMethod: presentationData.paymentMethod || null,
       contractStatus: 'pending',
       paymentStatus: 'pending',
-      program: 'Governo Empresarial (PGE)',
+      personType: presentationData.personType ?? null,
+      contractForo: presentationData.contractForo ?? null,
+      programType: offerConfig.type,
+      programName: offerConfig.programName,
+      durationMonths: offerConfig.durationMonths || offerConfig.totalStrategicMonths,
+      initialCycleMonths: offerConfig.initialCycleMonths || offerConfig.durationMonths,
+      additionalCouncilMonths: offerConfig.additionalCouncilMonths || 0,
+      contractDescription: offerConfig.contractDescription,
       startDate: new Date().toISOString(),
       consultant: presentationData.consultantEmail || null,
+      contractGenerated: presentationData.contractGenerated || false,
     },
     diagnosticData: {
       ideDependency: presentationData.ideDependency != null ? Number(presentationData.ideDependency) : null,
@@ -37,6 +55,10 @@ export function mapPresentationToGovernanceDraft(presentationData) {
       reworkHours: presentationData.reworkHours != null ? Number(presentationData.reworkHours) : null,
       annualGrowth: presentationData.annualGrowth != null ? Number(presentationData.annualGrowth) : null,
       growthFromStrategy: presentationData.growthFromStrategy != null ? Number(presentationData.growthFromStrategy) : null,
-    }
+      salesStatus: presentationData.salesStatus || null,
+      leadStatus: presentationData.leadStatus || null,
+      notes: presentationData.notes || null,
+    },
+    contractSnapshot: presentationData.contractGenerated ? buildContractSnapshot(presentationData) : null
   };
 }

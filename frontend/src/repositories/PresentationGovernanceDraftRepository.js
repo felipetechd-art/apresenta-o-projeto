@@ -36,11 +36,11 @@ export class PresentationGovernanceDraftRepository {
     let index = indexStr ? JSON.parse(indexStr) : {};
     index[sessionId] = {
       presentationSessionId: sessionId,
-      name: draft.clientInfo?.name || 'Cliente',
-      company: draft.clientInfo?.company || '',
+      name: draft.clientInfo?.name || index[sessionId]?.name || 'Cliente',
+      company: draft.clientInfo?.company || index[sessionId]?.company || '',
       updatedAt: new Date().toISOString(),
-      status: 'draft',
-      companyId: null
+      status: draft.status || index[sessionId]?.status || 'draft',
+      companyId: draft.companyId || index[sessionId]?.companyId || null
     };
     localStorage.setItem(this.indexKey, JSON.stringify(index));
   }
