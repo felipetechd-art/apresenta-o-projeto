@@ -13,6 +13,8 @@ import ForgotPasswordView from './components/admin/ForgotPasswordView.jsx'
 import ClientManagementView from './components/admin/ClientManagementView.jsx'
 import ProtectedRoute from './components/admin/ProtectedRoute.jsx'
 import ClientMagicLoginView from './components/ClientMagicLoginView.jsx'
+import { LucroOcultoDiagnostic } from './components/lucroOculto/LucroOcultoDiagnostic.jsx'
+import { LucroOcultoTeamSurvey } from './components/lucroOculto/LucroOcultoTeamSurvey.jsx'
 
 // Helper for legacy axion mode
 const RootRoute = () => {
@@ -30,6 +32,12 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           {/* Public / Presentation Route */}
           <Route path="/" element={<RootRoute />} />
+
+          {/* Mapa do Lucro Oculto */}
+          <Route path="/mapa-lucro-oculto" element={<LucroOcultoDiagnostic />} />
+          <Route path="/lucro-oculto" element={<LucroOcultoDiagnostic />} />
+          <Route path="/equipe-atividades" element={<LucroOcultoTeamSurvey />} />
+          <Route path="/mapa-lucro-oculto/equipe" element={<LucroOcultoTeamSurvey />} />
           
           {/* Client Magic Link Access */}
           <Route path="/painel" element={<ClientMagicLoginView />} />
