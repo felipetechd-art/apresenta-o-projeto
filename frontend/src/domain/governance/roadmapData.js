@@ -26,9 +26,9 @@ export function getDefaultRoadmapTasks() {
     });
   };
 
-  // MÊS 1 — DIAGNÓSTICO (FASE 1)
-  t({ id: "seed-m1-t1", month: 1, phase: 1, stage: "Diagnosticar", pillar: "governance", title: "Realizar diagnóstico IDE." });
-  t({ id: "seed-m1-t2", month: 1, phase: 1, stage: "Diagnosticar", pillar: "governance", title: "Realizar diagnóstico CLO." });
+  // MÊS 1 — MAPA 360 (FASE 1)
+  t({ id: "seed-m1-t1", month: 1, phase: 1, stage: "Diagnosticar", pillar: "governance", title: "Realizar mapa 360 IDE." });
+  t({ id: "seed-m1-t2", month: 1, phase: 1, stage: "Diagnosticar", pillar: "governance", title: "Realizar mapa 360 CLO." });
   t({ id: "seed-m1-t3", month: 1, phase: 1, stage: "Diagnosticar", pillar: "people", title: "Mapear a agenda do empresário." });
   t({ id: "seed-m1-t4", month: 1, phase: 1, stage: "Diagnosticar", pillar: "delegation", title: "Criar registro de decisões que chegam ao empresário." });
   t({ id: "seed-m1-t5", month: 1, phase: 1, stage: "Organizar", pillar: "governance", title: "Definir a linha de base dos indicadores." });
@@ -120,8 +120,8 @@ export function getDefaultRoadmapTasks() {
   t({ id: "seed-m11-t7", month: 11, phase: 3, stage: "Governar", pillar: "processes", title: "Corrigir falhas identificadas.", responsible: "Liderança" });
 
   // MÊS 12 — CONSOLIDAÇÃO (FASE 3)
-  t({ id: "seed-m12-t1", month: 12, phase: 3, stage: "Diagnosticar", pillar: "governance", title: "Refazer diagnóstico IDE." });
-  t({ id: "seed-m12-t2", month: 12, phase: 3, stage: "Diagnosticar", pillar: "governance", title: "Refazer diagnóstico CLO." });
+  t({ id: "seed-m12-t1", month: 12, phase: 3, stage: "Diagnosticar", pillar: "governance", title: "Refazer mapa 360 IDE." });
+  t({ id: "seed-m12-t2", month: 12, phase: 3, stage: "Diagnosticar", pillar: "governance", title: "Refazer mapa 360 CLO." });
   t({ id: "seed-m12-t3", month: 12, phase: 3, stage: "Governar", pillar: "governance", title: "Calcular IGE final." });
   t({ id: "seed-m12-t4", month: 12, phase: 3, stage: "Governar", pillar: "governance", title: "Comparar linha de base com resultado final." });
   t({ id: "seed-m12-t5", month: 12, phase: 3, stage: "Governar", pillar: "governance", title: "Calcular horas liberadas." });

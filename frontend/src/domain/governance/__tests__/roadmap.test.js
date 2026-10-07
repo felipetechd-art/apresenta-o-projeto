@@ -152,7 +152,7 @@ describe('RoadmapRepository', () => {
 
   it('roadmap legado com IDs dinâmicos é migrado para IDs estáveis sem duplicar tarefas', () => {
     // Old dynamic ID from previous version
-    const oldTask = { id: 'task-1', title: 'Realizar diagnóstico IDE.', month: 1, type: 'mandatory', phaseId: 'fundacao' };
+    const oldTask = { id: 'task-1', title: 'Realizar mapa 360 IDE.', month: 1, type: 'mandatory', phaseId: 'fundacao' };
     mockStorage = [oldTask];
     vi.mocked(StorageHelper.getItem).mockImplementation(() => mockStorage);
     
@@ -164,14 +164,14 @@ describe('RoadmapRepository', () => {
     // A tarefa task-1 deve ter sido migrada para seed-m1-t1
     expect(tasks.find(t => t.id === 'task-1')).toBeUndefined();
     expect(tasks.find(t => t.id === 'seed-m1-t1')).toBeDefined();
-    expect(tasks.find(t => t.id === 'seed-m1-t1').title).toBe('Realizar diagnóstico IDE.');
+    expect(tasks.find(t => t.id === 'seed-m1-t1').title).toBe('Realizar mapa 360 IDE.');
   });
 
   it('normalização de título não confunde acentos, espaços ou caixa na reconciliação', () => {
     // Old dynamic ID from previous version with different casing and accents
     const oldTask = { 
       id: 'task-legacy', 
-      title: '  reAlIZaR diagNÓstico idé.   ', // Seed is "Realizar diagnóstico IDE."
+      title: '  reAlIZaR mapA 360 idé.   ', // Seed is "Realizar mapa 360 IDE."
       month: 1, 
       type: 'mandatory' 
     };
@@ -190,7 +190,7 @@ describe('RoadmapRepository', () => {
   it('duas tarefas com títulos semelhantes no mesmo mês não são migradas incorretamente', () => {
     const similarTask = { 
       id: 'task-custom', 
-      title: 'Realizar diagnóstico CLO e IDE', // Similar but not exact
+      title: 'Realizar mapa 360 CLO e IDE', // Similar but not exact
       month: 1, 
       type: 'custom' // Different type
     };
@@ -207,7 +207,7 @@ describe('RoadmapRepository', () => {
   it('uma tarefa legada já validada mantém status e auditoria após receber o ID estável', () => {
     const oldTask = { 
       id: 'task-legacy-validated', 
-      title: 'Realizar diagnóstico IDE.',
+      title: 'Realizar mapa 360 IDE.',
       month: 1, 
       type: 'mandatory',
       status: 'validated',
