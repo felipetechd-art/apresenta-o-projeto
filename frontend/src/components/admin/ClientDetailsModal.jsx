@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { X, DollarSign, Calendar, TrendingUp, AlertCircle, FileText, User, Mail, Phone, ExternalLink, Save, Trash2, CheckCircle, Copy } from 'lucide-react';
 import { PresentationGovernanceDraftRepository } from '../../repositories/PresentationGovernanceDraftRepository';
 
-export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete, onActivate }) {
-  if (!client) return null;
-
-  const data = client.fullData;
+export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete, onActivate, onActivatePPE }) {
+  const data = client?.fullData;
   const cData = data?.contractData || {};
   const dData = data?.diagnosticData || {};
   const info = data?.clientInfo || {};
 
   const total = cData.investmentInCents ? cData.investmentInCents / 100 : 0;
-  const entrance = parseFloat(String(cData.entranceValue || '0').replace(/[^\d.,-]/g, '').replace(',', '.'));
+  const rawEntrance = String(cData.entranceValue || '0').replace(/[^\d.,-]/g, '');
+  const entrance = rawEntrance.includes(',') 
+    ? parseFloat(rawEntrance.replace(/\./g, '').replace(',', '.')) 
+    : parseFloat(rawEntrance) || 0;
   const remaining = Math.max(0, total - entrance);
   const installments = parseInt(cData.installments) || 1;
   const installmentValue = installments > 0 ? (remaining / installments) : 0;
@@ -21,6 +22,8 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
   const [notes, setNotes] = useState(dData.notes || '');
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  if (!client) return null;
 
   const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -39,10 +42,10 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-3xl bg-neutral-900 border border-neutral-700/50 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
+      <div className="w-full max-w-3xl bg-neutral-900 border border-neutral-700/50 rounded-2xl shadow-2xl flex flex-col max-h-[94vh] sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-neutral-800 flex justify-between items-start shrink-0 bg-neutral-900">
+        <div className="p-4 sm:p-6 border-b border-neutral-800 flex justify-between items-start shrink-0 bg-neutral-900">
           <div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
@@ -60,7 +63,7 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 sm:space-y-8 custom-scrollbar">
           
           {/* Dados Pessoais e Pendências */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -80,6 +83,36 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-neutral-400 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> Documento</span>
                   <span className="text-white font-medium">{info.docNumber || 'Não informado'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-500" /> Detalhes da Empresa
+              </h3>
+              <div className="bg-neutral-800/50 p-4 rounded-xl border border-neutral-700/50 space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-neutral-400 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Colaboradores</span>
+                  <span className="text-white font-medium">
+                    {info.employeeCount || 
+                      (info.leaders && Array.isArray(info.leaders) 
+                        ? info.leaders.reduce((sum, l) => sum + (parseInt(l.collaborators) || 0), 0) 
+                        : 'Não informado')}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-neutral-400 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Líderes Diretos</span>
+                  <span className="text-white font-medium">
+                    {info.leaderCount || 
+                      (info.leaders && Array.isArray(info.leaders) 
+                        ? info.leaders.length 
+                        : 'Não informado')}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-neutral-400 flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5" /> Produto / Plano</span>
+                  <span className="text-white font-medium truncate ml-4" title="PGE Mentoria">PGE Mentoria</span>
                 </div>
               </div>
             </div>
@@ -160,16 +193,16 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
                 <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent"></div>
                 <p className="text-[11px] text-neutral-400 uppercase tracking-wider font-bold mb-1 relative z-10">Como Entrou (Dependência IDE)</p>
                 <div className="flex items-end gap-2 relative z-10">
-                  <p className="text-3xl font-black text-red-400">{dData.ideDependency || 100}%</p>
-                  <span className="text-[10px] text-red-500/70 mb-1 font-bold tracking-wider">MUITO ALTA</span>
+                  <p className="text-3xl font-black text-red-400">{client.status === 'active' ? '0.00%' : `${Number(dData.ideDependency || 100).toFixed(2)}%`}</p>
+                  <span className="text-[10px] text-red-500/70 mb-1 font-bold tracking-wider">{client.status === 'active' ? 'AGUARDANDO' : 'MUITO ALTA'}</span>
                 </div>
               </div>
               <div className="bg-neutral-800/50 p-4 rounded-xl border border-neutral-700/50 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent"></div>
                 <p className="text-[11px] text-neutral-400 uppercase tracking-wider font-bold mb-1 relative z-10">Meta de Governança</p>
                 <div className="flex items-end gap-2 relative z-10">
-                  <p className="text-3xl font-black text-emerald-400">15%</p>
-                  <span className="text-[10px] text-emerald-500/70 mb-1 font-bold tracking-wider">ALTA LIBERDADE</span>
+                  <p className="text-3xl font-black text-emerald-400">{client.status === 'active' ? '0%' : '15%'}</p>
+                  <span className="text-[10px] text-emerald-500/70 mb-1 font-bold tracking-wider">{client.status === 'active' ? 'AGUARDANDO' : 'ALTA LIBERDADE'}</span>
                 </div>
               </div>
             </div>
@@ -209,18 +242,31 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
               <Save className="w-3.5 h-3.5" />
               {isSaving ? 'Salvando...' : 'Salvar Alterações'}
             </button>
-            {!client.companyId && (
-              <button 
-                onClick={() => {
-                  const email = window.prompt('Digite o e-mail do cliente (Gmail/G Suite) que terá acesso ao painel:');
-                  if (email && email.trim() !== '') {
-                    onActivate?.(email.trim());
-                  }
-                }}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors uppercase tracking-wider shadow-lg cursor-pointer"
-              >
-                Ativar Painel <CheckCircle className="w-3.5 h-3.5" />
-              </button>
+            {client.status !== 'active' && client.status !== 'active_ppe' && (
+              <>
+                <button 
+                  onClick={() => {
+                    const email = window.prompt('Digite o e-mail do cliente (Gmail/G Suite) que terá acesso ao painel:');
+                    if (email && email.trim() !== '') {
+                      onActivate?.(email.trim());
+                    }
+                  }}
+                  className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors uppercase tracking-wider shadow-lg cursor-pointer"
+                >
+                  Ativar Painel <CheckCircle className="w-3.5 h-3.5" />
+                </button>
+                <button 
+                  onClick={() => {
+                    const email = window.prompt('Digite o e-mail do cliente (Gmail/G Suite) que terá acesso ao painel PPE:');
+                    if (email && email.trim() !== '') {
+                      onActivatePPE?.(email.trim());
+                    }
+                  }}
+                  className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors uppercase tracking-wider shadow-lg cursor-pointer"
+                >
+                  Ativar PPE <CheckCircle className="w-3.5 h-3.5" />
+                </button>
+              </>
             )}
             
             {client.companyId && (
@@ -240,13 +286,22 @@ export default function ClientDetailsModal({ client, onClose, onUpdate, onDelete
             )}
 
             <a 
+              href={`/?session=${client.presentationSessionId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors uppercase tracking-wider shadow-lg cursor-pointer"
+            >
+              Painel Comercial <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <a 
               href={`/?session=${client.presentationSessionId}&view=dashboard`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-amber-500 hover:bg-amber-400 text-neutral-900 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors uppercase tracking-wider shadow-lg cursor-pointer"
-          >
-            Acessar Painel <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-amber-500 hover:bg-amber-400 text-neutral-900 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors uppercase tracking-wider shadow-lg cursor-pointer"
+            >
+              Acessar Painel <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
       </div>

@@ -58,6 +58,31 @@ export function mapPresentationToGovernanceDraft(presentationData) {
       salesStatus: presentationData.salesStatus || null,
       leadStatus: presentationData.leadStatus || null,
       notes: presentationData.notes || null,
+      // Dados qualitativos do Slide 1 (Kickoff/Visão do Dono)
+      modelo_negocio: presentationData.modelo_negocio || null,
+      faturamento: presentationData.faturamento || null,
+      atuacao: presentationData.atuacao || null,
+      publico_alvo: presentationData.publico_alvo || null,
+      principal_obstaculo: presentationData.principal_obstaculo || null,
+      visao_futuro: presentationData.visao_futuro || null,
+      
+      // Respostas adicionais do Mapa 360 coletadas na apresentação
+      independencia_respostas: presentationData.independencia_respostas || null,
+      clareza_respostas: presentationData.clareza_respostas || null,
+      lideranca_respostas: presentationData.lideranca_respostas || null,
+      operacao_respostas: presentationData.operacao_respostas || null,
+      acesso_indicadores: presentationData.acesso_indicadores || null,
+      confianca_numeros: presentationData.confianca_numeros || null,
+      areas_atuacao: presentationData.areas_atuacao || null,
+      mapa_decisoes: presentationData.mapa_decisoes || null,
+      maior_ralo: presentationData.maior_ralo || null,
+      nota_preparacao: presentationData.nota_preparacao != null ? presentationData.nota_preparacao : null,
+      precisa_ajuda: presentationData.precisa_ajuda || null,
+      
+      // Devolutiva / Pitch
+      devolutiva_pontos_fortes: presentationData.devolutiva_pontos_fortes || null,
+      devolutiva_contradicao: presentationData.devolutiva_contradicao || null,
+      devolutiva_frase: presentationData.devolutiva_frase || null,
     },
     contractSnapshot: presentationData.contractGenerated ? buildContractSnapshot(presentationData) : null
   };

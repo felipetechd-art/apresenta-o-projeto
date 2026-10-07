@@ -20,7 +20,7 @@ export const COMMERCIAL_OFFERS = {
         title: 'Mês 1 (R$ 20.000)',
         description: 'Sprint de implementação com condução semanal (4 Encontros)',
         items: [
-          'Diagnóstico e priorização - R$ 5.000',
+          'Mapa 360 e priorização - R$ 5.000',
           'Construção do plano e Implantação da estrutura inicial - R$ 5.000',
           'Organização do roadmap e Definição de responsáveis - R$ 5.000',
           'Preparação dos indicadores e Configuração do Painel do Cliente - R$ 5.000'

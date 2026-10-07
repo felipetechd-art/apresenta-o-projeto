@@ -11,7 +11,8 @@ export function GovernanceHeader({
   isFullscreen,
   onToggleFullscreen,
   onActivate,
-  isActivating
+  isActivating,
+  scopeId // We need scopeId to inject data
 }) {
   const [selectedLeader, setSelectedLeader] = React.useState('all');
   const isPreview = mode === 'preview';

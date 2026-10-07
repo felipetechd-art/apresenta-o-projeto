@@ -1,11 +1,12 @@
 import React from 'react';
+import Chart from 'react-apexcharts';
 import { MaturityCard } from '../ui/MaturityCard';
 import { MetricCard } from '../ui/MetricCard';
 import { PillarProgressCard } from '../ui/PillarProgressCard';
 import { BrainCircuit, Activity, LineChart, Target, AlertTriangle } from 'lucide-react';
 
 export function DashboardTab({ dashboardData }) {
-  const { ige, maturityLevel, ide, clo, autonomy, decisionsToOwner, roadmapProgress, pillars } = dashboardData;
+  const { ige, maturityLevel, ide, clo, autonomy, decisionsToOwner, roadmapProgress, pillars, snapshots } = dashboardData;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -67,10 +68,70 @@ export function DashboardTab({ dashboardData }) {
         <div className="lg:col-span-2 glass-card rounded-xl p-6">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6 flex items-center gap-2">
             <LineChart className="w-4 h-4 text-[var(--color-primary-yellow)]" />
-            Evolução (12 Meses)
+            Evolução (12 Meses) {snapshots?.length === 0 && <span className="text-[10px] text-gray-500 ml-2">(Dados Simulados)</span>}
           </h2>
-          <div className="w-full h-[300px] flex items-center justify-center bg-black/20 rounded border border-gray-800 border-dashed text-gray-500">
-            [Gráfico ApexCharts em Desenvolvimento]
+          <div className="w-full h-[300px] flex items-center justify-center bg-black/20 rounded border border-gray-800 text-gray-500">
+            <Chart
+              options={{
+                chart: {
+                  type: 'line',
+                  background: 'transparent',
+                  toolbar: { show: false },
+                  zoom: { enabled: false },
+                  fontFamily: 'Inter, sans-serif'
+                },
+                theme: { mode: 'dark' },
+                colors: ['#d4af37', '#3b82f6', '#10b981'],
+                stroke: { curve: 'smooth', width: 3 },
+                xaxis: {
+                  categories: snapshots && snapshots.length > 0 ? snapshots.map(s => `Mês ${s.month}`) : ['Atual'],
+                  labels: { style: { colors: '#9ca3af' } },
+                  axisBorder: { show: false },
+                  axisTicks: { show: false }
+                },
+                yaxis: {
+                  labels: {
+                    style: { colors: '#9ca3af' },
+                    formatter: (val) => `${val}%`
+                  },
+                  min: 0,
+                  max: 100
+                },
+                grid: {
+                  borderColor: '#1f2937',
+                  strokeDashArray: 4,
+                  xaxis: { lines: { show: true } },
+                  yaxis: { lines: { show: true } }
+                },
+                legend: {
+                  position: 'top',
+                  horizontalAlign: 'right',
+                  labels: { colors: '#9ca3af' },
+                  markers: { radius: 12 }
+                },
+                tooltip: {
+                  theme: 'dark',
+                  y: { formatter: (val) => `${val}%` }
+                }
+              }}
+              series={[
+                {
+                  name: 'IDE',
+                  data: snapshots && snapshots.length > 0 ? snapshots.map(s => s.metrics.provisionalIde || 0) : [ide || 0]
+                },
+                {
+                  name: 'CLO',
+                  data: snapshots && snapshots.length > 0 ? snapshots.map(s => s.metrics.clo || 0) : [clo || 0]
+                },
+                {
+                  name: 'Autonomia',
+                  data: snapshots && snapshots.length > 0 ? snapshots.map(s => s.metrics.autonomy || 0) : [autonomy || 0]
+                }
+              ]}
+              type="line"
+              height="100%"
+              width="100%"
+            />
           </div>
         </div>
 

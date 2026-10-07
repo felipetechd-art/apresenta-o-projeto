@@ -13,7 +13,10 @@ export class RoadmapRepository {
    * @returns {import("../domain/governance/types.js").RoadmapTask[]}
    */
   static getTasks(companyId = null) {
-    const storedTasks = StorageHelper.getItem(KEY, [], companyId);
+    let storedTasks = StorageHelper.getItem(KEY, [], companyId);
+    if (!Array.isArray(storedTasks)) {
+      storedTasks = [];
+    }
     const seedTasks = getDefaultRoadmapTasks();
     
     // Se não há nada no Storage (primeiro acesso)

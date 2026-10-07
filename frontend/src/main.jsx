@@ -13,6 +13,14 @@ import ForgotPasswordView from './components/admin/ForgotPasswordView.jsx'
 import ClientManagementView from './components/admin/ClientManagementView.jsx'
 import ProtectedRoute from './components/admin/ProtectedRoute.jsx'
 import ClientMagicLoginView from './components/ClientMagicLoginView.jsx'
+import DiagnosticConfigView from './components/admin/DiagnosticConfigView.jsx'
+import UserManagementView from './components/admin/UserManagementView.jsx'
+import DiagnosticFlow from './components/diagnostic/DiagnosticFlow.jsx'
+import DiagnosticResults from './components/diagnostic/DiagnosticResults.jsx'
+
+import ConversationPresentation from './components/ConversationPresentation.jsx'
+import PPEPresentation from './components/PPEPresentation.jsx'
+import ResponderView from './components/diagnostic/ResponderView.jsx'
 import { LucroOcultoDiagnostic } from './components/lucroOculto/LucroOcultoDiagnostic.jsx'
 import { LucroOcultoTeamSurvey } from './components/lucroOculto/LucroOcultoTeamSurvey.jsx'
 
@@ -32,13 +40,23 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           {/* Public / Presentation Route */}
           <Route path="/" element={<RootRoute />} />
-
+          
           {/* Mapa do Lucro Oculto */}
           <Route path="/mapa-lucro-oculto" element={<LucroOcultoDiagnostic />} />
           <Route path="/lucro-oculto" element={<LucroOcultoDiagnostic />} />
           <Route path="/equipe-atividades" element={<LucroOcultoTeamSurvey />} />
           <Route path="/mapa-lucro-oculto/equipe" element={<LucroOcultoTeamSurvey />} />
           
+          {/* Conversation Tool Route */}
+          <Route path="/conversa" element={<ConversationPresentation />} />
+          <Route path="/ppe" element={<PPEPresentation />} />
+
+          {/* Diagnostic Core Flow */}
+          <Route path="/diagnostico/:id" element={<DiagnosticFlow />} />
+          
+          {/* External Respondent Route */}
+          <Route path="/responder/:id" element={<ResponderView />} />
+
           {/* Client Magic Link Access */}
           <Route path="/painel" element={<ClientMagicLoginView />} />
           
@@ -52,6 +70,30 @@ createRoot(document.getElementById('root')).render(
             element={
               <ProtectedRoute>
                 <ClientManagementView />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/diagnostico/config" 
+            element={
+              <ProtectedRoute>
+                <DiagnosticConfigView />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/usuarios" 
+            element={
+              <ProtectedRoute>
+                <UserManagementView />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/diagnostico/:id/resultados" 
+            element={
+              <ProtectedRoute>
+                <DiagnosticResults />
               </ProtectedRoute>
             } 
           />

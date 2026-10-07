@@ -18,7 +18,7 @@ export function MonthlyClosingTab({ dashboardData, onNavigate }) {
 
   // Form State (Dados Brutos Ojetivos)
   const [formData, setFormData] = useState({
-    totalHours: 44,
+    totalHours: 0,
     operationalHours: 0,
     decisionsToOwner: 0,
     decisionsByLeaders: 0,
@@ -42,7 +42,7 @@ export function MonthlyClosingTab({ dashboardData, onNavigate }) {
       setStatus(existingSnapshot.status);
     } else {
       setFormData({
-        totalHours: 44,
+        totalHours: 0,
         operationalHours: 0,
         decisionsToOwner: 0,
         decisionsByLeaders: 0,

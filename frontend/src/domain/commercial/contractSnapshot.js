@@ -199,7 +199,7 @@ ${snapshot.deliverablesSnapshot}
 <p>Em caso de atraso, poderão incidir multa de 2% sobre a parcela vencida e juros de 1% ao mês, calculados proporcionalmente. A CONTRATADA poderá suspender os serviços enquanto houver valor vencido, retomando-os após a regularização conforme disponibilidade operacional.</p>
 
 <p><strong>6. SERVIÇOS ENTREGUES, APROVAÇÕES E RESULTADOS</strong></p>
-<p>Reuniões realizadas, diagnósticos, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
+<p>Reuniões realizadas, mapas 360, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
 <p>A prestação constitui obrigação de meio. A CONTRATADA não garante faturamento, vendas, audiência, aprovação de plataformas, desempenho comercial ou qualquer resultado que dependa de decisões da CONTRATANTE, mercado, mídia, tecnologia ou terceiros.</p>
 
 <p><strong>7. CANCELAMENTO, QUEBRA CONTRATUAL E MULTA</strong></p>

@@ -15,7 +15,10 @@ export class MonthlyClosingRepository {
    * @returns {import("../domain/governance/types.js").MonthlySnapshot[]}
    */
   static getSnapshots(companyId = null) {
-    const all = StorageHelper.getItem(KEY, [], companyId);
+    let all = StorageHelper.getItem(KEY, [], companyId);
+    if (!Array.isArray(all)) {
+      all = [];
+    }
     // Para cada mês, retorna a revisão mais alta.
     const latestByMonth = new Map();
     for (const snap of all) {

@@ -44,12 +44,32 @@ export function downloadContract({
   contractForo = 'Barueri/SP',
   consultantEmail = '',
   contractDate = null,
+  isDiagnostic = false,
 }) {
   const today = contractDate ? new Date(contractDate) : new Date();
   const dateStr = today.toLocaleDateString('pt-BR');
 
   const investmentVal = getNumericValue(totalInvestment);
-  const offerConfig = getCommercialOffer(Math.round(investmentVal * 100));
+  let offerConfig = getCommercialOffer(Math.round(investmentVal * 100));
+  
+  if (isDiagnostic) {
+    offerConfig = {
+      contractDescription: 'Mapa 360 de Governo Empresarial',
+      deliverableGroups: [
+        {
+          title: 'Entregáveis do Mapa 360',
+          description: 'Mapeamento e Construção do Mapa do Governo Empresarial (4 Semanas)',
+          items: [
+            'Raio-X de gargalos e desperdícios',
+            'Mapa de Riscos de Dependência',
+            'Avaliação técnica do 1º Escalão',
+            'Plano de Ação para os próximos 6 meses'
+          ]
+        }
+      ]
+    };
+  }
+
   const entranceVal = getNumericValue(entranceValue);
   const balanceVal = Math.max(0, investmentVal - entranceVal);
   const instCount = parseInt(installments) || 1;
@@ -156,7 +176,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
 <p>Em caso de atraso, poderão incidir multa de 2% sobre a parcela vencida e juros de 1% ao mês, calculados proporcionalmente. A CONTRATADA poderá suspender os serviços enquanto houver valor vencido, retomando-os após a regularização conforme disponibilidade operacional.</p>
 
 <p><strong>6. SERVIÇOS ENTREGUES, APROVAÇÕES E RESULTADOS</strong></p>
-<p>Reuniões realizadas, diagnósticos, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
+<p>Reuniões realizadas, mapas 360, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
 <p>A prestação constitui obrigação de meio. A CONTRATADA não garante faturamento, vendas, audiência, aprovação de plataformas, desempenho comercial ou qualquer resultado que dependa de decisões da CONTRATANTE, mercado, mídia, tecnologia ou terceiros.</p>
 
 <p><strong>7. CANCELAMENTO, QUEBRA CONTRATUAL E MULTA</strong></p>

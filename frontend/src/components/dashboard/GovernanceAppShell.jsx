@@ -110,6 +110,7 @@ export function GovernanceAppShell({ dashboardData, onClose }) {
           onToggleFullscreen={handleToggleFullscreen}
           onActivate={handleActivatePanel}
           isActivating={isActivating}
+          scopeId={dashboardData.scopeId}
         />
 
         {/* Navigation Tabs */}

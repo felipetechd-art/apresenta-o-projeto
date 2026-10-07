@@ -570,7 +570,7 @@ const MarketingTab = ({ data, formatValue }) => {
                   <th className="py-2 text-right">Pessoas Abordadas</th>
                   <th className="py-2 text-right">Respostas</th>
                   <th className="py-2 text-right">Conversas</th>
-                  <th className="py-2 text-right">Diagnósticos</th>
+                  <th className="py-2 text-right">Mapas 360</th>
                   <th className="py-2 text-right">Reuniões</th>
                   <th className="py-2 text-right px-1">Vendas</th>
                 </tr>

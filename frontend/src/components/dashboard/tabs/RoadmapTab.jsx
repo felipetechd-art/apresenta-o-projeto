@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Target, Filter, ChevronDown, CheckCircle2, Clock, AlertCircle, LayoutGrid, List, Columns } from 'lucide-react';
+import { Target, Filter, ChevronDown, CheckCircle2, Clock, AlertCircle, LayoutGrid, List, Columns, SlidersHorizontal, X } from 'lucide-react';
 import { TaskDrawer } from './TaskDrawer';
 import { RoadmapList } from './RoadmapList';
 import { RoadmapKanban } from './RoadmapKanban';
@@ -18,6 +18,7 @@ export function RoadmapTab({ dashboardData }) {
   const [selectedTask, setSelectedTask] = useState(null);
   const [viewMode, setViewMode] = useState('kanban');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Nomes Oficiais das Fases
   const phaseNames = {
@@ -52,6 +53,23 @@ export function RoadmapTab({ dashboardData }) {
   const phaseTotal = phaseTasks.length;
   const phaseProgress = phaseTotal === 0 ? 0 : Math.round((phaseCompleted / phaseTotal) * 100);
 
+  // Verificação de filtros ativos
+  const hasActiveFilters = statusFilter !== 'all' || 
+    pillarFilter !== 'all' || 
+    stageFilter !== 'all' || 
+    typeFilter !== 'all' || 
+    monthFilter !== 'all' || 
+    responsibleFilter !== 'all';
+
+  const activeFiltersCount = [
+    statusFilter !== 'all',
+    pillarFilter !== 'all',
+    stageFilter !== 'all',
+    typeFilter !== 'all',
+    monthFilter !== 'all',
+    responsibleFilter !== 'all'
+  ].filter(Boolean).length;
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'validated': return 'text-green-400 bg-green-400/10 border-green-400/20';
@@ -75,9 +93,9 @@ export function RoadmapTab({ dashboardData }) {
     <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
       
       {/* Coluna Esquerda: Filtros e Estrutura */}
-      <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-gray-800 bg-black/20 p-4 flex flex-col gap-6 overflow-y-auto scrollbar-hide shrink-0 z-10 max-h-[35vh] md:max-h-full">
+      <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-gray-800 bg-black/20 p-3 md:p-4 flex flex-col gap-4 md:gap-6 overflow-y-auto scrollbar-hide shrink-0 z-10 md:max-h-full">
         <div>
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Progresso Total</h3>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 md:mb-3">Progresso Total</h3>
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
               <div 
@@ -92,23 +110,23 @@ export function RoadmapTab({ dashboardData }) {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Jornada</h3>
-          <div className="flex flex-col gap-2">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 md:mb-3">Jornada</h3>
+          <div className="grid grid-cols-3 gap-2 md:flex md:flex-col md:gap-2">
             {[1, 2, 3].map(phase => (
               <button 
                 key={phase}
                 onClick={() => setSelectedPhase(phase)}
-                className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                className={`p-2 sm:p-3 rounded-lg border text-left transition-all cursor-pointer ${
                   selectedPhase === phase 
                     ? 'border-[var(--color-primary-yellow)] bg-[var(--color-primary-yellow)]/10 text-white' 
                     : 'border-gray-800 hover:border-gray-600 text-gray-400 hover:text-gray-200'
                 }`}
               >
-                <div className="font-bold text-sm uppercase">FASE {phase}</div>
-                <div className="text-[10px] font-bold mt-1 text-[var(--color-primary-yellow)]">
+                <div className="font-bold text-xs sm:text-sm uppercase">FASE {phase}</div>
+                <div className="text-[9px] sm:text-[10px] font-bold mt-0.5 sm:mt-1 text-[var(--color-primary-yellow)] line-clamp-1">
                   {phaseNames[phase]}
                 </div>
-                <div className="text-[10px] opacity-70">
+                <div className="text-[9px] sm:text-[10px] opacity-70">
                   {phaseMonths[phase]}
                 </div>
               </button>
@@ -116,7 +134,8 @@ export function RoadmapTab({ dashboardData }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        {/* Filtros no Desktop (ocultos no mobile para dar espaço à lista) */}
+        <div className="hidden md:flex md:flex-col gap-3">
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 border-t border-gray-800 pt-4">
             <Filter className="w-3 h-3" /> Filtros
           </h3>
@@ -199,10 +218,28 @@ export function RoadmapTab({ dashboardData }) {
       {/* Coluna Direita: Lista de Tarefas */}
       <div className="flex-1 p-4 md:p-6 overflow-y-auto">
         <div className="flex flex-col xl:flex-row xl:justify-between xl:items-end mb-6 border-b border-gray-800 pb-4 gap-4">
-          <div>
-            <h2 className="text-xl md:text-2xl font-heading font-bold text-white">Tarefas da Fase {selectedPhase}</h2>
-            <p className="text-xs md:text-sm text-gray-400 mt-1">Concluídas: {phaseCompleted} de {phaseTotal} ({phaseProgress}%)</p>
+          <div className="flex items-center justify-between w-full xl:w-auto">
+            <div>
+              <h2 className="text-xl md:text-2xl font-heading font-bold text-white">Tarefas da Fase {selectedPhase}</h2>
+              <p className="text-xs md:text-sm text-gray-400 mt-1">Concluídas: {phaseCompleted} de {phaseTotal} ({phaseProgress}%)</p>
+            </div>
+
+            {/* Botão Redondo de Filtros no Mobile */}
+            <button
+              type="button"
+              onClick={() => setIsMobileFilterOpen(true)}
+              className="md:hidden relative w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 active:scale-95 hover:border-[var(--color-primary-yellow)] text-neutral-300 hover:text-[var(--color-primary-yellow)] flex items-center justify-center shadow-md transition-all cursor-pointer shrink-0"
+              title="Filtrar Tarefas"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {hasActiveFilters && (
+                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[var(--color-primary-yellow)] rounded-full border-2 border-neutral-900 flex items-center justify-center text-[8px] font-black text-black">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
           </div>
+          
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
             <div className="flex bg-black/40 rounded-lg border border-gray-800 overflow-hidden shrink-0">
               <button 
@@ -300,6 +337,149 @@ export function RoadmapTab({ dashboardData }) {
             setIsCreateModalOpen(false);
           }}
         />
+      )}
+
+      {/* Modal / Bottom Sheet de Filtros Mobile */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
+          <div className="w-full sm:max-w-md bg-neutral-900 border border-neutral-800 rounded-t-2xl sm:rounded-2xl p-5 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+              <div className="flex items-center gap-2 text-white font-bold text-base">
+                <SlidersHorizontal className="w-4 h-4 text-[var(--color-primary-yellow)]" />
+                <span>Filtros do Roadmap</span>
+              </div>
+              <button 
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="w-8 h-8 rounded-full bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Status</label>
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
+              >
+                <option value="all">Status (Todos)</option>
+                <option value="not_started">Não iniciado</option>
+                <option value="in_execution">Em execução</option>
+                <option value="awaiting_validation">Em validação</option>
+                <option value="validated">Concluído</option>
+                <option value="blocked">Bloqueado</option>
+              </select>
+            </div>
+
+            {/* Pilar */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Pilar</label>
+              <select 
+                value={pillarFilter}
+                onChange={(e) => setPillarFilter(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
+              >
+                <option value="all">Pilar (Todos)</option>
+                <option value="people">Pessoas e Lideranças</option>
+                <option value="processes">Processos e Rotinas</option>
+                <option value="delegation">Delegação e Alçadas</option>
+                <option value="automation">Automação e Tecnologia</option>
+                <option value="governance">Indicadores e Governança</option>
+              </select>
+            </div>
+
+            {/* Etapa */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Etapa</label>
+              <select 
+                value={stageFilter}
+                onChange={(e) => setStageFilter(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
+              >
+                <option value="all">Etapa (Todas)</option>
+                <option value="Diagnosticar">Diagnosticar</option>
+                <option value="Organizar">Organizar</option>
+                <option value="Delegar">Delegar</option>
+                <option value="Automatizar">Automatizar</option>
+                <option value="Governar">Governar</option>
+              </select>
+            </div>
+
+            {/* Tipo */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Tipo</label>
+              <select 
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
+              >
+                <option value="all">Tipo (Todos)</option>
+                <option value="mandatory">Obrigatória</option>
+                <option value="conditional">Condicional</option>
+                <option value="custom">Personalizada</option>
+              </select>
+            </div>
+
+            {/* Mês */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Mês</label>
+              <select 
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
+              >
+                <option value="all">Mês (Todos)</option>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i+1} value={i+1}>Mês {i+1}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Responsável */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Responsável</label>
+              <select 
+                value={responsibleFilter}
+                onChange={(e) => setResponsibleFilter(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none cursor-pointer focus:border-[var(--color-primary-yellow)]"
+              >
+                <option value="all">Responsável (Todos)</option>
+                <option value="Empreendedor">Empreendedor</option>
+                <option value="Liderança">Liderança</option>
+                <option value="Time">Time</option>
+              </select>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex gap-2 pt-2">
+              {hasActiveFilters && (
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('all');
+                    setPillarFilter('all');
+                    setStageFilter('all');
+                    setTypeFilter('all');
+                    setMonthFilter('all');
+                    setResponsibleFilter('all');
+                  }}
+                  className="flex-1 py-3 bg-neutral-800 text-neutral-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider border border-neutral-700 cursor-pointer"
+                >
+                  Limpar Filtros
+                </button>
+              )}
+              <button 
+                type="button"
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="flex-1 py-3 bg-[var(--color-primary-yellow)] text-black hover:opacity-90 font-bold rounded-xl text-xs uppercase tracking-wider cursor-pointer"
+              >
+                Ver Tarefas ({filteredTasks.length})
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

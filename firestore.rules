@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Funções auxiliares
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSystemAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/systemAdmins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/systemAdmins/$(request.auth.uid)).data.active == true;
+    }
+
+    // Regras para administradores do sistema
+    match /systemAdmins/{uid} {
+      allow read: if (
+        signedIn()
+        && request.auth.uid == uid
+      ) || isSystemAdmin();
+      
+      // Nenhuma gravação/exclusão pelo frontend é permitida na Fase 2A.
+      allow create, update, delete: if false;
+    }
+
+    // Regras para a coleção principal de empresas
+    match /companies/{companyId} {
+      // Somente leitura administrativa nesta Fase 2A.
+      allow read: if isSystemAdmin();
+      
+      // Gravação bloqueada até a Fase 2B.
+      allow write: if false;
+      
+      // Subcoleções (ex: members, tasks)
+      match /{document=**} {
+        allow read: if isSystemAdmin();
+        allow write: if false;
+      }
+    }
+
+    // Regras temporárias para a coleção de clients (Sincronização / Magic Link)
+    match /clients/{clientId} {
+      allow read, write: if true;
+    }
+
+    // Regras do Diagnóstico de Governo Empresarial
+    match /diagnostics/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    match /questionnaire_templates/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    match /answers/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    match /findings/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    match /action_plans/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    // Negar acesso a todas as outras coleções por padrão
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

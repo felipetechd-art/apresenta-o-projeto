@@ -5,7 +5,7 @@ const KEY = "quarterly_diagnostics";
 
 export class DiagnosticRepository {
   /**
-   * Retorna os diagnósticos oficiais trimestrais.
+   * Retorna os mapas 360 oficiais trimestrais.
    * @returns {import("../domain/governance/types.js").QuarterlyDiagnostic[]}
    */
   static getDiagnostics() {
@@ -13,7 +13,7 @@ export class DiagnosticRepository {
   }
 
   /**
-   * Salva um diagnóstico oficial.
+   * Salva um mapa 360 oficial.
    * @param {import("../domain/governance/types.js").QuarterlyDiagnostic} diagnostic 
    */
   static saveDiagnostic(diagnostic) {
@@ -31,7 +31,7 @@ export class DiagnosticRepository {
   }
 
   /**
-   * Obtém o diagnóstico mais recente.
+   * Obtém o mapa 360 mais recente.
    * @returns {import("../domain/governance/types.js").QuarterlyDiagnostic | null}
    */
   static getLatestDiagnostic() {

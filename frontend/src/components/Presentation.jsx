@@ -53,7 +53,9 @@ const formatBRLInput = (value) => {
 const getNumericValue = (formattedValue) => {
   if (!formattedValue) return 0;
   const cleanValue = String(formattedValue).replace(/\D/g, '');
-  return parseFloat(cleanValue) / 100;
+  if (!cleanValue) return 0;
+  const val = parseFloat(cleanValue) / 100;
+  return isNaN(val) ? 0 : val;
 };
 
 
@@ -107,7 +109,7 @@ export default function Presentation() {
   const [totalInvestment, setTotalInvestment] = useState(formatBRLInput('4500000'));
   const [entranceValue, setEntranceValue] = useState(formatBRLInput('1500000'));
   const [installments, setInstallments] = useState('1');
-  const [paymentMethod, setPaymentMethod] = useState(''); // 'credit' | 'pix'
+  const [paymentMethod, setPaymentMethod] = useState('credit'); // 'credit' | 'pix'
   const [clientAddress, setClientAddress] = useState('');
   const [leaders, setLeaders] = useState([{ id: 1, name: '', email: '', collaborators: '', directLeaders: '' }]);
   const [contractForo, setContractForo] = useState('');
@@ -549,7 +551,15 @@ export default function Presentation() {
       const entranceVal = getNumericValue(entranceValue);
       const balanceVal = Math.max(0, investmentVal - entranceVal);
       const instCount = parseInt(installments) || 1;
-      const instValue = instCount > 0 ? (balanceVal / instCount) : 0;
+      let instValue = 0;
+      if (instCount > 0) {
+        if (paymentMethod !== 'pix' && instCount > 1) {
+          const rate = 0.0339; // 3.39% a.m.
+          instValue = balanceVal * (rate * Math.pow(1 + rate, instCount)) / (Math.pow(1 + rate, instCount) - 1);
+        } else {
+          instValue = balanceVal / instCount;
+        }
+      }
       
       const offerConfig = getCommercialOffer(Math.round(investmentVal * 100));
       
@@ -653,7 +663,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
 <p>Em caso de atraso, poderão incidir multa de 2% sobre a parcela vencida e juros de 1% ao mês, calculados proporcionalmente. A CONTRATADA poderá suspender os serviços enquanto houver valor vencido, retomando-os após a regularização conforme disponibilidade operacional.</p>
 
 <p><strong>6. SERVIÇOS ENTREGUES, APROVAÇÕES E RESULTADOS</strong></p>
-<p>Reuniões realizadas, diagnósticos, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
+<p>Reuniões realizadas, mapas 360, estratégias, documentos, materiais, configurações, acessos, ativos e implementações já apresentados ou disponibilizados serão considerados serviços entregues. A CONTRATANTE deverá informar eventuais divergências objetivas em prazo razoável, permitindo sua correção quando estiverem dentro do escopo.</p>
 <p>A prestação constitui obrigação de meio. A CONTRATADA não garante faturamento, vendas, audiência, aprovação de plataformas, desempenho comercial ou qualquer resultado que dependa de decisões da CONTRATANTE, mercado, mídia, tecnologia ou terceiros.</p>
 
 <p><strong>7. CANCELAMENTO, QUEBRA CONTRATUAL E MULTA</strong></p>
@@ -907,77 +917,70 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
             margin-bottom: 0.35rem !important;
           }
           
-          /* Slide layout cards and grids spacing */
-          .premium-card {
-            padding: 0.75rem !important;
-          }
-          .grid {
-            gap: 0.75rem !important;
-          }
-          
           /* Cards scaling for Slide 2, 15 */
-          .max-w-\[340px\] {
-            max-w: 220px !important;
+          .max-w-\\[340px\\] {
+            max-width: 220px !important;
           }
-          .aspect-\[4\/5\] {
+          .aspect-\\[4\\/5\\] {
             aspect-ratio: auto !important;
-            height: 180px !important;
           }
           
-          /* Slide 4 Radial Diagram dimensions */
-          .aspect-square {
-            max-width: 320px !important;
-            max-height: 320px !important;
-          }
+          /* Slide 6 gargalo specific */
           .gargalo-center-circle {
-            width: 4.5rem !important;
-            height: 4.5rem !important;
+            width: 70px !important;
+            height: 70px !important;
           }
-          .gargalo-center-circle span.text-base {
-            font-size: 11px !important;
+          .gargalo-center-circle svg {
+            width: 24px !important;
+            height: 24px !important;
           }
-          .gargalo-center-circle span.text-\[9px\] {
+          .gargalo-center-circle span.text-\\[9px\\] {
             font-size: 7px !important;
           }
           .gargalo-satellite-card {
-            width: 6.5rem !important;
-            padding: 0.2rem 0.4rem !important;
+            width: 75px !important;
+            height: 75px !important;
+            padding: 0.25rem !important;
           }
-          .gargalo-satellite-card span {
-            font-size: 8px !important;
+          .gargalo-satellite-card svg {
+            width: 14px !important;
+            height: 14px !important;
+            margin-bottom: 2px !important;
           }
-          .gargalo-satellite-card span.text-\[8px\] {
+          .gargalo-satellite-card span.text-\\[8px\\] {
             font-size: 6.5px !important;
+            line-height: 1.1 !important;
           }
-          
+
           /* Slide 9 pyramid list heights */
-          .max-w-\[420px\] {
-            max-w: 320px !important;
+          .max-w-\\[420px\\] {
+            max-width: 320px !important;
           }
-          .p-3\.5 {
+          .p-3\\.5 {
             padding: 0.4rem 0.6rem !important;
           }
-          
-          /* Slide 10 method process steps */
-          .w-10.h-10 {
-            width: 1.75rem !important;
-            height: 1.75rem !important;
+
+          /* Slide 10 governance roadmap grid */
+          .p-4.min-h-\\[100px\\] {
+            padding: 0.5rem !important;
+            min-height: 70px !important;
           }
-          .w-10.h-10 span {
-            font-size: 9px !important;
+          .p-4.min-h-\\[100px\\] h4 {
+            font-size: 0.65rem !important;
+            margin-bottom: 0.25rem !important;
           }
-          .flex-grow.flex.flex-col.items-center span {
-            font-size: 7px !important;
+          .p-4.min-h-\\[100px\\] p {
+            font-size: 0.55rem !important;
           }
-          
+
           /* Slide 13 metrics dashboard mockup */
-          .max-w-\[460px\] {
-            max-w: 360px !important;
+          .max-w-\\[460px\\] {
+            max-width: 360px !important;
           }
-          .p-5 {
-            padding: 0.6rem !important;
+          .p-4.bg-black\\/40 {
+            padding: 0.5rem !important;
           }
-          .p-3.bg-black\/20 {
+          .p-3.bg-black\\/20 {
             padding: 0.4rem !important;
           }
           .text-xl {
@@ -1015,9 +1018,18 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
 
       {/* TOP HEADER CONTROLS */}
       <header className="px-4 md:px-10 py-3.5 md:py-5 flex items-center justify-between z-10 shrink-0 border-b border-[#1b2a3f]/25 bg-gradient-to-b from-[#060b13] to-transparent">
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#d4af37] animate-pulse" />
-          <span className="text-[9px] md:text-[11px] font-accent uppercase tracking-[0.2em] md:tracking-[0.25em] text-gray-400 font-medium">Felipe Damasceno</span>
+        <div className="flex items-center gap-4 md:gap-6">
+          <a 
+            href="/admin" 
+            className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-lg bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white transition-all border border-transparent hover:border-gray-800"
+            title="Voltar ao Painel Admin"
+          >
+            <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          </a>
+          <div className="flex items-center gap-2 md:gap-3 hidden sm:flex">
+            <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#d4af37] animate-pulse" />
+            <span className="text-[9px] md:text-[11px] font-accent uppercase tracking-[0.2em] md:tracking-[0.25em] text-gray-400 font-medium">Felipe Damasceno</span>
+          </div>
         </div>
         <div className="flex items-center gap-3 md:gap-6">
           <span className="hidden sm:inline text-[9px] md:text-xs font-accent text-gray-500 tracking-[0.1em] font-semibold">
@@ -1808,7 +1820,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
             <div id="slide-6" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
               <div className="flex flex-col justify-center h-full">
               <div className="mb-8">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Diagnóstico de Gestão</span>
+                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-2 block">Mapa 360 de Gestão</span>
                 <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white">
                   SUA EMPRESA CRESCEU.<br/>
                   <span className="text-gold-premium">SEU MODELO DE GESTÃO NÃO CRESCEU JUNTO.</span>
@@ -1999,10 +2011,10 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
               </div>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center py-4 md:py-0">
                 <div className="col-span-12 md:col-span-5 flex flex-col gap-4 text-left">
-                  <h3 className="text-sm font-heading font-bold text-white uppercase tracking-wider border-b border-gray-800 pb-2">Os Instrumentos Diagnósticos</h3>
+                  <h3 className="text-sm font-heading font-bold text-white uppercase tracking-wider border-b border-gray-800 pb-2">Os Instrumentos Mapas 360</h3>
                   
                   <div className="p-4 bg-white/2 border border-gray-800 rounded-xl">
-                    <span className="text-[10px] text-[#3b82f6] font-mono tracking-widest font-bold uppercase block mb-1">Diagnóstico 1</span>
+                    <span className="text-[10px] text-[#3b82f6] font-mono tracking-widest font-bold uppercase block mb-1">Mapa 360 1</span>
                     <span className="text-xs font-bold text-white uppercase block">IDE — Índice de Dependência Empresarial</span>
                     <p className="text-[10px] text-gray-400 mt-1 font-light leading-relaxed">
                       Mede exatamente quanto e em quais áreas da operação (vendas, finanças, entrega) a empresa ainda depende das decisões do fundador.
@@ -2010,7 +2022,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                   </div>
 
                   <div className="p-4 bg-white/2 border border-gray-800 rounded-xl">
-                    <span className="text-[10px] text-[#10b981] font-mono tracking-widest font-bold uppercase block mb-1">Diagnóstico 2</span>
+                    <span className="text-[10px] text-[#10b981] font-mono tracking-widest font-bold uppercase block mb-1">Mapa 360 2</span>
                     <span className="text-xs font-bold text-white uppercase block">CLO — Calculadora de Liberdade Operacional</span>
                     <p className="text-[10px] text-gray-400 mt-1 font-light leading-relaxed">
                       Mapeia a agenda, horas semanais e carga mental do fundador que ainda estão sequestradas por rotinas táticas e emergenciais.
@@ -2495,45 +2507,45 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
             <div id="slide-14" className="w-full min-h-[85dvh] md:h-full flex flex-col justify-center py-8 md:py-0 border-b border-[#1b2a3f]/15 md:border-b-0 shrink-0">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center h-full text-center md:text-left py-4 md:py-0">
               <div className="col-span-12 md:col-span-5 flex flex-col justify-center text-left">
-                <span className="text-xs font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">Plano de Ação</span>
-                <h2 className="text-3xl lg:text-4xl font-heading font-extrabold text-white leading-tight mb-4">
+                <span className="text-sm font-accent text-[#d4af37] font-bold uppercase tracking-[0.25em] mb-3">Plano de Ação</span>
+                <h2 className="text-4xl lg:text-5xl font-heading font-extrabold text-white leading-tight mb-4">
                   COMO VAMOS <span className="text-gold-premium">RESOLVER</span>
                 </h2>
-                <p className="text-xs text-gray-400 leading-relaxed font-light mb-6">
+                <p className="text-sm lg:text-base text-gray-400 leading-relaxed font-light mb-6">
                   Nosso modelo de implementação é dividido em três fases executivas claras, projetadas para remover você da operação de forma segura.
                 </p>
                 <div className="space-y-4">
                   <div className="p-3 bg-white/2 border border-gray-800 rounded-lg flex items-start gap-3">
-                    <div className="w-6 h-6 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
-                      <span className="text-[#d4af37] font-bold text-xs">1</span>
+                    <div className="w-8 h-8 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#d4af37] font-bold text-sm">1</span>
                     </div>
                     <div>
-                      <h4 className="text-white text-xs font-bold uppercase mb-1">Diagnóstico e Planejamento</h4>
-                      <p className="text-[10px] text-gray-400 font-light">Mapeamento de gargalos, definição do IDE/CLO baseline e planejamento do roadmap customizado.</p>
+                      <h4 className="text-white text-sm font-bold uppercase mb-1">Mapa 360 e Planejamento</h4>
+                      <p className="text-xs text-gray-400 font-light">Mapeamento de gargalos, definição do IDE/CLO baseline e planejamento do roadmap customizado.</p>
                     </div>
                   </div>
                   <div className="p-3 bg-white/2 border border-gray-800 rounded-lg flex items-start gap-3">
-                    <div className="w-6 h-6 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
-                      <span className="text-[#d4af37] font-bold text-xs">2</span>
+                    <div className="w-8 h-8 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#d4af37] font-bold text-sm">2</span>
                     </div>
                     <div>
-                      <h4 className="text-white text-xs font-bold uppercase mb-1">Processos e Automação</h4>
-                      <p className="text-[10px] text-gray-400 font-light">Documentação das rotinas (POPs), implementação de CRM e integrações de IA para triagem operacional.</p>
+                      <h4 className="text-white text-sm font-bold uppercase mb-1">Processos e Automação</h4>
+                      <p className="text-xs text-gray-400 font-light">Documentação das rotinas (POPs), implementação de CRM e integrações de IA para triagem operacional.</p>
                     </div>
                   </div>
                   <div className="p-3 bg-white/2 border border-gray-800 rounded-lg flex items-start gap-3">
-                    <div className="w-6 h-6 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
-                      <span className="text-[#d4af37] font-bold text-xs">3</span>
+                    <div className="w-8 h-8 rounded bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#d4af37] font-bold text-sm">3</span>
                     </div>
                     <div>
-                      <h4 className="text-white text-xs font-bold uppercase mb-1">Gestão e Governança</h4>
-                      <p className="text-[10px] text-gray-400 font-light">Cadência estratégica com líderes, painel de indicadores ao vivo e autonomia executiva completa.</p>
+                      <h4 className="text-white text-sm font-bold uppercase mb-1">Gestão e Governança</h4>
+                      <p className="text-xs text-gray-400 font-light">Cadência estratégica com líderes, painel de indicadores ao vivo e autonomia executiva completa.</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0">
-                <div className="w-full max-w-lg premium-card p-1 rounded-xl border border-gray-800/80 shadow-2xl relative group">
+              <div className="col-span-12 md:col-span-7 flex justify-center mt-6 md:mt-0 w-full h-full items-center">
+                <div className="w-full max-w-2xl lg:max-w-3xl premium-card p-1 rounded-xl border border-gray-800/80 shadow-2xl relative group transition-all duration-300 hover:scale-[1.02]">
                   <div className="absolute inset-0 bg-gradient-to-tr from-[#d4af37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-xl pointer-events-none" />
                   <img src={roadmapImg} alt="Roadmap Dashboard" className="w-full h-auto rounded-lg" />
                 </div>
@@ -2567,21 +2579,18 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <button 
-                    onClick={() => setIsContractModalOpen(true)}
-                    className="px-8 py-3.5 btn-gold rounded-lg flex items-center gap-3 text-xs uppercase tracking-wider font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:scale-105 transition-all cursor-pointer"
-                  >
-                    Iniciar
-                    <ArrowRight className="w-4 h-4 text-black" />
-                  </button>
-                </div>
               </div>
 
               <div className="col-span-1 xl:col-span-8 flex flex-col sm:flex-row gap-6 justify-center items-center mt-8 xl:mt-0">
                 
-                {/* Card 1: Programa (45k) */}
-                <div className="w-full max-w-[320px] bg-[#0a101a] p-6 rounded-2xl border border-gray-700 flex flex-col gap-4 relative overflow-hidden transition-all hover:border-[#d4af37]/50 shadow-xl">
+                <div 
+                  onClick={() => {
+                    setTotalInvestment(formatBRLInput('4500000'));
+                    setEntranceValue(formatBRLInput('1500000'));
+                    setIsContractModalOpen(true);
+                  }}
+                  className="w-full max-w-[320px] bg-[#0a101a] p-6 rounded-2xl border border-gray-700 flex flex-col gap-4 relative overflow-hidden transition-all hover:border-[#d4af37]/50 shadow-xl cursor-pointer"
+                >
                   <div className="border-b border-gray-800 pb-3 text-left">
                     <span className="text-[9px] uppercase font-mono tracking-widest text-gray-400 font-bold">Aceleração</span>
                     <h3 className="text-sm font-heading font-extrabold text-white uppercase mt-0.5">Programa Governo Empresarial</h3>
@@ -2591,7 +2600,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                   <div className="space-y-3 text-[10px] text-gray-300 flex-1 text-left">
                     <p className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
-                      <span>Diagnósticos Iniciais IDE + CLO</span>
+                      <span>Mapas 360 Iniciais IDE + CLO</span>
                     </p>
                     <p className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1" />
@@ -2619,8 +2628,14 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                   </div>
                 </div>
 
-                {/* Card 2: Conselho (80k) */}
-                <div className="w-full max-w-[340px] premium-card p-6 rounded-2xl border-2 border-[#d4af37] flex flex-col gap-4 relative overflow-hidden transform xl:scale-105 z-10 shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+                <div 
+                  onClick={() => {
+                    setTotalInvestment(formatBRLInput('8000000'));
+                    setEntranceValue(formatBRLInput('2400000'));
+                    setIsContractModalOpen(true);
+                  }}
+                  className="w-full max-w-[340px] premium-card p-6 rounded-2xl border-2 border-[#d4af37] flex flex-col gap-4 relative overflow-hidden transform xl:scale-105 z-10 shadow-[0_0_40px_rgba(212,175,55,0.15)] hover:bg-[#d4af37]/5 transition-colors cursor-pointer"
+                >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[#d4af37]/5 rounded-bl-full pointer-events-none" />
                   
                   <div className="border-b border-gray-800 pb-3 text-left">
@@ -2677,17 +2692,25 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
         const isEntranceTooLow = entranceVal > 0 && entranceVal < totalVal * 0.3;
         const balanceVal = Math.max(0, totalVal - entranceVal);
         const instCount = parseInt(installments) || 1;
-        const instValue = instCount > 0 ? (balanceVal / instCount) : 0;
+        let instValue = 0;
+        if (instCount > 0) {
+          if (paymentMethod !== 'pix' && instCount > 1) {
+            const rate = 0.0339; // 3.39% a.m.
+            instValue = balanceVal * (rate * Math.pow(1 + rate, instCount)) / (Math.pow(1 + rate, instCount) - 1);
+          } else {
+            instValue = balanceVal / instCount;
+          }
+        }
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-4">
-            <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-2 sm:p-4">
+            <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[94vh] sm:max-h-[90vh] flex flex-col">
               
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-800 p-4">
+              <div className="flex items-center justify-between border-b border-gray-800 p-3 sm:p-4">
                 <div className="text-left">
                   <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-wider block">FECHAMENTO COMERCIAL</span>
-                  <h3 className="text-base font-heading font-extrabold text-white uppercase">
+                  <h3 className="text-sm sm:text-base font-heading font-extrabold text-white uppercase">
                     {contractStep === 1 ? 'Dados do Cliente' : 'Dados de Pagamento'}
                   </h3>
                 </div>
@@ -2708,7 +2731,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
               </div>
 
               {/* Scrollable Content */}
-              <div className="p-6 overflow-y-auto space-y-4 text-left custom-scrollbar">
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-left custom-scrollbar">
                 
                 {/* ========== STEP 1: DADOS CADASTRAIS ========== */}
                 {contractStep === 1 && (
@@ -3000,7 +3023,12 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Forma de Pagamento (Saldo)</label>
                         <select 
                           value={paymentMethod}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          onChange={(e) => {
+                            setPaymentMethod(e.target.value);
+                            if (e.target.value === 'pix') {
+                              setInstallments(1);
+                            }
+                          }}
                           className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
                         >
                           <option value="credit">Cartão de Crédito</option>
@@ -3039,13 +3067,29 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                       <div className="flex flex-col">
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Parcelamento do Saldo</label>
                         <select 
-                          value={installments}
+                          value={paymentMethod === 'pix' ? 1 : installments}
                           onChange={(e) => setInstallments(e.target.value)}
-                          className="bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 cursor-pointer"
+                          disabled={paymentMethod === 'pix'}
+                          className={`bg-black/40 border border-gray-800 focus:border-[#d4af37] text-white text-xs px-3 py-2 rounded-lg outline-none w-full transition-all duration-300 ${paymentMethod === 'pix' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
-                          {[...Array(12)].map((_, i) => (
-                            <option key={i+1} value={i+1}>{i+1}x parcelas</option>
-                          ))}
+                          {paymentMethod === 'pix' ? (
+                            <option value={1}>1x parcela</option>
+                          ) : (
+                            [...Array(18)].map((_, i) => {
+                              const count = i + 1;
+                              let val = count > 0 ? (balanceVal / count) : 0;
+                              if (paymentMethod !== 'pix' && count > 1) {
+                                const rate = 0.0339;
+                                val = balanceVal * (rate * Math.pow(1 + rate, count)) / (Math.pow(1 + rate, count) - 1);
+                              }
+                              const fmtVal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+                              return (
+                                <option key={count} value={count}>
+                                  {count}x de {fmtVal}
+                                </option>
+                              );
+                            })
+                          )}
                         </select>
                       </div>
 
@@ -3086,7 +3130,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                           </span>
                         </div>
                       </div>
-                      {paymentMethod === 'credit' && (
+                      {paymentMethod !== 'pix' && (
                         <div className="text-[9px] text-[#d4af37]/80 text-right mt-2 font-sans italic">
                           *Valores sujeitos a acréscimo de juros da operadora do cartão conforme o número de parcelas.
                         </div>
@@ -3217,12 +3261,12 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
         const investmentVal = getNumericValue(totalInvestment);
         const offerConfig = getCommercialOffer(Math.round(investmentVal * 100));
         return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-4">
-            <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[85vh] flex flex-col">
-              <div className="flex items-center justify-between border-b border-gray-800 p-4">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-2 sm:p-4">
+            <div className="w-full max-w-2xl bg-gradient-to-b from-[#0a1120] to-[#0e172a] border border-[#d4af37]/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden max-h-[94vh] sm:max-h-[85vh] flex flex-col">
+              <div className="flex items-center justify-between border-b border-gray-800 p-3 sm:p-4">
                 <div className="text-left">
                   <span className="text-[10px] font-accent text-[#d4af37] font-bold uppercase tracking-wider block">ESCOPO</span>
-                  <h3 className="text-base font-heading font-extrabold text-white uppercase">
+                  <h3 className="text-sm sm:text-base font-heading font-extrabold text-white uppercase">
                     Entregáveis do {offerConfig.programName}
                   </h3>
                 </div>
@@ -3233,7 +3277,7 @@ ${offerConfig.additionalDeliverables ? offerConfig.additionalDeliverables.map(g 
                   ✕
                 </button>
               </div>
-              <div className="p-6 overflow-y-auto space-y-6 text-left custom-scrollbar">
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-left custom-scrollbar">
                 {(offerConfig.deliverableGroups || COMMERCIAL_OFFERS[offerConfig.baseProgram].deliverableGroups).map((group, idx) => (
                   <div key={idx} className="bg-black/40 border border-gray-800 p-4 rounded-xl">
                     <h4 className="text-[#d4af37] font-bold text-sm mb-1">{group.title}</h4>

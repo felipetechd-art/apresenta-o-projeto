@@ -29,34 +29,34 @@ export function useGovernanceDashboard(initialProps = {}) {
   const snapshots = closing.snapshots;
   const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
 
+  const isPreviewMode = !companyId && !!presentationSessionId && !isMagicLink && draftData?.status !== 'active';
+
   // Calculamos IGE baseado nos últimos dados, ou draft (Prévia), ou null
-  const currentIde = latestSnapshot ? latestSnapshot.metrics.provisionalIde : (draftData?.diagnosticData?.ideDependency != null ? clampPercentage(draftData.diagnosticData.ideDependency) : null);
-  const currentClo = latestSnapshot ? latestSnapshot.metrics.clo : (draftData?.diagnosticData?.cloOperationalFreedom != null ? clampPercentage(draftData.diagnosticData.cloOperationalFreedom) : null);
-  const currentAutonomy = latestSnapshot ? latestSnapshot.metrics.autonomy : (draftData?.diagnosticData?.cloOperationalFreedom != null ? clampPercentage(draftData.diagnosticData.cloOperationalFreedom) : null); // fallback
+  const currentIde = latestSnapshot ? latestSnapshot.metrics.provisionalIde : (isPreviewMode && draftData?.diagnosticData?.ideDependency != null ? clampPercentage(draftData.diagnosticData.ideDependency) : null);
+  const currentClo = latestSnapshot ? latestSnapshot.metrics.clo : (isPreviewMode && draftData?.diagnosticData?.cloOperationalFreedom != null ? clampPercentage(draftData.diagnosticData.cloOperationalFreedom) : null);
+  const currentAutonomy = latestSnapshot ? latestSnapshot.metrics.autonomy : (isPreviewMode && draftData?.diagnosticData?.cloOperationalFreedom != null ? clampPercentage(draftData.diagnosticData.cloOperationalFreedom) : null); // fallback
   const currentProcessMaturity = latestSnapshot ? latestSnapshot.metrics.processMaturity : null; // Aguardando medição
   const currentAutomation = null; // Aguardando medição
   const currentGovernance = null; // Aguardando medição
 
-  const isPreviewMode = !companyId && !!presentationSessionId && !isMagicLink;
-
-  // IGE should be null in preview mode because we don't have all pillars measured
-  const ige = isPreviewMode ? null : calculateIGE({
+  // IGE should be null in preview mode OR when there are no actual snapshots to measure
+  const ige = isPreviewMode ? null : (latestSnapshot ? calculateIGE({
     ide: currentIde || 0,
     clo: currentClo || 0,
     autonomy: currentAutonomy || 0,
     processMaturity: currentProcessMaturity || 0,
     automation: currentAutomation || 0,
     governance: currentGovernance || 0
-  });
+  }) : null);
 
   const maturityLevel = ige !== null ? getMaturityLevel(ige) : 'Aguardando medição';
 
-  const decisionsToOwner = latestSnapshot?.rawData?.decisionsToOwner ?? 35; // Demo
+  const decisionsToOwner = latestSnapshot?.rawData?.decisionsToOwner ?? (isPreviewMode ? 35 : null);
   
   const pillars = [
-    { id: 'people', name: 'Pessoas e Lideranças', currentScore: 12 },
+    { id: 'people', name: 'Pessoas e Lideranças', currentScore: isPreviewMode ? 12 : null },
     { id: 'processes', name: 'Processos e Rotinas', currentScore: currentProcessMaturity },
-    { id: 'delegation', name: 'Delegação e Alçadas', currentScore: 10 },
+    { id: 'delegation', name: 'Delegação e Alçadas', currentScore: isPreviewMode ? 10 : null },
     { id: 'automation', name: 'Automação e Tecnologia', currentScore: currentAutomation },
     { id: 'governance', name: 'Indicadores e Governança', currentScore: currentGovernance }
   ];
@@ -113,6 +113,7 @@ export function useGovernanceDashboard(initialProps = {}) {
     snapshots,
     saveClosing,
     validateClosing,
+    scopeId: repositoryScopeId,
     returnClosing,
     createRevision,
     validateTask,
