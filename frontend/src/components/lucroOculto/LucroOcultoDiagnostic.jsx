@@ -639,6 +639,28 @@ export function LucroOcultoDiagnostic() {
                     className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-amber-500 font-mono"
                   />
                 </div>
+
+                <div>
+                  <label className="text-neutral-300 block mb-1 font-medium">{nichoConfig.b1.clientesMesLabel || 'Quantos clientes / atendimentos por mês?'}</label>
+                  <input 
+                    type="number" 
+                    placeholder={nichoConfig.b1.clientesMesPlaceholder || 'Ex: 200'}
+                    value={formData.bloco1.clientesMes}
+                    onChange={e => updateBlock('bloco1', 'clientesMes', e.target.value)}
+                    className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-amber-500 font-mono"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-neutral-300 block mb-1 font-medium">{nichoConfig.b1.produtosServicosLabel || 'Principais produtos ou serviços oferecidos'}</label>
+                  <textarea 
+                    rows={2}
+                    placeholder={nichoConfig.b1.produtosServicosPlaceholder || 'Ex: Produto principal, linha secundária, serviços complementares...'}
+                    value={formData.bloco1.produtosServicos}
+                    onChange={e => updateBlock('bloco1', 'produtosServicos', e.target.value)}
+                    className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
 
               <div>
