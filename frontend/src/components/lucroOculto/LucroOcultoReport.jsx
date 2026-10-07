@@ -168,6 +168,13 @@ export function LucroOcultoReport({ report, onBack }) {
             </div>
           </div>
 
+          {report.produtosServicos && (
+            <div className="bg-neutral-900/40 border border-neutral-800 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider shrink-0">Produtos & Serviços</span>
+              <span className="text-xs text-neutral-300 leading-relaxed">{report.produtosServicos}</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
             <div className="bg-neutral-900/40 border border-neutral-800 rounded-xl p-3.5 flex items-center justify-between">
               <div>
@@ -458,6 +465,54 @@ export function LucroOcultoReport({ report, onBack }) {
             </div>
           </div>
         </section>
+
+        {/* ==================================================
+            SEÇÃO 7 — DESEMPENHO COMERCIAL (LINGUAGEM DO SEGMENTO)
+            ================================================== */}
+        {report.comercial && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+            <TrendingUp className="w-4 h-4" />
+            <span>Seção 7 • {report.comercialTitle || 'Desempenho Comercial'}</span>
+          </div>
+
+          <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-xl p-3.5 flex flex-col justify-between">
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">{report.leadsTermo || 'Leads / Contatos'}</span>
+                <span className="text-xl font-heading font-extrabold text-white mt-1">{report.comercial.leadsMes}</span>
+                <span className="text-[9px] text-neutral-500 mt-1">por mês</span>
+              </div>
+
+              <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-xl p-3.5 flex flex-col justify-between">
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">{report.vendasTermo || 'Vendas / Contratos'}</span>
+                <span className="text-xl font-heading font-extrabold text-white mt-1">{report.comercial.vendasMes}</span>
+                <span className="text-[9px] text-neutral-500 mt-1">por mês</span>
+              </div>
+
+              <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-xl p-3.5 flex flex-col justify-between">
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Taxa de Conversão</span>
+                <span className="text-xl font-heading font-extrabold text-amber-400 mt-1">{report.comercial.taxaConversao}%</span>
+                <span className="text-[9px] text-neutral-500 mt-1">contato → venda</span>
+              </div>
+
+              <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-xl p-3.5 flex flex-col justify-between">
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Receita por Vendedor</span>
+                <span className="text-xl font-heading font-extrabold text-white mt-1">{formatCurrency(report.comercial.receitaPorVendedor)}</span>
+                <span className="text-[9px] text-neutral-500 mt-1">por mês</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-300 leading-relaxed border-t border-neutral-800 pt-4">
+              {emphasize(
+                `Atendimento/vendas mensais: ~${report.clientesMes || 0} ${report.clienteTermo || 'clientes'} (${report.unidadeVenda || 'unidade de venda'}). ` +
+                `Time comercial: ${report.comercial.vendedores} ${report.comercial.vendedores === 1 ? 'vendedor' : 'vendedores'}` +
+                `${report.comercial.sdrs > 0 ? ` e ${report.comercial.sdrs} SDR(s)` : ''} — conversão atual de ${report.leadsTermo || 'leads'} em ${report.vendasTermo || 'vendas'}: ${report.comercial.taxaConversao}%.`
+              )}
+            </p>
+          </div>
+        </section>
+        )}
 
         {/* ==================================================
             SEÇÃO 12 — TOP 5 LUCROS OCULTOS DETALHADOS

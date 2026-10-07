@@ -472,6 +472,24 @@ export const LucroOcultoEngine = {
       recomendacoesCeo,
       achados,
       componentes,
+
+      // Desempenho Comercial (Seção 7 — linguagem do segmento)
+      comercial: {
+        leadsMes,
+        vendasMes,
+        taxaConversao: Math.round(taxaConversao * 10) / 10,
+        receitaPorVendedor,
+        vendedores: vendedoresCount,
+        sdrs: sdrsCount
+      },
+      comercialTitle: (segmentReport && segmentReport.comercialTitle) || 'Desempenho Comercial',
+      leadsTermo: (segmentReport && segmentReport.leadsTermo) || 'leads / contatos recebidos',
+      vendasTermo: (segmentReport && segmentReport.vendasTermo) || 'vendas / contratos fechados',
+      clienteTermo: (nichoConfig && nichoConfig.clienteTermo) || 'clientes',
+      unidadeVenda: (nichoConfig && nichoConfig.unidadeVenda) || 'vendas',
+      clientesMes,
+      produtosServicos: b1.produtosServicos || '',
+      segmento: b1.segmento || '',
       
       // Dados brutos
       formData

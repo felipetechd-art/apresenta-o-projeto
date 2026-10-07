@@ -91,11 +91,50 @@
 
 /* Subtle Pulsing for status dots */
 @keyframes status-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.9); }
+  0% { box-shadow: 0 0 0 0 rgba(23, 201, 154, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(23, 201, 154, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(23, 201, 154, 0); }
 }
 
 .pulse-dot {
   animation: status-pulse 2s infinite ease-in-out;
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  #dossie-pdf-root, #dossie-pdf-root * {
+    visibility: visible;
+  }
+  
+  #dossie-pdf-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  /* Esconde os botões e interface na hora da impressão */
+  .pdf-exclude {
+    display: none !important;
+  }
+
+  /* Força a quebra de página manual para não cortar seções ao meio */
+  .html2pdf__page-break {
+    page-break-before: always;
+  }
+}
+
+/* Animacao global fade-in (Lucro Oculto, SearchableSelect, modais, apresentacoes) */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
