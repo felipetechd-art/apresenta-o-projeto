@@ -17,6 +17,8 @@ import DiagnosticConfigView from './components/admin/DiagnosticConfigView.jsx'
 import UserManagementView from './components/admin/UserManagementView.jsx'
 import DiagnosticFlow from './components/diagnostic/DiagnosticFlow.jsx'
 import DiagnosticResults from './components/diagnostic/DiagnosticResults.jsx'
+import EntrevistaForm from './components/interview/EntrevistaForm.jsx'
+import EntrevistaDetalhe from './components/interview/EntrevistaDetalhe.jsx'
 
 import ConversationPresentation from './components/ConversationPresentation.jsx'
 import PPEPresentation from './components/PPEPresentation.jsx'
@@ -96,6 +98,31 @@ createRoot(document.getElementById('root')).render(
                 <DiagnosticResults />
               </ProtectedRoute>
             } 
+          />
+          {/* Entrevista Inicial — Governo Empresarial */}
+          <Route
+            path="/admin/entrevistas/nova"
+            element={
+              <ProtectedRoute>
+                <EntrevistaForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/entrevistas/:id/editar"
+            element={
+              <ProtectedRoute>
+                <EntrevistaForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/entrevistas/:id"
+            element={
+              <ProtectedRoute>
+                <EntrevistaDetalhe />
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </BrowserRouter>

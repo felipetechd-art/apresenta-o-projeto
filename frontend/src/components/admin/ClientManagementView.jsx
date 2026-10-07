@@ -10,6 +10,7 @@ import { downloadContract } from '../../domain/commercial/contractGenerator.js';
 import { downloadContractFromSnapshot, validateContractData, handleClientContractDownload } from '../../domain/commercial/contractSnapshot.js';
 import { diagnosticService } from '../../services/diagnosticService.js';
 import { LucroOcultoTab } from '../lucroOculto/LucroOcultoTab.jsx';
+import { EntrevistasTab } from '../interview/EntrevistasTab.jsx';
 
 export default function ClientManagementView() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function ClientManagementView() {
   const [salesStatusFilter, setSalesStatusFilter] = useState('all');
   const [leadStatusFilter, setLeadStatusFilter] = useState('all');
   const [selectedClient, setSelectedClient] = useState(null);
-  const [activeTab, setActiveTab] = useState('lucro_oculto'); // 'lucro_oculto', 'propostas', 'diagnosticos', 'clientes', 'clientes_ppe'
+  const [activeTab, setActiveTab] = useState('lucro_oculto'); // 'lucro_oculto', 'entrevistas', 'propostas', 'diagnosticos', 'clientes', 'clientes_ppe'
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -348,7 +349,7 @@ export default function ClientManagementView() {
               className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 focus:ring-offset-2 focus:ring-offset-neutral-900 text-center"
             >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Nova conversa</span>
+              <span>Análise</span>
             </Link>
             <Link
               to="/admin/usuarios"
@@ -395,6 +396,16 @@ export default function ClientManagementView() {
             Mapa do Lucro Oculto
           </button>
           <button
+            onClick={() => setActiveTab('entrevistas')}
+            className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all border-b-2 shrink-0 ${
+              activeTab === 'entrevistas'
+                ? 'border-amber-500 text-amber-500'
+                : 'border-transparent text-neutral-500 hover:text-white'
+            }`}
+          >
+            Entrevistas
+          </button>
+          <button
             onClick={() => setActiveTab('propostas')}
             className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all border-b-2 shrink-0 ${
               activeTab === 'propostas' 
@@ -439,6 +450,10 @@ export default function ClientManagementView() {
         {activeTab === 'lucro_oculto' ? (
           <div className="mt-6">
             <LucroOcultoTab />
+          </div>
+        ) : activeTab === 'entrevistas' ? (
+          <div className="mt-6">
+            <EntrevistasTab />
           </div>
         ) : (
           <>

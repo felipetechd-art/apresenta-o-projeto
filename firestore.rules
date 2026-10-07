@@ -65,6 +65,16 @@ service cloud.firestore {
       allow read, write: if signedIn();
     }
 
+    // Entrevista Inicial — Governo Empresarial
+    // Proteção aplicada no servidor: leitura, edição e exportação exigem
+    // administrador ativo. Nenhuma credencial é armazenada no cliente.
+    match /interviews/{interviewId} {
+      allow read: if isSystemAdmin();
+      allow create, update: if isSystemAdmin();
+      allow delete: if isSystemAdmin();
+      allow write: if false;
+    }
+
     // Negar acesso a todas as outras coleções por padrão
     match /{document=**} {
       allow read, write: if false;
