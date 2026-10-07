@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, HelpCircle } from 'lucide-react';
-import { isEmptyValue, showField, QUESTION_LIST, getProgress } from '../../domain/interview/interviewSchema';
+import { isEmptyValue, showField, QUESTION_LIST, getProgress, INTERVIEW_BLOCKS } from '../../domain/interview/interviewSchema';
 
 const inputClass =
   'w-full bg-neutral-900 border border-neutral-700 focus:border-amber-500 text-white text-sm rounded-lg px-4 py-2.5 outline-none transition-colors placeholder:text-neutral-600';
@@ -368,8 +368,9 @@ export function BlockProgress({ interview, activeBlock, onSelectBlock }) {
                   : 'border-neutral-700/60 bg-neutral-900/50 text-neutral-400 hover:text-white hover:border-neutral-600'
               }`}
             >
-              <span className="block text-[10px] font-bold uppercase tracking-wider">
-                Bloco {entry.blockId}
+              <span className="block text-[10px] font-bold uppercase tracking-wider leading-tight">
+                {INTERVIEW_BLOCKS.find((b) => b.id === entry.blockId)?.shortTitle ||
+                  `Bloco ${entry.blockId}`}
               </span>
               <span className="block text-[11px] font-mono mt-0.5">
                 {answered}/{blockQuestions.length}
